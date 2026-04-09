@@ -306,7 +306,7 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
             exit={{ y: 120, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 28 }}
             style={{
-              position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+              position: 'fixed', bottom: 0, left: 0, right: 0, margin: '0 auto',
               width: '100%', maxWidth: 448,
               padding: '24px 20px 32px',
               background: lastCorrect ? 'linear-gradient(135deg, #059669, #10B981)' : 'linear-gradient(135deg, #DC2626, #EF4444)',
@@ -376,7 +376,7 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
               exit={{ y: 80, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 360, damping: 28 }}
               style={{
-                position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+                position: 'fixed', bottom: 0, left: 0, right: 0, margin: '0 auto',
                 width: '100%', maxWidth: 448, zIndex: 401,
                 background: 'linear-gradient(160deg, #4C1D95, #7C3AED)',
                 borderRadius: '24px 24px 0 0',
