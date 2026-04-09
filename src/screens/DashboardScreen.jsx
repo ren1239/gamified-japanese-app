@@ -105,8 +105,8 @@ export default function DashboardScreen({ onNavigate }) {
           <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 13, color: 'rgba(255,255,255,0.6)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: 4 }}>
             Your Progress
           </div>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(38px,9vw,58px)', color: '#fff', lineHeight: 1, letterSpacing: '1px', marginBottom: 20 }}>
-            <span style={{ color: '#FCD34D' }}>日本語</span> JOURNEY
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(38px,9vw,58px)', color: '#fff', lineHeight: 1, letterSpacing: '1px', marginBottom: 20, display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ color: '#FCD34D', fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900, fontSize: '0.9em', letterSpacing: '-1px' }}>日本語</span> JOURNEY
           </div>
 
           {/* XP bar */}
