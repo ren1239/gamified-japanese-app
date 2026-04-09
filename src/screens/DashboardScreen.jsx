@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Flame, Star, Target, FileText, Zap, Award, BookOpen } from 'lucide-react'
+import { Flame, Star, Target, FileText, Zap, Award, BookOpen, Lock } from 'lucide-react'
 import { useStatsStore, computeLevel, xpInCurrentLevel, xpForLevel } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import { chapters } from '../data/chapterData'
@@ -194,8 +194,10 @@ export default function DashboardScreen({ onNavigate }) {
                     background: 'var(--surface)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
                   }}>
-                    <div style={{ fontSize: 16 }}>
-                      {perfect ? '⭐' : played ? '✓' : isLocked ? '🔒' : ch.number}
+                    <div style={{ fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {perfect ? '⭐' : played ? '✓' : isLocked
+                        ? <Lock size={14} strokeWidth={2.5} color="var(--text-muted)" />
+                        : ch.number}
                     </div>
                     <div style={{
                       fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 10,
