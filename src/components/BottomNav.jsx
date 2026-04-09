@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
-import { BarChart2, BookOpen, Settings } from 'lucide-react'
+import { BarChart2, BookOpen, Settings, FolderPlus } from 'lucide-react'
 
 const TABS = [
   { id: 'dashboard', label: 'Stats',     Icon: BarChart2 },
   { id: 'chapters',  label: 'Chapters',  Icon: BookOpen  },
-  { id: 'custom',    label: 'Custom',    Icon: Settings  },
+  { id: 'custom',    label: 'Custom',    Icon: FolderPlus },
+  { id: 'settings',  label: 'Settings',  Icon: Settings  },
 ]
 
 export default function BottomNav({ active, onChange }) {

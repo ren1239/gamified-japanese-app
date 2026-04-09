@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useParticles } from './hooks/useParticles'
 import { useGameStore, useQuizStore } from './store/quizStore'
@@ -10,6 +10,7 @@ import HomeScreen from './screens/HomeScreen'
 import QuizScreen from './screens/QuizScreen'
 import ScoreScreen from './screens/ScoreScreen'
 import ReviewScreen from './screens/ReviewScreen'
+import SettingsScreen from './screens/SettingsScreen'
 import BottomNav from './components/BottomNav'
 import XPToast from './components/XPToast'
 import LevelUpModal from './components/LevelUpModal'
@@ -23,9 +24,10 @@ const SCREENS = {
   quiz: 'quiz',
   score: 'score',
   review: 'review',
+  settings: 'settings',
 }
 
-const NAV_SCREENS = new Set(['dashboard', 'chapters', 'custom'])
+const NAV_SCREENS = new Set(['dashboard', 'chapters', 'custom', 'settings'])
 
 export default function App() {
   // Navigation state
@@ -190,6 +192,12 @@ export default function App() {
               quizId={reviewQuizId}
               onBack={() => setScreen(reviewBack === 'score' ? SCREENS.score : SCREENS.dashboard)}
             />
+          </motion.div>
+        )}
+
+        {screen === SCREENS.settings && (
+          <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+            <SettingsScreen />
           </motion.div>
         )}
 

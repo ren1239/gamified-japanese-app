@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ChevronRight, BookOpen, CheckCircle, Circle } from 'lucide-react'
+import { ChevronRight, BookOpen, CheckCircle, Circle, Lock } from 'lucide-react'
 import { useQuizStore } from '../store/quizStore'
 import { chapters } from '../data/chapterData'
 
@@ -48,7 +48,8 @@ export default function ChapterListScreen({ onSelect }) {
       {/* Chapter grid */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {chapters.map((ch, i) => {
-          const status = getChapterStatus(ch, quizMap)
+          const isLocked = ch.number !== 11
+          const status = isLocked ? 'locked' : getChapterStatus(ch, quizMap)
           const vocab = ch.vocab?.quizId ? quizMap[ch.vocab.quizId] : null
           const grammarCount = ch.grammar.length
           const grammarPlayed = ch.grammar.filter((g) => quizMap[g.quizId]?.playCount > 0).length
@@ -59,9 +60,9 @@ export default function ChapterListScreen({ onSelect }) {
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.025, duration: 0.3 }}
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onSelect(ch)}
+              whileHover={!isLocked ? { x: 4 } : {}}
+              whileTap={!isLocked ? { scale: 0.98 } : {}}
+              onClick={() => { if (!isLocked) onSelect(ch) }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 14,
                 padding: '14px 16px',
@@ -69,12 +70,15 @@ export default function ChapterListScreen({ onSelect }) {
                 border: `1.5px solid ${
                   status === 'gold' ? 'rgba(245,158,11,0.4)' :
                   status === 'active' ? 'var(--border-md)' :
+                  isLocked ? 'var(--border)' :
                   'var(--border)'
                 }`,
                 borderRadius: 'var(--radius-md)',
-                cursor: 'pointer',
+                cursor: isLocked ? 'not-allowed' : 'pointer',
                 textAlign: 'left',
                 width: '100%',
+                opacity: isLocked ? 0.45 : 1,
+                filter: isLocked ? 'grayscale(0.8)' : 'none',
                 boxShadow: status === 'active' ? 'var(--shadow-sm)' : 'none',
                 backdropFilter: 'blur(12px)',
                 transition: 'border-color 0.2s',
@@ -89,9 +93,12 @@ export default function ChapterListScreen({ onSelect }) {
                   ? 'linear-gradient(135deg, #F59E0B, #F97316)'
                   : status === 'active'
                   ? 'linear-gradient(135deg, var(--primary), var(--primary-light))'
+                  : status === 'locked'
+                  ? 'transparent'
                   : 'rgba(124,58,237,0.08)',
-                color: status === 'idle' ? 'var(--text-muted)' : '#fff',
-                boxShadow: status !== 'idle' ? 'var(--shadow-sm)' : 'none',
+                color: (status === 'idle' || status === 'locked') ? 'var(--text-muted)' : '#fff',
+                border: status === 'locked' ? '2px dashed var(--border-md)' : 'none',
+                boxShadow: (status !== 'idle' && status !== 'locked') ? 'var(--shadow-sm)' : 'none',
               }}>
                 {ch.number}
               </div>
@@ -108,28 +115,42 @@ export default function ChapterListScreen({ onSelect }) {
 
               {/* Right: progress indicators */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                {/* Vocab pill */}
-                {vocab?.playCount > 0 ? (
-                  <CheckCircle size={15} strokeWidth={2.5} color="var(--success)" />
-                ) : (
-                  <Circle size={15} strokeWidth={2} color="var(--border-md)" />
-                )}
-
-                {/* Grammar pill — only show if chapter has grammar */}
-                {grammarCount > 0 && (
+                {isLocked ? (
                   <div style={{
-                    fontSize: 11, fontWeight: 800,
-                    color: grammarPlayed === grammarCount ? 'var(--success)' : grammarPlayed > 0 ? 'var(--primary)' : 'var(--text-muted)',
-                    background: grammarPlayed === grammarCount ? 'var(--success-dim)' : grammarPlayed > 0 ? 'var(--primary-glow)' : 'transparent',
-                    padding: '2px 7px', borderRadius: 6,
-                    border: '1px solid',
-                    borderColor: grammarPlayed === grammarCount ? 'rgba(16,185,129,0.3)' : grammarPlayed > 0 ? 'var(--border-md)' : 'var(--border)',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '5px 10px', borderRadius: 8,
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border-md)',
                   }}>
-                    {grammarPlayed}/{grammarCount} G
+                    <Lock size={13} strokeWidth={2.5} color="var(--text-muted)" />
+                    <span style={{ fontSize: 11, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Locked</span>
                   </div>
-                )}
+                ) : (
+                  <>
+                    {/* Vocab pill */}
+                    {vocab?.playCount > 0 ? (
+                      <CheckCircle size={15} strokeWidth={2.5} color="var(--success)" />
+                    ) : (
+                      <Circle size={15} strokeWidth={2} color="var(--border-md)" />
+                    )}
 
-                <ChevronRight size={16} color="var(--text-muted)" />
+                    {/* Grammar pill — only show if chapter has grammar */}
+                    {grammarCount > 0 && (
+                      <div style={{
+                        fontSize: 11, fontWeight: 800,
+                        color: grammarPlayed === grammarCount ? 'var(--success)' : grammarPlayed > 0 ? 'var(--primary)' : 'var(--text-muted)',
+                        background: grammarPlayed === grammarCount ? 'var(--success-dim)' : grammarPlayed > 0 ? 'var(--primary-glow)' : 'transparent',
+                        padding: '2px 7px', borderRadius: 6,
+                        border: '1px solid',
+                        borderColor: grammarPlayed === grammarCount ? 'rgba(16,185,129,0.3)' : grammarPlayed > 0 ? 'var(--border-md)' : 'var(--border)',
+                      }}>
+                        {grammarPlayed}/{grammarCount} G
+                      </div>
+                    )}
+
+                    <ChevronRight size={16} color="var(--text-muted)" />
+                  </>
+                )}
               </div>
             </motion.button>
           )

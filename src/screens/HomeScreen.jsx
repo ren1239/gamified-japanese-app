@@ -10,32 +10,26 @@ export default function HomeScreen({ onStart, onReview }) {
 
   return (
     <>
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 960, margin: '0 auto', padding: '48px 24px 80px' }}>
+      <div className="page" style={{ paddingTop: 24, paddingBottom: 100 }}>
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{ textAlign: 'center', marginBottom: 56 }}
+          style={{ marginBottom: 32 }}
         >
-          <div style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 'clamp(60px, 10vw, 110px)',
-            lineHeight: 1,
-            letterSpacing: '2px',
-            color: 'var(--text)',
-          }}>
-            <span style={{ color: 'var(--pink)' }}>日本語</span>
-            {' '}QUIZ
-          </div>
-          <div style={{
-            fontSize: 12,
-            letterSpacing: '4px',
-            textTransform: 'uppercase',
-            color: 'var(--muted)',
-            marginTop: 10,
-          }}>
-            Genki Vocabulary · Interactive Study
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
+                CUSTOM QUIZZES
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, marginTop: 4 }}>
+                Create or import JSON quizzes
+              </div>
+            </div>
+            
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowImport(true)} style={{ padding: '8px 16px', fontSize: 13 }}>
+              + Import
+            </button>
           </div>
         </motion.div>
 
@@ -46,8 +40,8 @@ export default function HomeScreen({ onStart, onReview }) {
             animate={{ opacity: 1 }}
             style={{ textAlign: 'center', padding: '64px 0', color: 'var(--muted)' }}
           >
-            <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 64, marginBottom: 16 }}>日</div>
-            <p style={{ fontSize: 16, lineHeight: 1.7 }}>No quizzes yet.<br />Import one below to get started.</p>
+            <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 64, marginBottom: 16, opacity: 0.8 }}>📦</div>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--text-muted)', fontWeight: 600 }}>No custom quizzes found.<br />Tap 'Import' to add your own JSON files.</p>
           </motion.div>
         ) : (
           <div style={{
@@ -71,20 +65,8 @@ export default function HomeScreen({ onStart, onReview }) {
           </div>
         )}
 
-        {/* Import button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          style={{ display: 'flex', justifyContent: 'center', gap: 12 }}
-        >
-          <button className="btn btn-secondary" onClick={() => setShowImport(true)}>
-            + Import New Quiz
-          </button>
-        </motion.div>
-
-        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: 'var(--muted)', lineHeight: 1.6 }}>
-          Ask Claude: "Create 10 questions about [topic]" · Get JSON · Import below
+        <div style={{ textAlign: 'center', marginTop: 40, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, fontWeight: 700 }}>
+          Ask Claude: "Create 10 questions about [topic]"<br/>Get JSON · Import above
         </div>
       </div>
 

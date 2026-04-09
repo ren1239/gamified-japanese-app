@@ -29,6 +29,12 @@ export const useQuizStore = create(
         set((state) => ({ quizzes: state.quizzes.filter((q) => q.id !== id) }))
       },
 
+      resetQuizzesProgress: () => {
+        set((state) => ({
+          quizzes: state.quizzes.map((q) => ({ ...q, playCount: 0, bestScore: null })),
+        }))
+      },
+
       updateStats: (id, score) => {
         const quiz = get().quizzes.find((q) => q.id === id)
         const total = quiz?.questions?.length || 0

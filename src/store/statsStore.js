@@ -70,6 +70,13 @@ export const useStatsStore = create(
 
         return xpEarned
       },
+
+      resetStats: () => set({
+        totalXp: 0,
+        history: [],
+        lastPlayedDate: null,
+        streak: 0,
+      }),
     }),
     {
       name: 'nihongo-stats-store',
