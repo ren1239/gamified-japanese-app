@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Target, Shuffle, Trash2, Download, Plus, ChevronRight, AlertCircle } from 'lucide-react'
+import { Target, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, Check } from 'lucide-react'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import ImportModal from '../components/ImportModal'
@@ -17,6 +17,7 @@ export default function HomeScreen({ onStart, onReview }) {
   const [mode, setMode] = useState('missed') // 'missed' | 'random'
   const [showImport, setShowImport] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [selectedSources, setSelectedSources] = useState(null) // null = all selected
 
   // Only user-imported quizzes (not builtins)
   const customQuizzes = useMemo(
@@ -24,19 +25,60 @@ export default function HomeScreen({ onStart, onReview }) {
     [quizzes]
   )
 
-  const bankSize = wrongBank.length
+  // Breakdown by quiz source, sorted by count
+  const breakdown = useMemo(() => {
+    const map = {}
+    wrongBank.forEach((e) => {
+      if (!map[e.quizId]) map[e.quizId] = { title: e.quizTitle, count: 0 }
+      map[e.quizId].count++
+    })
+    return Object.entries(map)
+      .map(([quizId, { title, count }]) => ({ quizId, title, count }))
+      .sort((a, b) => b.count - a.count)
+  }, [wrongBank])
+
+  // Active source filter — null means all
+  const activeSourceIds = selectedSources ?? new Set(breakdown.map((b) => b.quizId))
+
+  const toggleSource = (quizId) => {
+    const current = selectedSources ?? new Set(breakdown.map((b) => b.quizId))
+    const next = new Set(current)
+    if (next.has(quizId) && next.size > 1) {
+      next.delete(quizId)
+    } else if (!next.has(quizId)) {
+      next.add(quizId)
+    }
+    // If all selected, reset to null (all)
+    if (next.size === breakdown.length) {
+      setSelectedSources(null)
+    } else {
+      setSelectedSources(next)
+    }
+  }
+
+  // Filtered bank based on selected sources
+  const filteredBank = useMemo(
+    () => wrongBank.filter((e) => activeSourceIds.has(e.quizId)),
+    [wrongBank, activeSourceIds]
+  )
+
+  const bankSize = filteredBank.length
   const actualCount = Math.min(count, bankSize)
 
   const handleGenerate = () => {
     if (bankSize === 0) return
     const sorted = mode === 'missed'
-      ? [...wrongBank].sort((a, b) => b.wrongCount - a.wrongCount)
-      : [...wrongBank].sort(() => Math.random() - 0.5)
+      ? [...filteredBank].sort((a, b) => b.wrongCount - a.wrongCount)
+      : [...filteredBank].sort(() => Math.random() - 0.5)
 
     const selected = sorted.slice(0, actualCount)
+    const sourceLabel = selectedSources && selectedSources.size === 1
+      ? breakdown.find((b) => selectedSources.has(b.quizId))?.title || 'Practice'
+      : 'Mistakes Practice'
+
     const practiceQuiz = {
       id: `practice_${Date.now()}`,
-      title: 'Mistakes Practice',
+      title: sourceLabel,
       topic: 'Wrong Answers',
       created: new Date().toISOString().slice(0, 10),
       playCount: 0,
@@ -46,15 +88,7 @@ export default function HomeScreen({ onStart, onReview }) {
     onStart(practiceQuiz, false)
   }
 
-  // Breakdown by quiz source
-  const breakdown = useMemo(() => {
-    const map = {}
-    wrongBank.forEach((e) => {
-      if (!map[e.quizTitle]) map[e.quizTitle] = 0
-      map[e.quizTitle]++
-    })
-    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 4)
-  }, [wrongBank])
+  const totalBankSize = wrongBank.length
 
   return (
     <>
@@ -85,16 +119,17 @@ export default function HomeScreen({ onStart, onReview }) {
           {/* Ambient glow top bar */}
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-            background: bankSize > 0
+            background: totalBankSize > 0
               ? 'linear-gradient(90deg, var(--primary), var(--accent))'
               : 'var(--border)',
           }} />
 
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: bankSize > 0 ? 18 : 0 }}>
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: totalBankSize > 0 ? 18 : 0 }}>
             <div style={{
               width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-              background: bankSize > 0 ? 'var(--primary-glow)' : 'var(--border)',
-              color: bankSize > 0 ? 'var(--primary)' : 'var(--text-muted)',
+              background: totalBankSize > 0 ? 'var(--primary-glow)' : 'var(--border)',
+              color: totalBankSize > 0 ? 'var(--primary)' : 'var(--text-muted)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Target size={22} />
@@ -103,20 +138,26 @@ export default function HomeScreen({ onStart, onReview }) {
               <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>
                 Wrong Answers Bank
               </div>
-              {bankSize === 0 ? (
+              {totalBankSize === 0 ? (
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.5 }}>
                   Complete quizzes to start banking<br />your wrong answers here.
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-                  <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: 15 }}>{bankSize}</span>
-                  {' '}question{bankSize !== 1 ? 's' : ''} ready to practice
+                  <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: 15 }}>{totalBankSize}</span>
+                  {' '}question{totalBankSize !== 1 ? 's' : ''} banked
+                  {selectedSources && (
+                    <span style={{ color: 'var(--accent)', fontWeight: 900 }}> · {bankSize} selected</span>
+                  )}
                 </div>
               )}
             </div>
-            {bankSize > 0 && (
+            {totalBankSize > 0 && (
               <button
-                onClick={() => confirmClear ? (clearWrongBank(), setConfirmClear(false)) : setConfirmClear(true)}
+                onClick={() => {
+                  if (confirmClear) { clearWrongBank(); setSelectedSources(null); setConfirmClear(false) }
+                  else setConfirmClear(true)
+                }}
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
                   color: confirmClear ? 'var(--error)' : 'var(--text-muted)',
@@ -124,6 +165,7 @@ export default function HomeScreen({ onStart, onReview }) {
                   fontFamily: "'Nunito'", fontWeight: 700,
                   padding: '4px 0',
                   transition: 'color 0.2s',
+                  whiteSpace: 'nowrap',
                 }}
                 onBlur={() => setTimeout(() => setConfirmClear(false), 200)}
               >
@@ -132,21 +174,46 @@ export default function HomeScreen({ onStart, onReview }) {
             )}
           </div>
 
-          {bankSize > 0 && (
+          {totalBankSize > 0 && (
             <>
-              {/* Breakdown pills */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 18 }}>
-                {breakdown.map(([title, cnt]) => (
-                  <div key={title} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    background: 'var(--primary-glow)', borderRadius: 20,
-                    padding: '3px 10px', fontSize: 11, fontWeight: 700,
-                    color: 'var(--primary)',
-                  }}>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{title.length > 22 ? title.slice(0, 22) + '…' : title}</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 900 }}>{cnt}</span>
-                  </div>
-                ))}
+              {/* Source filter — toggleable pills */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Filter by source
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {breakdown.map(({ quizId, title, count }) => {
+                    const active = activeSourceIds.has(quizId)
+                    return (
+                      <motion.button
+                        key={quizId}
+                        whileTap={{ scale: 0.94 }}
+                        onClick={() => toggleSource(quizId)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          borderRadius: 20, padding: '5px 11px',
+                          border: active ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
+                          background: active ? 'var(--primary-glow)' : 'transparent',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {active && <Check size={10} color="var(--primary)" strokeWidth={3} />}
+                        <span style={{ fontSize: 11, fontWeight: 700, color: active ? 'var(--primary)' : 'var(--text-muted)' }}>
+                          {title.length > 20 ? title.slice(0, 20) + '…' : title}
+                        </span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 900,
+                          color: active ? 'var(--primary)' : 'var(--text-muted)',
+                          background: active ? 'rgba(124,58,237,0.15)' : 'var(--border)',
+                          borderRadius: 10, padding: '0 5px',
+                        }}>
+                          {count}
+                        </span>
+                      </motion.button>
+                    )
+                  })}
+                </div>
               </div>
 
               {/* Count selector */}
@@ -163,12 +230,12 @@ export default function HomeScreen({ onStart, onReview }) {
                         key={n}
                         onClick={() => !disabled && setCount(n)}
                         style={{
-                          flex: 1, padding: '8px 0',
+                          flex: 1, padding: '9px 0',
                           borderRadius: 10,
                           border: active ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
                           background: active ? 'var(--primary-glow)' : 'transparent',
                           color: disabled ? 'var(--border-md)' : active ? 'var(--primary)' : 'var(--text-muted)',
-                          fontFamily: "'Bebas Neue'", fontSize: 20,
+                          fontFamily: "'Nunito'", fontWeight: 900, fontSize: 15,
                           cursor: disabled ? 'not-allowed' : 'pointer',
                           transition: 'all 0.15s',
                         }}
@@ -180,17 +247,17 @@ export default function HomeScreen({ onStart, onReview }) {
                   <button
                     onClick={() => setCount(bankSize)}
                     style={{
-                      flex: 1.2, padding: '8px 0',
+                      flex: 1.2, padding: '9px 0',
                       borderRadius: 10,
                       border: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
                       background: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? 'var(--primary-glow)' : 'transparent',
                       color: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? 'var(--primary)' : 'var(--text-muted)',
-                      fontFamily: "'Nunito'", fontWeight: 900, fontSize: 12,
+                      fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13,
                       cursor: 'pointer',
                       transition: 'all 0.15s',
                     }}
                   >
-                    All
+                    All {bankSize > 0 && `(${bankSize})`}
                   </button>
                 </div>
               </div>
@@ -232,11 +299,12 @@ export default function HomeScreen({ onStart, onReview }) {
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleGenerate}
+                disabled={bankSize === 0}
                 className="btn btn-primary"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 15 }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 15, opacity: bankSize === 0 ? 0.4 : 1 }}
               >
                 <Target size={16} />
-                Start Practice · {actualCount} questions
+                Start Practice · {actualCount} question{actualCount !== 1 ? 's' : ''}
                 <ChevronRight size={16} />
               </motion.button>
             </>
@@ -244,7 +312,7 @@ export default function HomeScreen({ onStart, onReview }) {
         </motion.div>
 
         {/* Empty state hint */}
-        {bankSize === 0 && (
+        {totalBankSize === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -265,7 +333,7 @@ export default function HomeScreen({ onStart, onReview }) {
         {/* Divider */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10,
-          marginBottom: 16, marginTop: bankSize === 0 ? 0 : 8,
+          marginBottom: 16, marginTop: totalBankSize === 0 ? 0 : 8,
         }}>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '2px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
