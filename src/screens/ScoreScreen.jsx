@@ -12,7 +12,7 @@ function getResult(pct) {
   return { jp: 'もう一回！', en: 'TRY AGAIN!', stars: '★☆☆☆☆', msg: "Don't give up! Study and come back." }
 }
 
-export default function ScoreScreen({ onReview, onPlayAgain, onHome, onDashboard, perfectBurst, burst }) {
+export default function ScoreScreen({ onReview, onPlayAgain, onDashboard, perfectBurst, burst }) {
   const { score, questions } = useGameStore()
   const soundEnabled = useStatsStore((s) => s.soundEnabled)
   const total = questions.length
@@ -35,7 +35,7 @@ export default function ScoreScreen({ onReview, onPlayAgain, onHome, onDashboard
 
   // Conic gradient ring
   const ringStyle = {
-    background: `conic-gradient(#FF2D78 ${pct}%, #141428 0)`,
+    background: `conic-gradient(var(--primary) ${pct}%, var(--bg-2) 0)`,
   }
 
   return (
@@ -133,14 +133,11 @@ export default function ScoreScreen({ onReview, onPlayAgain, onHome, onDashboard
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320, margin: '0 auto' }}
         >
-          <button className="btn btn-secondary btn-lg" onClick={onReview}>Review Answers</button>
           <button className="btn btn-primary btn-lg" onClick={onPlayAgain}>Play Again ↺</button>
-          <button className="btn btn-ghost btn-lg" onClick={onHome}>Home</button>
-          {onDashboard && (
-            <button className="btn btn-ghost btn-lg" onClick={onDashboard}>View Stats 📊</button>
-          )}
+          <button className="btn btn-secondary btn-lg" onClick={onReview}>Review Answers</button>
+          <button className="btn btn-ghost btn-lg" onClick={onDashboard}>Home</button>
         </motion.div>
       </motion.div>
     </div>

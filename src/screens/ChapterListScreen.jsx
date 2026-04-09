@@ -95,7 +95,7 @@ export default function ChapterListScreen({ onSelect }) {
                   ? 'linear-gradient(135deg, var(--primary), var(--primary-light))'
                   : status === 'locked'
                   ? 'transparent'
-                  : 'rgba(124,58,237,0.08)',
+                  : 'var(--border)',
                 color: (status === 'idle' || status === 'locked') ? 'var(--text-muted)' : '#fff',
                 border: status === 'locked' ? '2px dashed var(--border-md)' : 'none',
                 boxShadow: (status !== 'idle' && status !== 'locked') ? 'var(--shadow-sm)' : 'none',

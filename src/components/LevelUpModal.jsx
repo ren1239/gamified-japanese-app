@@ -33,13 +33,13 @@ export default function LevelUpModal({ fromLevel, toLevel, show, onClose }) {
             transition={{ type: 'spring', stiffness: 260, damping: 18 }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'linear-gradient(160deg, #4C1D95, #7C3AED)',
+              background: 'linear-gradient(160deg, var(--primary-dark), var(--primary))',
               borderRadius: 28,
               padding: '48px 32px',
               textAlign: 'center',
               width: '100%',
               maxWidth: 340,
-              boxShadow: '0 24px 80px rgba(124,58,237,0.6)',
+              boxShadow: '0 24px 80px var(--primary-glow)',
               border: '1px solid rgba(255,255,255,0.2)',
             }}
           >
@@ -88,7 +88,7 @@ export default function LevelUpModal({ fromLevel, toLevel, show, onClose }) {
               color: 'rgba(255,255,255,0.65)',
               marginBottom: 32,
             }}>
-              Level {fromLevel} → <span style={{ color: '#FCD34D' }}>Level {toLevel}</span>
+              Level {fromLevel} → <span style={{ color: 'var(--yellow)' }}>Level {toLevel}</span>
             </div>
 
             <motion.button

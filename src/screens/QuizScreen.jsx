@@ -163,15 +163,15 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
           >
             {/* Question card */}
             <div style={{
-              background: '#fff', borderRadius: 20,
+              background: 'var(--surface-solid)', borderRadius: 20,
               padding: '22px 20px 20px', marginBottom: 14,
-              boxShadow: '0 4px 24px rgba(124,58,237,0.12)',
-              border: '1px solid rgba(124,58,237,0.08)',
+              boxShadow: 'var(--shadow-md)',
+              border: '1px solid var(--border-md)',
             }}>
               {q.topic && (
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
-                  background: 'rgba(124,58,237,0.1)', color: 'var(--primary)',
+                  background: 'var(--border-md)', color: 'var(--primary)',
                   fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, letterSpacing: '1px',
                   padding: '4px 12px', borderRadius: 999, marginBottom: 12,
                 }}>
@@ -195,25 +195,25 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                 const isCorrect = idx === q.correct
                 const isWrong = isChosen && !isCorrect
 
-                let cardBg = '#fff'
-                let cardBorder = 'rgba(124,58,237,0.1)'
-                let cardShadow = '0 2px 12px rgba(0,0,0,0.07)'
+                let cardBg = 'var(--surface-solid)'
+                let cardBorder = 'var(--border-md)'
+                let cardShadow = 'var(--shadow-sm)'
                 let badgeBg = BADGE_COLORS[idx].bg
                 let badgeText = BADGE_COLORS[idx].text
                 let textColor = 'var(--text)'
                 let showIcon = null
 
                 if (answered && isCorrect) {
-                  cardBg = 'rgba(16,185,129,0.08)'; cardBorder = '#10B981'
+                  cardBg = 'var(--success-dim)'; cardBorder = 'var(--success)'
                   cardShadow = '0 4px 20px rgba(16,185,129,0.25)'
-                  badgeBg = '#10B981'; textColor = '#059669'; showIcon = <Check size={20} strokeWidth={3.5} />
+                  badgeBg = 'var(--success)'; textColor = 'var(--success)'; showIcon = <Check size={20} strokeWidth={3.5} />
                 } else if (answered && isWrong) {
-                  cardBg = 'rgba(239,68,68,0.07)'; cardBorder = '#EF4444'
+                  cardBg = 'var(--error-dim)'; cardBorder = 'var(--error)'
                   cardShadow = '0 4px 20px rgba(239,68,68,0.2)'
-                  badgeBg = '#EF4444'; textColor = '#DC2626'; showIcon = <X size={20} strokeWidth={3.5} />
+                  badgeBg = 'var(--error)'; textColor = 'var(--error)'; showIcon = <X size={20} strokeWidth={3.5} />
                 } else if (answered) {
-                  cardBorder = 'rgba(124,58,237,0.06)'; cardShadow = 'none'
-                  badgeBg = '#E5E7EB'; badgeText = '#9CA3AF'; textColor = 'var(--text-muted)'
+                  cardBorder = 'var(--border)'; cardShadow = 'none'
+                  badgeBg = 'var(--border-md)'; badgeText = 'var(--text-muted)'; textColor = 'var(--text-muted)'
                 }
 
                 return (
@@ -285,10 +285,10 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
               // offset from center to left within 448px container
               transform: 'translateX(calc(-224px + 20px))',
               width: 46, height: 46, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #7C3AED, #9F67E8)',
+              background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
               border: 'none', cursor: 'pointer', zIndex: 150,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(124,58,237,0.45)',
+              boxShadow: '0 4px 16px var(--primary-glow)',
             }}
           >
             <Lightbulb size={20} color="#fff" strokeWidth={2.5} />

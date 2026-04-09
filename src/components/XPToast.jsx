@@ -29,14 +29,14 @@ export default function XPToast({ xp, show, onDone }) {
           }}
         >
           <div style={{
-            background: 'linear-gradient(135deg, #7C3AED, #F97316)',
+            background: 'linear-gradient(135deg, var(--primary), var(--accent))',
             color: '#fff',
             fontFamily: "'Nunito', sans-serif",
             fontWeight: 900,
             fontSize: 18,
             padding: '10px 24px',
             borderRadius: 999,
-            boxShadow: '0 8px 32px rgba(124,58,237,0.45)',
+            boxShadow: 'var(--shadow-lg)',
             whiteSpace: 'nowrap',
             letterSpacing: '0.5px',
           }}>

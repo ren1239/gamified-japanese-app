@@ -132,8 +132,8 @@ export default function App() {
   return (
     <div style={{ minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
       <div className="grid-bg" />
-      <div className="orb" style={{ width: 500, height: 500, background: '#7C3AED', top: -150, right: -150, opacity: 0.15 }} />
-      <div className="orb" style={{ width: 350, height: 350, background: '#C4B5FD', bottom: -80, left: -80, opacity: 0.12 }} />
+      <div className="orb" style={{ width: 500, height: 500, background: 'var(--primary)', top: -150, right: -150, opacity: 0.15 }} />
+      <div className="orb" style={{ width: 350, height: 350, background: 'var(--primary-light)', bottom: -80, left: -80, opacity: 0.12 }} />
       <canvas ref={canvasRef} id="particle-canvas" />
 
       <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo(0, 0)}>
@@ -180,7 +180,6 @@ export default function App() {
             <ScoreScreen
               onReview={() => handleOpenReview(quizId, 'score')}
               onPlayAgain={handlePlayAgain}
-              onHome={handleScoreBack}
               onDashboard={() => { setActiveTab('dashboard'); setScreen(SCREENS.dashboard) }}
               burst={burst}
               perfectBurst={perfectBurst}
@@ -236,10 +235,11 @@ export default function App() {
               style={{
                 position: 'fixed', top: '50%', left: '50%',
                 width: 'calc(100% - 48px)', maxWidth: 340, zIndex: 401,
-                background: '#fff',
+                background: 'var(--surface-solid)',
                 borderRadius: '24px',
                 padding: '32px 24px',
-                boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+                boxShadow: 'var(--shadow-lg)',
+                border: '1px solid var(--border-md)',
                 textAlign: 'center',
               }}
             >
@@ -256,7 +256,7 @@ export default function App() {
                   onClick={() => setQuitModal(false)}
                   style={{
                     flex: 1, padding: '14px 0',
-                    background: 'rgba(124,58,237,0.08)',
+                    background: 'var(--border)',
                     border: '2px solid var(--border-md)',
                     borderRadius: 14,
                     fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15,

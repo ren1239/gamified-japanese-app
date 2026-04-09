@@ -58,7 +58,7 @@ export default function SettingsScreen() {
               borderBottom: '1px solid var(--border)',
               cursor: 'pointer', textAlign: 'left'
             }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: soundEnabled ? 'rgba(16,185,129,0.1)' : 'rgba(156,163,175,0.1)', color: soundEnabled ? '#10B981' : '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: soundEnabled ? 'var(--success-dim)' : 'var(--border)', color: soundEnabled ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                  {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
               </div>
               <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -77,7 +77,7 @@ export default function SettingsScreen() {
               padding: '16px 20px', background: 'transparent', border: 'none',
               cursor: 'pointer', textAlign: 'left'
             }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: theme === 'neon' ? 'rgba(255,45,120,0.1)' : 'rgba(124,58,237,0.1)', color: theme === 'neon' ? '#FF2D78' : '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-glow)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                  <Palette size={20} />
               </div>
               <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -103,7 +103,7 @@ export default function SettingsScreen() {
               padding: '16px 20px', background: 'transparent', border: 'none',
               borderBottom: '1px solid var(--border)', cursor: 'pointer', textAlign: 'left'
             }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(59,130,246,0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Download size={20} />
               </div>
               <div style={{ flex: 1 }}>
@@ -117,11 +117,11 @@ export default function SettingsScreen() {
               padding: '16px 20px', background: 'transparent', border: 'none',
               cursor: 'pointer', textAlign: 'left'
             }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(239,68,68,0.1)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--error-dim)', color: 'var(--error)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <AlertTriangle size={20} />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: '#EF4444', marginBottom: 2 }}>Reset Progress</div>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--error)', marginBottom: 2 }}>Reset Progress</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Permanently delete all XP and scores</div>
               </div>
             </button>
