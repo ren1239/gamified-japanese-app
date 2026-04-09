@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 const XP_PER_CORRECT = 10
 const XP_PER_PERFECT = 50 // bonus for 100%
@@ -31,20 +31,10 @@ export const useStatsStore = create(
     (set, get) => ({
       totalXp: 0,
       soundEnabled: true,
+      theme: 'default',
       history: [], // [{ date, quizId, score, total, xpEarned }]
       lastPlayedDate: null,
       streak: 0,
-
-      // Derived (computed on read)
-      get level() { return computeLevel(get().totalXp) },
-      get xpProgress() { return xpInCurrentLevel(get().totalXp) },
-      get accuracy() {
-        const h = get().history
-        if (!h.length) return 0
-        const total = h.reduce((a, b) => a + b.total, 0)
-        const correct = h.reduce((a, b) => a + b.score, 0)
-        return total ? Math.round((correct / total) * 100) : 0
-      },
 
       recordResult: (quizId, score, total) => {
         const state = get()
@@ -86,6 +76,15 @@ export const useStatsStore = create(
     }),
     {
       name: 'nihongo-stats-store',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        totalXp: state.totalXp,
+        soundEnabled: state.soundEnabled,
+        theme: state.theme,
+        history: state.history,
+        lastPlayedDate: state.lastPlayedDate,
+        streak: state.streak,
+      }),
     }
   )
 )

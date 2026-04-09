@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { genkiQuizzes } from '../data/genkiQuizzes'
 import { ch11TeformQuiz, ch11GivingQuiz, ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz } from '../data/ch11Grammar'
 import { useStatsStore } from './statsStore'
@@ -62,7 +62,8 @@ export const useQuizStore = create(
     }),
     {
       name: 'nihongo-quiz-store',
-      // Merge persisted quizzes with sample quizzes (add samples if not present)
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ quizzes: state.quizzes }),
       merge: (persisted, current) => {
         const persistedIds = new Set(persisted.quizzes?.map((q) => q.id) || [])
         const newSamples = builtinQuizzes.filter((s) => !persistedIds.has(s.id))
