@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Trash2, AlertTriangle, Download, Info, Volume2, VolumeX, Palette } from 'lucide-react'
+import { Trash2, AlertTriangle, Download, User, Volume2, VolumeX, Palette } from 'lucide-react'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 
@@ -10,6 +10,8 @@ export default function SettingsScreen() {
   const toggleSound = useStatsStore((s) => s.toggleSound)
   const theme = useStatsStore((s) => s.theme)
   const setTheme = useStatsStore((s) => s.setTheme)
+  const username = useStatsStore((s) => s.username)
+  const setUsername = useStatsStore((s) => s.setUsername)
 
   const toggleTheme = () => setTheme(theme === 'neon' ? 'default' : 'neon')
 
@@ -48,6 +50,43 @@ export default function SettingsScreen() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         
+        {/* Profile Section */}
+        <section>
+          <div className="section-label">Profile</div>
+          <div className="glass-card" style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-glow)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <User size={20} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 6 }}>Your Name</div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Student"
+                  maxLength={24}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: 10,
+                    border: '1.5px solid var(--border-md)',
+                    background: 'var(--bg)',
+                    color: 'var(--text)',
+                    fontFamily: "'Nunito'",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--border-md)'}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Preferences Section */}
         <section>
           <div className="section-label">Preferences</div>
@@ -137,7 +176,7 @@ export default function SettingsScreen() {
                 <span style={{ fontSize: 24, paddingBottom: 2 }}>🇯🇵</span>
              </div>
              <div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16, color: 'var(--text)' }}>Gamified Japanese</div>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16, color: 'var(--text)' }}>日本語ToGo</div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>Version 1.0.0</div>
              </div>
           </div>

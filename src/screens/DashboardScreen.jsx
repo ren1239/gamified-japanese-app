@@ -20,7 +20,7 @@ const ACHIEVEMENTS = [
 function stagger(i) { return { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06 + 0.1, duration: 0.35 } } }
 
 export default function DashboardScreen({ onNavigate }) {
-  const { totalXp, history, streak } = useStatsStore()
+  const { totalXp, history, streak, username } = useStatsStore()
   const quizzes = useQuizStore((s) => s.quizzes)
 
   const level = computeLevel(totalXp)
@@ -97,8 +97,8 @@ export default function DashboardScreen({ onNavigate }) {
             style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}
           >
             <span className="level-badge">⚡ Lv. {level}</span>
-            <span style={{ color: 'rgba(255,255,255,0.75)', fontFamily: "'Noto Sans JP'", fontWeight: 700, fontSize: 14 }}>
-              {getLevelName(level)}
+            <span style={{ color: 'rgba(255,255,255,0.85)', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15 }}>
+              {username || 'Student'}
             </span>
           </motion.div>
 

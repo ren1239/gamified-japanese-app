@@ -36,9 +36,20 @@ export const useQuizStore = create(
       },
 
       updateStats: (id, score) => {
-        const activeQuiz = useGameStore.getState().activeQuiz
+        const gameState = useGameStore.getState()
+        const activeQuiz = gameState.activeQuiz
         const quiz = get().quizzes.find((q) => q.id === id) || activeQuiz
         const total = quiz?.questions?.length || 0
+
+        // Capture wrong answers into the persistent bank
+        const wrongQuestions = gameState.answers
+          .filter((a) => !a.correct)
+          .map((a) => gameState.questions[a.questionIdx])
+          .filter(Boolean)
+        if (wrongQuestions.length > 0) {
+          useStatsStore.getState().addWrongAnswers(id, quiz?.title || 'Quiz', wrongQuestions)
+        }
+
         // Fire XP / streak via statsStore
         const xpEarned = useStatsStore.getState().recordResult(id, score, total)
         set((state) => ({

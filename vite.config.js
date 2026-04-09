@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
-        name: '日本語クイズ — Nihongo Quiz',
-        short_name: 'NihongoQuiz',
-        description: 'Interactive Japanese vocabulary quiz app',
+        name: '日本語ToGo',
+        short_name: '日本語ToGo',
+        description: 'Gamified Japanese learning — Genki vocabulary and grammar',
         theme_color: '#07070F',
         background_color: '#07070F',
         display: 'standalone',

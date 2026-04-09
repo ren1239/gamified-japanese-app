@@ -32,9 +32,11 @@ export const useStatsStore = create(
       totalXp: 0,
       soundEnabled: true,
       theme: 'default',
+      username: '',
       history: [], // [{ date, quizId, score, total, xpEarned }]
       lastPlayedDate: null,
       streak: 0,
+      wrongBank: [], // [{ key, quizId, quizTitle, question, wrongCount, lastWrong }]
 
       recordResult: (quizId, score, total) => {
         const state = get()
@@ -71,8 +73,28 @@ export const useStatsStore = create(
         theme: 'default',
       }),
 
+      addWrongAnswers: (quizId, quizTitle, wrongQuestions) => {
+        set((state) => {
+          const bank = [...state.wrongBank]
+          const today = todayStr()
+          wrongQuestions.forEach((question) => {
+            const key = `${quizId}-${question.id ?? question.question.slice(0, 30)}`
+            const idx = bank.findIndex((e) => e.key === key)
+            if (idx >= 0) {
+              bank[idx] = { ...bank[idx], wrongCount: bank[idx].wrongCount + 1, lastWrong: today }
+            } else {
+              bank.push({ key, quizId, quizTitle, question, wrongCount: 1, lastWrong: today })
+            }
+          })
+          return { wrongBank: bank.slice(0, 200) }
+        })
+      },
+
+      clearWrongBank: () => set({ wrongBank: [] }),
+
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
       setTheme: (theme) => set({ theme }),
+      setUsername: (username) => set({ username }),
     }),
     {
       name: 'nihongo-stats-store',
@@ -81,9 +103,11 @@ export const useStatsStore = create(
         totalXp: state.totalXp,
         soundEnabled: state.soundEnabled,
         theme: state.theme,
+        username: state.username,
         history: state.history,
         lastPlayedDate: state.lastPlayedDate,
         streak: state.streak,
+        wrongBank: state.wrongBank,
       }),
     }
   )
