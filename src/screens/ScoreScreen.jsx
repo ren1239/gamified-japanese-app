@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useGameStore } from '../store/quizStore'
+import { useStatsStore } from '../store/statsStore'
+import { playPerfectChime, playVictoryChime } from '../utils/audio'
 
 function getResult(pct) {
   if (pct === 100) return { jp: '完璧！', en: 'PERFECT!', stars: '★★★★★', msg: "Flawless! You nailed every single one!" }
@@ -12,11 +14,18 @@ function getResult(pct) {
 
 export default function ScoreScreen({ onReview, onPlayAgain, onHome, onDashboard, perfectBurst, burst }) {
   const { score, questions } = useGameStore()
+  const soundEnabled = useStatsStore((s) => s.soundEnabled)
   const total = questions.length
   const pct = Math.round((score / total) * 100)
   const result = getResult(pct)
 
   useEffect(() => {
+    if (soundEnabled) {
+      if (pct === 100) playPerfectChime()
+      else if (pct >= 60) playVictoryChime()
+      // (<60 doesn't play a sound to keep it motivating)
+    }
+
     if (pct === 100) {
       setTimeout(perfectBurst, 300)
     } else if (pct >= 60) {
