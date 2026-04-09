@@ -1,0 +1,49 @@
+import { useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+
+export default function XPToast({ xp, show, onDone }) {
+  const timerRef = useRef(null)
+
+  useEffect(() => {
+    if (show) {
+      timerRef.current = setTimeout(onDone, 2200)
+      return () => clearTimeout(timerRef.current)
+    }
+  }, [show, onDone])
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, y: 60, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+          style={{
+            position: 'fixed',
+            bottom: 80,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 3000,
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{
+            background: 'linear-gradient(135deg, #7C3AED, #F97316)',
+            color: '#fff',
+            fontFamily: "'Nunito', sans-serif",
+            fontWeight: 900,
+            fontSize: 18,
+            padding: '10px 24px',
+            borderRadius: 999,
+            boxShadow: '0 8px 32px rgba(124,58,237,0.45)',
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.5px',
+          }}>
+            ⚡ +{xp} XP
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
