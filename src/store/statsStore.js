@@ -77,9 +77,12 @@ export const useStatsStore = create(
         history: [],
         lastPlayedDate: null,
         streak: 0,
+        soundEnabled: true,
+        theme: 'default',
       }),
 
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+      setTheme: (theme) => set({ theme }),
     }),
     {
       name: 'nihongo-stats-store',

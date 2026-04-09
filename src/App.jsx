@@ -44,6 +44,12 @@ export default function App() {
   const [levelUp, setLevelUp] = useState({ show: false, from: 0, to: 0 })
 
   const { canvasRef, burst, perfectBurst } = useParticles()
+  const theme = useStatsStore((s) => s.theme)
+
+  useEffect(() => {
+    document.body.className = theme === 'neon' ? 'theme-neon' : ''
+  }, [theme])
+
   const startGame = useGameStore((s) => s.startGame)
   const updateStats = useQuizStore((s) => s.updateStats)
   const { quizId, score, shuffled } = useGameStore()

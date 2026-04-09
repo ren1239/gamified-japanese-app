@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Trash2, AlertTriangle, Download, Info, Volume2, VolumeX } from 'lucide-react'
+import { Trash2, AlertTriangle, Download, Info, Volume2, VolumeX, Palette } from 'lucide-react'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 
@@ -8,6 +8,10 @@ export default function SettingsScreen() {
   const resetQuizzesProgress = useQuizStore((s) => s.resetQuizzesProgress)
   const soundEnabled = useStatsStore((s) => s.soundEnabled)
   const toggleSound = useStatsStore((s) => s.toggleSound)
+  const theme = useStatsStore((s) => s.theme)
+  const setTheme = useStatsStore((s) => s.setTheme)
+
+  const toggleTheme = () => setTheme(theme === 'neon' ? 'default' : 'neon')
 
   const handleReset = () => {
     if (window.confirm("Are you sure you want to reset ALL your progress? This cannot be undone.")) {
@@ -51,6 +55,7 @@ export default function SettingsScreen() {
             <button onClick={toggleSound} style={{
               display: 'flex', alignItems: 'center', gap: 14, width: '100%',
               padding: '16px 20px', background: 'transparent', border: 'none',
+              borderBottom: '1px solid var(--border)',
               cursor: 'pointer', textAlign: 'left'
             }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: soundEnabled ? 'rgba(16,185,129,0.1)' : 'rgba(156,163,175,0.1)', color: soundEnabled ? '#10B981' : '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -63,6 +68,25 @@ export default function SettingsScreen() {
                 </div>
                 <div style={{ width: 46, height: 26, background: soundEnabled ? 'var(--success)' : 'var(--border)', borderRadius: 13, position: 'relative', transition: 'background 0.3s' }}>
                    <div style={{ width: 22, height: 22, background: '#fff', borderRadius: 11, position: 'absolute', top: 2, left: soundEnabled ? 22 : 2, transition: 'left 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
+                </div>
+              </div>
+            </button>
+
+            <button onClick={toggleTheme} style={{
+              display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+              padding: '16px 20px', background: 'transparent', border: 'none',
+              cursor: 'pointer', textAlign: 'left'
+            }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: theme === 'neon' ? 'rgba(255,45,120,0.1)' : 'rgba(124,58,237,0.1)', color: theme === 'neon' ? '#FF2D78' : '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                 <Palette size={20} />
+              </div>
+              <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2 }}>Neon Dark Mode</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Hot pink alternative theme</div>
+                </div>
+                <div style={{ width: 46, height: 26, background: theme === 'neon' ? 'var(--primary)' : 'var(--border)', borderRadius: 13, position: 'relative', transition: 'background 0.3s' }}>
+                   <div style={{ width: 22, height: 22, background: '#fff', borderRadius: 11, position: 'absolute', top: 2, left: theme === 'neon' ? 22 : 2, transition: 'left 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
                 </div>
               </div>
             </button>

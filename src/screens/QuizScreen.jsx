@@ -94,8 +94,8 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
         style={{
-          background: 'linear-gradient(160deg, #4C1D95 0%, #7C3AED 60%, #9F67E8 100%)',
-          borderRadius: '0 0 28px 28px',
+          background: 'linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%)',
+          borderRadius: '0 0 32px 32px',
           padding: '52px 20px 24px',
           marginBottom: 20,
           position: 'relative',
@@ -378,7 +378,7 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
               style={{
                 position: 'fixed', bottom: 0, left: 0, right: 0, margin: '0 auto',
                 width: '100%', maxWidth: 448, zIndex: 401,
-                background: 'linear-gradient(160deg, #4C1D95, #7C3AED)',
+                background: 'linear-gradient(160deg, var(--primary-dark), var(--primary))',
                 borderRadius: '24px 24px 0 0',
                 padding: '24px 24px 44px',
               }}

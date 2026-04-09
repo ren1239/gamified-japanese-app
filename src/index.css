@@ -45,6 +45,38 @@
   --text: #1E1B4B;
 }
 
+.theme-neon {
+  --bg: #0A0A10;
+  --bg-2: #14141E;
+  --surface: rgba(24, 24, 38, 0.85);
+  --surface-solid: #181826;
+  --text: #FFFFFF;
+  --text-2: #E2E8F0;
+  --text-muted: #94A3B8;
+
+  --primary: #FF2D78;
+  --primary-light: #FF5E99;
+  --primary-dark: #BE185D;
+  --primary-glow: rgba(255, 45, 120, 0.4);
+
+  --accent: #3B82F6;
+  --accent-light: #60A5FA;
+  --accent-glow: rgba(59, 130, 246, 0.45);
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-md: rgba(255, 255, 255, 0.15);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 36px rgba(255, 45, 120, 0.15);
+  
+  --yellow: #FCD34D;
+  --pink: #FF2D78;
+  --cyan: #22D3EE;
+  
+  color-scheme: dark;
+}
+
 /* ─── Reset ─── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 

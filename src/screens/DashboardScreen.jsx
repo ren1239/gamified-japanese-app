@@ -75,7 +75,7 @@ export default function DashboardScreen({ onNavigate }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
         style={{
-          background: 'linear-gradient(160deg, #4C1D95 0%, #7C3AED 60%, #9F67E8 100%)',
+          background: 'linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%)',
           borderRadius: '0 0 28px 28px',
           padding: '56px 24px 28px',
           marginBottom: 24,
@@ -105,8 +105,9 @@ export default function DashboardScreen({ onNavigate }) {
           <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 13, color: 'rgba(255,255,255,0.6)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: 4 }}>
             Your Progress
           </div>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(38px,9vw,58px)', color: '#fff', lineHeight: 1, letterSpacing: '1px', marginBottom: 20, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span style={{ color: '#FCD34D', fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900, fontSize: '0.9em', letterSpacing: '-1px' }}>日本語</span> JOURNEY
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(38px,9vw,58px)', color: '#fff', lineHeight: 1.1, letterSpacing: '1px', marginBottom: 20, display: 'flex', flexDirection: 'column' }}>
+            <span style={{ color: '#FCD34D', fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900, fontSize: '0.9em', letterSpacing: '-1px' }}>日本語</span> 
+            <span>JOURNEY</span>
           </div>
 
           {/* XP bar */}
@@ -161,12 +162,12 @@ export default function DashboardScreen({ onNavigate }) {
                   borderRadius: 14,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
                   background: perfect
-                    ? 'linear-gradient(135deg, #059669, #34D399)'
+                    ? 'linear-gradient(135deg, var(--success), var(--success-dim))'
                     : played
-                    ? 'linear-gradient(135deg, #7C3AED, #9F67E8)'
+                    ? 'linear-gradient(135deg, var(--primary), var(--primary-light))'
                     : 'var(--surface)',
-                  border: `1.5px solid ${perfect ? 'rgba(52,211,153,0.3)' : played ? 'rgba(159,103,232,0.3)' : 'var(--border)'}`,
-                  boxShadow: perfect ? '0 4px 16px rgba(16,185,129,0.3)' : played ? '0 4px 16px rgba(124,58,237,0.2)' : 'none',
+                  border: `1.5px solid ${perfect ? 'var(--success)' : played ? 'var(--primary-glow)' : 'var(--border)'}`,
+                  boxShadow: perfect ? '0 4px 16px var(--success-dim)' : played ? '0 4px 16px var(--primary-glow)' : 'none',
                   cursor: 'default',
                   flexShrink: 0,
                 }}
