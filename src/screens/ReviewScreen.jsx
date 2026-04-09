@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Check, X } from 'lucide-react'
 import { useQuizStore, useGameStore } from '../store/quizStore'
 
 const LABELS = ['A', 'B', 'C', 'D']
@@ -88,12 +89,12 @@ function ReviewQuestion({ q, qi, answer }) {
             borderColor = 'var(--success)';
             bgColor = 'var(--success-dim)';
             textColor = 'var(--success)';
-            icon = '✓';
+            icon = <Check size={18} strokeWidth={3} />;
           } else if (isWrongChoice) {
             borderColor = 'var(--error)';
             bgColor = 'var(--error-dim)';
             textColor = 'var(--error)';
-            icon = '✗';
+            icon = <X size={18} strokeWidth={3} />;
           }
 
           return (
@@ -109,7 +110,7 @@ function ReviewQuestion({ q, qi, answer }) {
                 color: textColor,
               }}
             >
-              <span style={{ fontWeight: 700, minWidth: 20 }}>
+              <span style={{ fontWeight: 700, minWidth: 20, display: 'flex', alignItems: 'center' }}>
                 {icon}
               </span>
               <span style={{

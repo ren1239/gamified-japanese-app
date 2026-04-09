@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight, Check, X } from 'lucide-react'
 import { useGameStore, useQuizStore } from '../store/quizStore'
 import { useStatsStore } from '../store/statsStore'
 import { playSuccessChime, playErrorBuzzer } from '../utils/audio'
@@ -206,11 +206,11 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                 if (answered && isCorrect) {
                   cardBg = 'rgba(16,185,129,0.08)'; cardBorder = '#10B981'
                   cardShadow = '0 4px 20px rgba(16,185,129,0.25)'
-                  badgeBg = '#10B981'; textColor = '#059669'; showIcon = '✓'
+                  badgeBg = '#10B981'; textColor = '#059669'; showIcon = <Check size={20} strokeWidth={3.5} />
                 } else if (answered && isWrong) {
                   cardBg = 'rgba(239,68,68,0.07)'; cardBorder = '#EF4444'
                   cardShadow = '0 4px 20px rgba(239,68,68,0.2)'
-                  badgeBg = '#EF4444'; textColor = '#DC2626'; showIcon = '✗'
+                  badgeBg = '#EF4444'; textColor = '#DC2626'; showIcon = <X size={20} strokeWidth={3.5} />
                 } else if (answered) {
                   cardBorder = 'rgba(124,58,237,0.06)'; cardShadow = 'none'
                   badgeBg = '#E5E7EB'; badgeText = '#9CA3AF'; textColor = 'var(--text-muted)'
