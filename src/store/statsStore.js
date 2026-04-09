@@ -90,6 +90,10 @@ export const useStatsStore = create(
         })
       },
 
+      removeFromBank: (keys) => set((state) => ({
+        wrongBank: state.wrongBank.filter((e) => !keys.includes(e.key)),
+      })),
+
       clearWrongBank: () => set({ wrongBank: [] }),
 
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),

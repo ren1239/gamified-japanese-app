@@ -1,12 +1,225 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Target, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, Check } from 'lucide-react'
+import { Target, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, ChevronDown, Check } from 'lucide-react'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import ImportModal from '../components/ImportModal'
 
 const COUNT_OPTIONS = [5, 10, 15, 20]
 
+// Parse chapter number from quizId: "ch11-tai" → 11, "genki-g1c11" → 11
+function getChapterNum(quizId) {
+  const m = quizId.match(/^ch(\d+)/)
+  if (m) return parseInt(m[1])
+  const m2 = quizId.match(/c(\d+)/)
+  if (m2) return parseInt(m2[1])
+  return 0
+}
+
+// "Ch.11 · たい・たかった" → "たい・たかった" | "Ch.1 · Vocab" → "Vocab"
+function getShortLabel(quizTitle) {
+  const parts = quizTitle.split(' · ')
+  return parts.length > 1 ? parts.slice(1).join(' · ') : quizTitle
+}
+
+// ── Chapter accordion filter ──────────────────────────────────────────
+function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleChapter }) {
+  const [expandedChapters, setExpandedChapters] = useState(() => {
+    // Auto-expand if only one chapter
+    const chs = new Set(wrongBank.map((e) => getChapterNum(e.quizId)))
+    return chs.size === 1 ? chs : new Set()
+  })
+
+  const groups = useMemo(() => {
+    const map = new Map()
+    wrongBank.forEach((entry) => {
+      const ch = getChapterNum(entry.quizId)
+      if (!map.has(ch)) map.set(ch, { chapter: ch, sources: new Map(), total: 0 })
+      const grp = map.get(ch)
+      if (!grp.sources.has(entry.quizId)) {
+        grp.sources.set(entry.quizId, { quizId: entry.quizId, label: getShortLabel(entry.quizTitle), count: 0 })
+      }
+      grp.sources.get(entry.quizId).count++
+      grp.total++
+    })
+    return Array.from(map.values())
+      .map((g) => ({ ...g, sources: Array.from(g.sources.values()).sort((a, b) => b.count - a.count) }))
+      .sort((a, b) => a.chapter - b.chapter)
+  }, [wrongBank])
+
+  const toggleExpand = (ch) => {
+    setExpandedChapters((prev) => {
+      const next = new Set(prev)
+      next.has(ch) ? next.delete(ch) : next.add(ch)
+      return next
+    })
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {groups.map((group) => {
+        const isExpanded = expandedChapters.has(group.chapter)
+        const activeInChapter = group.sources.filter((s) => activeSourceIds.has(s.quizId)).length
+        const allActive = activeInChapter === group.sources.length
+        const someActive = activeInChapter > 0 && !allActive
+        const chapterState = allActive ? 'all' : someActive ? 'some' : 'none'
+
+        const borderColor = allActive
+          ? 'var(--primary)'
+          : someActive
+          ? 'rgba(124,58,237,0.4)'
+          : 'var(--border-md)'
+
+        return (
+          <div key={group.chapter}>
+            {/* ── Chapter row ── */}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => toggleExpand(group.chapter)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px',
+                borderRadius: isExpanded ? '10px 10px 0 0' : 10,
+                border: `1.5px solid ${borderColor}`,
+                borderBottom: isExpanded ? '1px solid var(--border)' : `1.5px solid ${borderColor}`,
+                background: allActive ? 'rgba(124,58,237,0.06)' : 'var(--surface)',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              {/* Chapter badge */}
+              <div style={{
+                width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                background: chapterState === 'all' ? 'var(--primary)' : chapterState === 'some' ? 'rgba(124,58,237,0.25)' : 'var(--border)',
+                color: chapterState === 'none' ? 'var(--text-muted)' : chapterState === 'all' ? '#fff' : 'var(--primary)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.2s',
+              }}>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 8, letterSpacing: '0.5px', opacity: 0.7, lineHeight: 1, marginBottom: 1 }}>CH</div>
+                <div style={{ fontFamily: "'Bebas Neue'", fontSize: 16, lineHeight: 1 }}>{group.chapter}</div>
+              </div>
+
+              {/* Label */}
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, color: allActive ? 'var(--primary)' : 'var(--text)', transition: 'color 0.15s' }}>
+                  Chapter {group.chapter}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>
+                  {activeInChapter}/{group.sources.length} drills selected
+                </div>
+              </div>
+
+              {/* Chapter total badge */}
+              <div style={{
+                minWidth: 28, height: 20, borderRadius: 10,
+                background: allActive ? 'var(--primary)' : 'var(--border)',
+                color: allActive ? '#fff' : 'var(--text-muted)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: "'Nunito'", fontWeight: 900, fontSize: 11,
+                padding: '0 7px',
+                transition: 'all 0.2s',
+              }}>
+                {group.total}
+              </div>
+
+              {/* "Select all / none" tap zone */}
+              <div
+                onClick={(e) => { e.stopPropagation(); onToggleChapter(group) }}
+                style={{
+                  width: 22, height: 22, borderRadius: 6,
+                  border: allActive ? 'none' : someActive ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
+                  background: allActive ? 'var(--primary)' : someActive ? 'rgba(124,58,237,0.1)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer',
+                }}
+              >
+                {allActive && <Check size={12} color="#fff" strokeWidth={3} />}
+                {someActive && <div style={{ width: 8, height: 2, background: 'var(--primary)', borderRadius: 1 }} />}
+              </div>
+
+              {/* Chevron */}
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.18 }}
+                style={{ color: 'var(--text-muted)', display: 'flex', flexShrink: 0 }}
+              >
+                <ChevronDown size={14} />
+              </motion.div>
+            </motion.button>
+
+            {/* ── Expanded sub-rows ── */}
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  style={{
+                    overflow: 'hidden',
+                    border: `1.5px solid ${borderColor}`,
+                    borderTop: 'none',
+                    borderRadius: '0 0 10px 10px',
+                  }}
+                >
+                  {group.sources.map((source, idx) => {
+                    const active = activeSourceIds.has(source.quizId)
+                    const maxCount = Math.max(...group.sources.map((s) => s.count))
+                    const pct = Math.round((source.count / maxCount) * 100)
+                    return (
+                      <motion.button
+                        key={source.quizId}
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        onClick={() => onToggleSource(source.quizId)}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '9px 12px',
+                          borderBottom: idx < group.sources.length - 1 ? '1px solid var(--border)' : 'none',
+                          background: active ? 'rgba(124,58,237,0.04)' : 'var(--bg)',
+                          border: 'none', cursor: 'pointer', textAlign: 'left',
+                          transition: 'background 0.15s',
+                        }}
+                      >
+                        {/* Checkbox */}
+                        <div style={{
+                          width: 18, height: 18, borderRadius: 5, flexShrink: 0,
+                          border: active ? 'none' : '1.5px solid var(--border-md)',
+                          background: active ? 'var(--primary)' : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s',
+                        }}>
+                          {active && <Check size={11} color="#fff" strokeWidth={3} />}
+                        </div>
+
+                        {/* Label */}
+                        <div style={{ flex: 1, fontFamily: "'Nunito'", fontWeight: 700, fontSize: 12.5, color: active ? 'var(--text)' : 'var(--text-muted)', lineHeight: 1.3 }}>
+                          {source.label}
+                        </div>
+
+                        {/* Mini fill bar */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', overflow: 'hidden' }}>
+                            <div style={{ width: `${pct}%`, height: '100%', borderRadius: 2, background: active ? 'var(--primary)' : 'var(--text-muted)', opacity: active ? 1 : 0.4, transition: 'all 0.2s' }} />
+                          </div>
+                          <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 12, color: active ? 'var(--primary)' : 'var(--text-muted)', minWidth: 14, textAlign: 'right' }}>
+                            {source.count}
+                          </div>
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Main screen ───────────────────────────────────────────────────────
 export default function HomeScreen({ onStart, onReview }) {
   const wrongBank = useStatsStore((s) => s.wrongBank)
   const clearWrongBank = useStatsStore((s) => s.clearWrongBank)
@@ -14,55 +227,51 @@ export default function HomeScreen({ onStart, onReview }) {
   const removeQuiz = useQuizStore((s) => s.removeQuiz)
 
   const [count, setCount] = useState(10)
-  const [mode, setMode] = useState('missed') // 'missed' | 'random'
+  const [mode, setMode] = useState('missed')
   const [showImport, setShowImport] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
-  const [selectedSources, setSelectedSources] = useState(null) // null = all selected
+  const [selectedSources, setSelectedSources] = useState(null) // null = all
 
-  // Only user-imported quizzes (not builtins)
   const customQuizzes = useMemo(
     () => quizzes.filter((q) => q.id.startsWith('quiz_')),
     [quizzes]
   )
 
-  // Breakdown by quiz source, sorted by count
-  const breakdown = useMemo(() => {
-    const map = {}
-    wrongBank.forEach((e) => {
-      if (!map[e.quizId]) map[e.quizId] = { title: e.quizTitle, count: 0 }
-      map[e.quizId].count++
-    })
-    return Object.entries(map)
-      .map(([quizId, { title, count }]) => ({ quizId, title, count }))
-      .sort((a, b) => b.count - a.count)
-  }, [wrongBank])
+  const allSourceIds = useMemo(() => new Set(wrongBank.map((e) => e.quizId)), [wrongBank])
+  const activeSourceIds = selectedSources ?? allSourceIds
 
-  // Active source filter — null means all
-  const activeSourceIds = selectedSources ?? new Set(breakdown.map((b) => b.quizId))
-
-  const toggleSource = (quizId) => {
-    const current = selectedSources ?? new Set(breakdown.map((b) => b.quizId))
-    const next = new Set(current)
-    if (next.has(quizId) && next.size > 1) {
-      next.delete(quizId)
-    } else if (!next.has(quizId)) {
-      next.add(quizId)
+  const handleToggleSource = (quizId) => {
+    const current = new Set(activeSourceIds)
+    if (current.has(quizId) && current.size > 1) {
+      current.delete(quizId)
+    } else if (!current.has(quizId)) {
+      current.add(quizId)
     }
-    // If all selected, reset to null (all)
-    if (next.size === breakdown.length) {
-      setSelectedSources(null)
+    setSelectedSources(current.size === allSourceIds.size ? null : current)
+  }
+
+  const handleToggleChapter = (group) => {
+    const chapterIds = group.sources.map((s) => s.quizId)
+    const allActive = chapterIds.every((id) => activeSourceIds.has(id))
+    const current = new Set(activeSourceIds)
+    if (allActive) {
+      // Deselect chapter — must keep at least one source
+      const remaining = [...current].filter((id) => !chapterIds.includes(id))
+      if (remaining.length === 0) return
+      setSelectedSources(remaining.length === allSourceIds.size ? null : new Set(remaining))
     } else {
-      setSelectedSources(next)
+      chapterIds.forEach((id) => current.add(id))
+      setSelectedSources(current.size === allSourceIds.size ? null : current)
     }
   }
 
-  // Filtered bank based on selected sources
   const filteredBank = useMemo(
     () => wrongBank.filter((e) => activeSourceIds.has(e.quizId)),
     [wrongBank, activeSourceIds]
   )
 
   const bankSize = filteredBank.length
+  const totalBankSize = wrongBank.length
   const actualCount = Math.min(count, bankSize)
 
   const handleGenerate = () => {
@@ -72,34 +281,25 @@ export default function HomeScreen({ onStart, onReview }) {
       : [...filteredBank].sort(() => Math.random() - 0.5)
 
     const selected = sorted.slice(0, actualCount)
-    const sourceLabel = selectedSources && selectedSources.size === 1
-      ? breakdown.find((b) => selectedSources.has(b.quizId))?.title || 'Practice'
-      : 'Mistakes Practice'
-
     const practiceQuiz = {
       id: `practice_${Date.now()}`,
-      title: sourceLabel,
+      title: 'Mistakes Practice',
       topic: 'Wrong Answers',
       created: new Date().toISOString().slice(0, 10),
       playCount: 0,
       bestScore: null,
-      questions: selected.map((entry) => entry.question),
+      // Embed _bankKey so updateStats can remove mastered questions
+      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key })),
     }
     onStart(practiceQuiz, false)
   }
-
-  const totalBankSize = wrongBank.length
 
   return (
     <>
       <div className="page" style={{ paddingTop: 24, paddingBottom: 100 }}>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{ marginBottom: 28 }}
-        >
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
             PRACTICE
           </div>
@@ -108,7 +308,7 @@ export default function HomeScreen({ onStart, onReview }) {
           </div>
         </motion.div>
 
-        {/* Wrong Answer Bank Card */}
+        {/* Bank card */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -116,12 +316,9 @@ export default function HomeScreen({ onStart, onReview }) {
           className="glass-card"
           style={{ padding: '20px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}
         >
-          {/* Ambient glow top bar */}
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-            background: totalBankSize > 0
-              ? 'linear-gradient(90deg, var(--primary), var(--accent))'
-              : 'var(--border)',
+            background: totalBankSize > 0 ? 'linear-gradient(90deg, var(--primary), var(--accent))' : 'var(--border)',
           }} />
 
           {/* Header row */}
@@ -146,7 +343,7 @@ export default function HomeScreen({ onStart, onReview }) {
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
                   <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: 15 }}>{totalBankSize}</span>
                   {' '}question{totalBankSize !== 1 ? 's' : ''} banked
-                  {selectedSources && (
+                  {selectedSources && bankSize !== totalBankSize && (
                     <span style={{ color: 'var(--accent)', fontWeight: 900 }}> · {bankSize} selected</span>
                   )}
                 </div>
@@ -161,11 +358,8 @@ export default function HomeScreen({ onStart, onReview }) {
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
                   color: confirmClear ? 'var(--error)' : 'var(--text-muted)',
-                  fontSize: confirmClear ? 11 : 13,
-                  fontFamily: "'Nunito'", fontWeight: 700,
-                  padding: '4px 0',
-                  transition: 'color 0.2s',
-                  whiteSpace: 'nowrap',
+                  fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700,
+                  padding: '4px 0', whiteSpace: 'nowrap', transition: 'color 0.2s',
                 }}
                 onBlur={() => setTimeout(() => setConfirmClear(false), 200)}
               >
@@ -176,44 +370,17 @@ export default function HomeScreen({ onStart, onReview }) {
 
           {totalBankSize > 0 && (
             <>
-              {/* Source filter — toggleable pills */}
+              {/* Chapter accordion filter */}
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8 }}>
-                  Filter by source
+                  Filter by chapter
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                  {breakdown.map(({ quizId, title, count }) => {
-                    const active = activeSourceIds.has(quizId)
-                    return (
-                      <motion.button
-                        key={quizId}
-                        whileTap={{ scale: 0.94 }}
-                        onClick={() => toggleSource(quizId)}
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 5,
-                          borderRadius: 20, padding: '5px 11px',
-                          border: active ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
-                          background: active ? 'var(--primary-glow)' : 'transparent',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        {active && <Check size={10} color="var(--primary)" strokeWidth={3} />}
-                        <span style={{ fontSize: 11, fontWeight: 700, color: active ? 'var(--primary)' : 'var(--text-muted)' }}>
-                          {title.length > 20 ? title.slice(0, 20) + '…' : title}
-                        </span>
-                        <span style={{
-                          fontSize: 11, fontWeight: 900,
-                          color: active ? 'var(--primary)' : 'var(--text-muted)',
-                          background: active ? 'rgba(124,58,237,0.15)' : 'var(--border)',
-                          borderRadius: 10, padding: '0 5px',
-                        }}>
-                          {count}
-                        </span>
-                      </motion.button>
-                    )
-                  })}
-                </div>
+                <ChapterFilter
+                  wrongBank={wrongBank}
+                  activeSourceIds={activeSourceIds}
+                  onToggleSource={handleToggleSource}
+                  onToggleChapter={handleToggleChapter}
+                />
               </div>
 
               {/* Count selector */}
@@ -226,38 +393,27 @@ export default function HomeScreen({ onStart, onReview }) {
                     const disabled = n > bankSize
                     const active = count === n && !disabled
                     return (
-                      <button
-                        key={n}
-                        onClick={() => !disabled && setCount(n)}
-                        style={{
-                          flex: 1, padding: '9px 0',
-                          borderRadius: 10,
-                          border: active ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
-                          background: active ? 'var(--primary-glow)' : 'transparent',
-                          color: disabled ? 'var(--border-md)' : active ? 'var(--primary)' : 'var(--text-muted)',
-                          fontFamily: "'Nunito'", fontWeight: 900, fontSize: 15,
-                          cursor: disabled ? 'not-allowed' : 'pointer',
-                          transition: 'all 0.15s',
-                        }}
-                      >
+                      <button key={n} onClick={() => !disabled && setCount(n)} style={{
+                        flex: 1, padding: '9px 0', borderRadius: 10,
+                        border: active ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
+                        background: active ? 'var(--primary-glow)' : 'transparent',
+                        color: disabled ? 'var(--border-md)' : active ? 'var(--primary)' : 'var(--text-muted)',
+                        fontFamily: "'Nunito'", fontWeight: 900, fontSize: 15,
+                        cursor: disabled ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
+                      }}>
                         {n}
                       </button>
                     )
                   })}
-                  <button
-                    onClick={() => setCount(bankSize)}
-                    style={{
-                      flex: 1.2, padding: '9px 0',
-                      borderRadius: 10,
-                      border: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
-                      background: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? 'var(--primary-glow)' : 'transparent',
-                      color: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? 'var(--primary)' : 'var(--text-muted)',
-                      fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    All {bankSize > 0 && `(${bankSize})`}
+                  <button onClick={() => setCount(bankSize)} style={{
+                    flex: 1.2, padding: '9px 0', borderRadius: 10,
+                    border: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
+                    background: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? 'var(--primary-glow)' : 'transparent',
+                    color: count === bankSize && !COUNT_OPTIONS.includes(bankSize) ? 'var(--primary)' : 'var(--text-muted)',
+                    fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}>
+                    All{bankSize !== totalBankSize ? ` (${bankSize})` : ''}
                   </button>
                 </div>
               </div>
@@ -268,25 +424,16 @@ export default function HomeScreen({ onStart, onReview }) {
                   Order
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  {[
-                    { key: 'missed', label: 'Most Missed First' },
-                    { key: 'random', label: 'Shuffle' },
-                  ].map(({ key, label }) => (
-                    <button
-                      key={key}
-                      onClick={() => setMode(key)}
-                      style={{
-                        flex: 1, padding: '9px 12px',
-                        borderRadius: 10,
-                        border: mode === key ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
-                        background: mode === key ? 'var(--primary-glow)' : 'transparent',
-                        color: mode === key ? 'var(--primary)' : 'var(--text-muted)',
-                        fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                      }}
-                    >
+                  {[{ key: 'missed', label: 'Most Missed First' }, { key: 'random', label: 'Shuffle' }].map(({ key, label }) => (
+                    <button key={key} onClick={() => setMode(key)} style={{
+                      flex: 1, padding: '9px 12px', borderRadius: 10,
+                      border: mode === key ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
+                      background: mode === key ? 'var(--primary-glow)' : 'transparent',
+                      color: mode === key ? 'var(--primary)' : 'var(--text-muted)',
+                      fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12,
+                      cursor: 'pointer', transition: 'all 0.15s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    }}>
                       {key === 'random' && <Shuffle size={12} />}
                       {label}
                     </button>
@@ -294,7 +441,7 @@ export default function HomeScreen({ onStart, onReview }) {
                 </div>
               </div>
 
-              {/* Generate button */}
+              {/* Start button */}
               <motion.button
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.97 }}
@@ -311,18 +458,10 @@ export default function HomeScreen({ onStart, onReview }) {
           )}
         </motion.div>
 
-        {/* Empty state hint */}
+        {/* Empty state */}
         {totalBankSize === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            style={{
-              display: 'flex', alignItems: 'flex-start', gap: 10,
-              background: 'var(--border)', borderRadius: 12, padding: '12px 14px',
-              marginBottom: 24,
-            }}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+            style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'var(--border)', borderRadius: 12, padding: '12px 14px', marginBottom: 24 }}>
             <AlertCircle size={15} color="var(--text-muted)" style={{ marginTop: 1, flexShrink: 0 }} />
             <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.5 }}>
               Complete chapter or grammar quizzes and any questions you get wrong will appear here automatically.
@@ -331,29 +470,21 @@ export default function HomeScreen({ onStart, onReview }) {
         )}
 
         {/* Divider */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          marginBottom: 16, marginTop: totalBankSize === 0 ? 0 : 8,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: totalBankSize === 0 ? 0 : 8 }}>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '2px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-            Custom Quizzes
-          </div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '2px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Custom Quizzes</div>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
         </div>
 
         {/* Import button */}
         <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
           onClick={() => setShowImport(true)}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 12,
             padding: '14px 16px', borderRadius: 12, marginBottom: 16,
             border: '1.5px dashed var(--border-md)', background: 'transparent',
-            cursor: 'pointer',
-            color: 'var(--text-muted)',
+            cursor: 'pointer', color: 'var(--text-muted)',
             fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13,
             transition: 'border-color 0.2s, color 0.2s',
           }}
@@ -374,10 +505,7 @@ export default function HomeScreen({ onStart, onReview }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <AnimatePresence>
               {customQuizzes.map((quiz, i) => (
-                <CustomQuizRow
-                  key={quiz.id}
-                  quiz={quiz}
-                  index={i}
+                <CustomQuizRow key={quiz.id} quiz={quiz} index={i}
                   onPlay={() => onStart(quiz, false)}
                   onReview={() => onReview(quiz.id)}
                   onDelete={() => removeQuiz(quiz.id)}
@@ -401,10 +529,8 @@ function CustomQuizRow({ quiz, index, onPlay, onReview, onDelete }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay: index * 0.04 }}
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: index * 0.04 }}
       className="glass-card"
       style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}
     >
@@ -413,9 +539,7 @@ function CustomQuizRow({ quiz, index, onPlay, onReview, onDelete }) {
           {quiz.title}
         </div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-          {quiz.questions.length}q
-          {quiz.playCount > 0 && ` · ${quiz.playCount}× played`}
-          {hasBest && ` · Best ${quiz.bestScore}/${quiz.questions.length}`}
+          {quiz.questions.length}q{quiz.playCount > 0 && ` · ${quiz.playCount}× played`}{hasBest && ` · Best ${quiz.bestScore}/${quiz.questions.length}`}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>

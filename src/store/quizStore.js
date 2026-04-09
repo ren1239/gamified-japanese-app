@@ -41,13 +41,29 @@ export const useQuizStore = create(
         const quiz = get().quizzes.find((q) => q.id === id) || activeQuiz
         const total = quiz?.questions?.length || 0
 
-        // Capture wrong answers into the persistent bank
-        const wrongQuestions = gameState.answers
-          .filter((a) => !a.correct)
+        const isPractice = id.startsWith('practice_')
+
+        // Correctly answered questions → remove from bank (mastered)
+        const correctQuestions = gameState.answers
+          .filter((a) => a.correct)
           .map((a) => gameState.questions[a.questionIdx])
           .filter(Boolean)
-        if (wrongQuestions.length > 0) {
-          useStatsStore.getState().addWrongAnswers(id, quiz?.title || 'Quiz', wrongQuestions)
+        if (correctQuestions.length > 0) {
+          const correctKeys = correctQuestions.map((q) =>
+            q._bankKey ?? `${id}-${q.id ?? q.question.slice(0, 30)}`
+          )
+          useStatsStore.getState().removeFromBank(correctKeys)
+        }
+
+        // Wrong answers → add to bank, but NOT for practice quizzes (already in bank)
+        if (!isPractice) {
+          const wrongQuestions = gameState.answers
+            .filter((a) => !a.correct)
+            .map((a) => gameState.questions[a.questionIdx])
+            .filter(Boolean)
+          if (wrongQuestions.length > 0) {
+            useStatsStore.getState().addWrongAnswers(id, quiz?.title || 'Quiz', wrongQuestions)
+          }
         }
 
         // Fire XP / streak via statsStore
