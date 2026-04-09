@@ -27,7 +27,7 @@ const SCREENS = {
   settings: 'settings',
 }
 
-const NAV_SCREENS = new Set(['dashboard', 'chapters', 'custom', 'settings'])
+const NAV_SCREENS = new Set(['dashboard', 'chapters', 'chapterDetail', 'custom', 'settings'])
 
 export default function App() {
   // Navigation state

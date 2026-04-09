@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, BookText, PenLine, ChevronRight, Star, Lock, RefreshCw } from 'lucide-react'
 import { useQuizStore } from '../store/quizStore'
@@ -180,8 +180,12 @@ function ProgressBar({ quiz }) {
 export default function ChapterDetailScreen({ chapter, onStart, onBack }) {
   const getQuiz = useQuizStore(s => s.getQuiz)
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   return (
-    <div className="page" style={{ paddingTop: 16 }}>
+    <div className="page" style={{ paddingTop: 16, paddingBottom: 100 }}>
 
       {/* Back */}
       <motion.button initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} onClick={onBack}
