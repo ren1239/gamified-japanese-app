@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Target, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, ChevronDown, Check } from 'lucide-react'
+import { Dumbbell, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, ChevronDown, Check } from 'lucide-react'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import ImportModal from '../components/ImportModal'
@@ -327,7 +327,7 @@ export default function HomeScreen({ onStart, onReview }) {
               color: totalBankSize > 0 ? 'var(--primary)' : 'var(--text-muted)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Target size={22} />
+              <Dumbbell size={22} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>
@@ -431,7 +431,7 @@ export default function HomeScreen({ onStart, onReview }) {
                 className="btn btn-primary"
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 15, opacity: bankSize === 0 ? 0.4 : 1 }}
               >
-                <Target size={16} />
+                <Dumbbell size={16} />
                 Start Practice · {actualCount} question{actualCount !== 1 ? 's' : ''}
                 <ChevronRight size={16} />
               </motion.button>
