@@ -180,10 +180,6 @@ function ProgressBar({ quiz }) {
 export default function ChapterDetailScreen({ chapter, onStart, onBack }) {
   const getQuiz = useQuizStore(s => s.getQuiz)
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
   return (
     <div className="page" style={{ paddingTop: 16, paddingBottom: 100 }}>
 

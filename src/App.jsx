@@ -38,10 +38,6 @@ export default function App() {
   const [reviewQuizId, setReviewQuizId] = useState(null)
   const [reviewBack, setReviewBack] = useState('score')
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [screen, selectedChapter])
-
   // Gamification state
   const [xpToast, setXpToast] = useState({ show: false, xp: 0 })
   const [quitModal, setQuitModal] = useState(false)
@@ -137,19 +133,19 @@ export default function App() {
       <AnimatePresence mode="wait">
 
         {screen === SCREENS.dashboard && (
-          <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+          <motion.div key="dashboard" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
             <DashboardScreen onNavigate={handleTabChange} />
           </motion.div>
         )}
 
         {screen === SCREENS.chapters && (
-          <motion.div key="chapters" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+          <motion.div key="chapters" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
             <ChapterListScreen onSelect={handleSelectChapter} />
           </motion.div>
         )}
 
         {screen === SCREENS.chapterDetail && selectedChapter && (
-          <motion.div key="chapterDetail" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
+          <motion.div key="chapterDetail" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
             <ChapterDetailScreen
               chapter={selectedChapter}
               onStart={(quiz, shuffle) => handleStart(quiz, shuffle, 'chapterDetail')}
@@ -159,7 +155,7 @@ export default function App() {
         )}
 
         {screen === SCREENS.custom && (
-          <motion.div key="custom" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+          <motion.div key="custom" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
             <HomeScreen
               onStart={(quiz, shuffle) => handleStart(quiz, shuffle, 'custom')}
               onReview={(id) => handleOpenReview(id, 'score')}
@@ -168,13 +164,13 @@ export default function App() {
         )}
 
         {screen === SCREENS.quiz && (
-          <motion.div key="quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <motion.div key="quiz" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <QuizScreen onFinish={handleFinish} onQuit={handleQuit} burst={burst} />
           </motion.div>
         )}
 
         {screen === SCREENS.score && (
-          <motion.div key="score" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+          <motion.div key="score" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <ScoreScreen
               onReview={() => handleOpenReview(quizId, 'score')}
               onPlayAgain={handlePlayAgain}
@@ -187,7 +183,7 @@ export default function App() {
         )}
 
         {screen === SCREENS.review && (
-          <motion.div key="review" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <motion.div key="review" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <ReviewScreen
               quizId={reviewQuizId}
               onBack={() => setScreen(reviewBack === 'score' ? SCREENS.score : SCREENS.dashboard)}
@@ -196,7 +192,7 @@ export default function App() {
         )}
 
         {screen === SCREENS.settings && (
-          <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+          <motion.div key="settings" onAnimationStart={() => window.scrollTo(0,0)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
             <SettingsScreen />
           </motion.div>
         )}
