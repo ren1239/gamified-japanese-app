@@ -222,14 +222,12 @@ function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleCha
 // ── Main screen ───────────────────────────────────────────────────────
 export default function HomeScreen({ onStart, onReview }) {
   const wrongBank = useStatsStore((s) => s.wrongBank)
-  const clearWrongBank = useStatsStore((s) => s.clearWrongBank)
   const quizzes = useQuizStore((s) => s.quizzes)
   const removeQuiz = useQuizStore((s) => s.removeQuiz)
 
   const [count, setCount] = useState(10)
   const [mode, setMode] = useState('missed')
   const [showImport, setShowImport] = useState(false)
-  const [confirmClear, setConfirmClear] = useState(false)
   const [selectedSources, setSelectedSources] = useState(null) // null = all
 
   const customQuizzes = useMemo(
@@ -349,23 +347,6 @@ export default function HomeScreen({ onStart, onReview }) {
                 </div>
               )}
             </div>
-            {totalBankSize > 0 && (
-              <button
-                onClick={() => {
-                  if (confirmClear) { clearWrongBank(); setSelectedSources(null); setConfirmClear(false) }
-                  else setConfirmClear(true)
-                }}
-                style={{
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: confirmClear ? 'var(--error)' : 'var(--text-muted)',
-                  fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700,
-                  padding: '4px 0', whiteSpace: 'nowrap', transition: 'color 0.2s',
-                }}
-                onBlur={() => setTimeout(() => setConfirmClear(false), 200)}
-              >
-                {confirmClear ? 'Confirm clear?' : <Trash2 size={16} />}
-              </button>
-            )}
           </div>
 
           {totalBankSize > 0 && (
