@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Flame, Star, Target, FileText } from 'lucide-react'
+import { Flame, Star, Target, FileText, Zap, Award, BookOpen } from 'lucide-react'
 import { useStatsStore, computeLevel, xpInCurrentLevel, xpForLevel } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import { chapters } from '../data/chapterData'
@@ -9,12 +9,12 @@ const LEVEL_NAMES = ['', '入門者', '初心者', '基礎', '学習者', '中�
 function getLevelName(l) { return LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length - 1)] || `Lv.${l}` }
 
 const ACHIEVEMENTS = [
-  { id: 'first_play',   icon: '🎯', label: 'First Quiz',    desc: 'Complete your first quiz',     check: (h) => h.length >= 1 },
-  { id: 'streak3',      icon: '🔥', label: '3-Day Streak',  desc: 'Play 3 days in a row',          check: (_, s) => s >= 3 },
-  { id: 'streak7',      icon: '⚡', label: 'Week Warrior',  desc: '7 days in a row',               check: (_, s) => s >= 7 },
-  { id: 'perfect',      icon: '💎', label: 'Perfect Score', desc: 'Get 100% on any quiz',          check: (h) => h.some((e) => e.score === e.total) },
-  { id: 'ten_quizzes',  icon: '📚', label: '10 Quizzes',    desc: 'Complete 10 quizzes',           check: (h) => h.length >= 10 },
-  { id: 'xp500',        icon: '🌟', label: 'XP Hoard',      desc: 'Earn 500 total XP',             check: (_, __, xp) => xp >= 500 },
+  { id: 'first_play',   icon: Target,   color: '#3B82F6', label: 'First Quiz',    desc: 'Complete your first quiz',     check: (h) => h.length >= 1 },
+  { id: 'streak3',      icon: Flame,    color: '#F97316', label: '3-Day Streak',  desc: 'Play 3 days in a row',          check: (_, s) => s >= 3 },
+  { id: 'streak7',      icon: Zap,      color: '#EAB308', label: 'Week Warrior',  desc: '7 days in a row',               check: (_, s) => s >= 7 },
+  { id: 'perfect',      icon: Award,    color: '#10B981', label: 'Perfect Score', desc: 'Get 100% on any quiz',          check: (h) => h.some((e) => e.score === e.total) },
+  { id: 'ten_quizzes',  icon: BookOpen, color: '#8B5CF6', label: '10 Quizzes',    desc: 'Complete 10 quizzes',           check: (h) => h.length >= 10 },
+  { id: 'xp500',        icon: Star,     color: '#F59E0B', label: 'XP Hoard',      desc: 'Earn 500 total XP',             check: (_, __, xp) => xp >= 500 },
 ]
 
 function stagger(i) { return { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06 + 0.1, duration: 0.35 } } }
@@ -234,10 +234,10 @@ export default function DashboardScreen({ onNavigate }) {
               }}
             >
               <div style={{
-                fontSize: 28, marginBottom: 4,
-                ...(a.unlocked ? { filter: 'drop-shadow(0 0 8px rgba(124,58,237,0.5))' } : {}),
+                marginBottom: 10, display: 'flex', justifyContent: 'center',
+                ...(a.unlocked ? { filter: `drop-shadow(0 0 8px ${a.color}55)` } : {}),
               }}>
-                {a.icon}
+                <a.icon size={26} strokeWidth={2.5} color={a.unlocked ? a.color : 'var(--text-muted)'} />
               </div>
               <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 11, color: 'var(--text)', marginBottom: 2 }}>
                 {a.label}
