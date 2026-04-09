@@ -59,12 +59,16 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
   // Keyboard shortcuts A/B/C or 1/2/3
   useEffect(() => {
     const handler = (e) => {
+      // Space or Enter to advance when wrong
+      if ((e.key === ' ' || e.key === 'Enter') && answered && !lastCorrect) {
+        advance()
+        return
+      }
+      
       if (phase !== 'playing') return
       const map = { '1': 0, '2': 1, '3': 2, '4': 3, a: 0, b: 1, c: 2, d: 3 }
       const idx = map[e.key.toLowerCase()]
       if (idx !== undefined && idx < q?.choices?.length) handleAnswer(idx)
-      // Space or Enter to advance when wrong
-      if ((e.key === ' ' || e.key === 'Enter') && answered && !lastCorrect) advance()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -304,23 +308,24 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
             style={{
               position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
               width: '100%', maxWidth: 448,
-              padding: '20px 24px 36px',
+              padding: '24px 20px 32px',
               background: lastCorrect ? 'linear-gradient(135deg, #059669, #10B981)' : 'linear-gradient(135deg, #DC2626, #EF4444)',
               zIndex: 200, borderRadius: '24px 24px 0 0',
               boxShadow: lastCorrect ? '0 -8px 32px rgba(16,185,129,0.35)' : '0 -8px 32px rgba(239,68,68,0.35)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Text Area */}
               <div>
                 <motion.div
                   initial={{ scale: 0.5 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 280, damping: 16, delay: 0.05 }}
-                  style={{ fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900, fontSize: 'clamp(22px, 6vw, 30px)', color: '#fff', lineHeight: 1, marginBottom: 4 }}
+                  style={{ fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900, fontSize: 'clamp(20px, 6vw, 26px)', color: '#fff', lineHeight: 1, marginBottom: 6 }}
                 >
                   {lastCorrect ? '正解！ 🎉' : '不正解 😤'}
                 </motion.div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4 }}>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.9)', lineHeight: 1.4 }}>
                   {lastCorrect ? 'Great job! Keep it up!' : `Correct answer: ${q.choices[q.correct]}`}
                 </div>
               </div>
@@ -328,23 +333,23 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
               {/* Only show Got it button on WRONG — correct auto-advances */}
               {!lastCorrect && (
                 <motion.button
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={advance}
                   style={{
-                    flexShrink: 0,
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    background: 'rgba(255,255,255,0.22)',
-                    border: '2px solid rgba(255,255,255,0.45)',
-                    borderRadius: 14, padding: '10px 16px',
-                    fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14,
-                    color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+                    width: '100%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    background: 'rgba(255,255,255,0.25)',
+                    border: '2px solid rgba(255,255,255,0.5)',
+                    borderRadius: 14, padding: '14px 0',
+                    fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16,
+                    color: '#fff', cursor: 'pointer',
                   }}
                 >
-                  Got it <ChevronRight size={16} strokeWidth={2.5} />
+                  Got it <ChevronRight size={18} strokeWidth={3} />
                 </motion.button>
               )}
             </div>
