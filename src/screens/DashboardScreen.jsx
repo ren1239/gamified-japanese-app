@@ -151,15 +151,18 @@ export default function DashboardScreen({ onNavigate }) {
         <div className="section-label">Chapter Progress</div>
         <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }}>
           {chapters.slice(0, 23).map((ch, i) => {
+            const isLocked = ch.number !== 11
             const quiz = ch.vocab?.quizId ? quizMap[ch.vocab.quizId] : null
             const played = quiz?.playCount > 0
             const perfect = quiz && quiz.bestScore === quiz.questions?.length
-            // Partial fill: grammar drills progress 0→1
             const grammarTotal = ch.grammar?.length || 0
             const grammarDone = ch.grammar?.filter(g => quizMap[g.quizId]?.playCount > 0).length || 0
             const fillPct = perfect ? 100 : played
               ? Math.round(50 + (grammarTotal > 0 ? (grammarDone / grammarTotal) * 50 : 0))
               : grammarDone > 0 ? Math.round((grammarDone / grammarTotal) * 45) : 0
+
+            const deg = fillPct * 3.6
+            const borderFill = perfect ? 'var(--gold)' : 'var(--primary)'
 
             return (
               <motion.div
@@ -167,46 +170,44 @@ export default function DashboardScreen({ onNavigate }) {
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.025 }}
-                style={{
-                  minWidth: 64, height: 72,
-                  borderRadius: 14,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-                  position: 'relative', overflow: 'hidden',
-                  background: perfect
-                    ? 'linear-gradient(135deg, var(--success), #34D399)'
-                    : played
-                    ? 'linear-gradient(135deg, var(--primary), var(--primary-light))'
-                    : 'var(--surface)',
-                  border: `1.5px solid ${perfect ? 'var(--success)' : played ? 'var(--border-md)' : 'var(--border)'}`,
-                  boxShadow: perfect ? '0 4px 16px rgba(16,185,129,0.3)' : played ? 'var(--shadow-sm)' : 'none',
-                  cursor: 'default', flexShrink: 0,
-                }}
+                style={{ flexShrink: 0, opacity: isLocked ? 0.35 : 1 }}
               >
-                {/* partial fill bar at bottom */}
-                {!perfect && !played && fillPct > 0 && (
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0,
-                    width: `${fillPct}%`, height: 4,
-                    background: 'var(--primary)', borderRadius: '0 2px 0 14px',
-                    transition: 'width 0.6s ease',
-                  }} />
-                )}
-                {(perfect || played) && (
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0, height: 4,
-                    background: perfect ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)',
-                    overflow: 'hidden',
-                  }}>
-                    <div style={{ width: `${fillPct}%`, height: '100%', background: 'rgba(255,255,255,0.5)' }} />
-                  </div>
-                )}
-                <div style={{ fontSize: 16, zIndex: 1 }}>{perfect ? '⭐' : played ? '✓' : ch.number}</div>
+                {/* Conic-gradient outline wrapper — 2px "border" */}
                 <div style={{
-                  fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 10, zIndex: 1,
-                  color: perfect || played ? 'rgba(255,255,255,0.9)' : 'var(--text-muted)',
-                  letterSpacing: '0.5px',
+                  background: isLocked
+                    ? 'var(--border)'
+                    : deg > 0
+                    ? `conic-gradient(from -90deg, ${borderFill} ${deg}deg, var(--border) 0)`
+                    : 'var(--border)',
+                  borderRadius: 16,
+                  padding: '2px',
+                  boxShadow: perfect
+                    ? '0 0 14px rgba(245,158,11,0.45)'
+                    : played && deg > 0
+                    ? '0 0 8px rgba(124,58,237,0.25)'
+                    : 'none',
+                  transition: 'box-shadow 0.3s',
                 }}>
-                  Ch.{ch.number}
+                  <div style={{
+                    width: 60, height: 68,
+                    borderRadius: 14,
+                    background: 'var(--surface)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
+                  }}>
+                    <div style={{ fontSize: 16 }}>
+                      {perfect ? '⭐' : played ? '✓' : isLocked ? '🔒' : ch.number}
+                    </div>
+                    <div style={{
+                      fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 10,
+                      color: played || perfect ? 'var(--primary)' : 'var(--text-muted)',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Ch.{ch.number}
+                    </div>
+                    {fillPct > 0 && fillPct < 100 && (
+                      <div style={{ fontSize: 8, color: 'var(--text-muted)', fontWeight: 700 }}>{fillPct}%</div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )
