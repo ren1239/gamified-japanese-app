@@ -91,11 +91,11 @@ function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleCha
                 width: 34, height: 34, borderRadius: 9, flexShrink: 0,
                 background: chapterState === 'all' ? 'var(--primary)' : chapterState === 'some' ? 'rgba(124,58,237,0.25)' : 'var(--border)',
                 color: chapterState === 'none' ? 'var(--text-muted)' : chapterState === 'all' ? '#fff' : 'var(--primary)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: "'Nunito'", fontWeight: 900, fontSize: 15,
                 transition: 'all 0.2s',
               }}>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 8, letterSpacing: '0.5px', opacity: 0.7, lineHeight: 1, marginBottom: 1 }}>CH</div>
-                <div style={{ fontFamily: "'Bebas Neue'", fontSize: 16, lineHeight: 1 }}>{group.chapter}</div>
+                {group.chapter}
               </div>
 
               {/* Label */}
