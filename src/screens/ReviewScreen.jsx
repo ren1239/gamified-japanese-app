@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
-import { useQuizStore } from '../store/quizStore'
+import { useQuizStore, useGameStore } from '../store/quizStore'
 
 const LABELS = ['A', 'B', 'C', 'D']
 
 export default function ReviewScreen({ quizId, onBack }) {
   const getQuiz = useQuizStore((s) => s.getQuiz)
-  const quiz = getQuiz(quizId)
+  const activeQuiz = useGameStore((s) => s.activeQuiz)
+  const quiz = activeQuiz || getQuiz(quizId)
 
   if (!quiz) return null
 

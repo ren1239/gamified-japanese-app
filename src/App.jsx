@@ -83,9 +83,9 @@ export default function App() {
   }, [scoreBackTo])
 
   const handlePlayAgain = useCallback(() => {
-    const quiz = getQuiz(quizId)
+    const quiz = useGameStore.getState().activeQuiz
     if (quiz) handleStart(quiz, shuffled, scoreBackTo)
-  }, [quizId, shuffled, getQuiz, handleStart, scoreBackTo])
+  }, [shuffled, handleStart, scoreBackTo])
 
   const handleOpenReview = useCallback((id, back) => {
     setReviewQuizId(id)

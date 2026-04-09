@@ -36,7 +36,8 @@ export const useQuizStore = create(
       },
 
       updateStats: (id, score) => {
-        const quiz = get().quizzes.find((q) => q.id === id)
+        const activeQuiz = useGameStore.getState().activeQuiz
+        const quiz = get().quizzes.find((q) => q.id === id) || activeQuiz
         const total = quiz?.questions?.length || 0
         // Fire XP / streak via statsStore
         const xpEarned = useStatsStore.getState().recordResult(id, score, total)
@@ -78,6 +79,7 @@ export const useQuizStore = create(
 // Game state (not persisted)
 export const useGameStore = create((set) => ({
   quizId: null,
+  activeQuiz: null,
   questions: [],
   currentIndex: 0,
   score: 0,
@@ -95,6 +97,7 @@ export const useGameStore = create((set) => ({
     }
     set({
       quizId: quiz.id,
+      activeQuiz: quiz,
       questions,
       currentIndex: 0,
       score: 0,
@@ -126,5 +129,5 @@ export const useGameStore = create((set) => ({
     }
   },
 
-  resetGame: () => set({ quizId: null, questions: [], currentIndex: 0, score: 0, answers: [], phase: 'idle' }),
+  resetGame: () => set({ quizId: null, activeQuiz: null, questions: [], currentIndex: 0, score: 0, answers: [], phase: 'idle' }),
 }))
