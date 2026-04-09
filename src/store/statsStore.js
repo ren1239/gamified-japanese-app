@@ -30,6 +30,7 @@ export const useStatsStore = create(
   persist(
     (set, get) => ({
       totalXp: 0,
+      soundEnabled: true,
       history: [], // [{ date, quizId, score, total, xpEarned }]
       lastPlayedDate: null,
       streak: 0,
@@ -77,6 +78,8 @@ export const useStatsStore = create(
         lastPlayedDate: null,
         streak: 0,
       }),
+
+      toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
     }),
     {
       name: 'nihongo-stats-store',

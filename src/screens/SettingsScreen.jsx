@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion'
-import { Trash2, AlertTriangle, Download, Info } from 'lucide-react'
+import { Trash2, AlertTriangle, Download, Info, Volume2, VolumeX } from 'lucide-react'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 
 export default function SettingsScreen() {
   const resetStats = useStatsStore((s) => s.resetStats)
   const resetQuizzesProgress = useQuizStore((s) => s.resetQuizzesProgress)
+  const soundEnabled = useStatsStore((s) => s.soundEnabled)
+  const toggleSound = useStatsStore((s) => s.toggleSound)
 
   const handleReset = () => {
     if (window.confirm("Are you sure you want to reset ALL your progress? This cannot be undone.")) {
@@ -42,6 +44,31 @@ export default function SettingsScreen() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         
+        {/* Preferences Section */}
+        <section>
+          <div className="section-label">Preferences</div>
+          <div className="glass-card" style={{ overflow: 'hidden' }}>
+            <button onClick={toggleSound} style={{
+              display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+              padding: '16px 20px', background: 'transparent', border: 'none',
+              cursor: 'pointer', textAlign: 'left'
+            }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: soundEnabled ? 'rgba(16,185,129,0.1)' : 'rgba(156,163,175,0.1)', color: soundEnabled ? '#10B981' : '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                 {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+              </div>
+              <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2 }}>Sound Effects</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Play sound on answers</div>
+                </div>
+                <div style={{ width: 46, height: 26, background: soundEnabled ? 'var(--success)' : 'var(--border)', borderRadius: 13, position: 'relative', transition: 'background 0.3s' }}>
+                   <div style={{ width: 22, height: 22, background: '#fff', borderRadius: 11, position: 'absolute', top: 2, left: soundEnabled ? 22 : 2, transition: 'left 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
+                </div>
+              </div>
+            </button>
+          </div>
+        </section>
+
         {/* Data Section */}
         <section>
           <div className="section-label">Data Management</div>

@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight } from 'lucide-react'
 import { useGameStore, useQuizStore } from '../store/quizStore'
+import { useStatsStore } from '../store/statsStore'
+import { playSuccessChime, playErrorBuzzer } from '../utils/audio'
 
 const LABELS = ['A', 'B', 'C', 'D']
 const BADGE_COLORS = [
@@ -14,6 +16,7 @@ const BADGE_COLORS = [
 export default function QuizScreen({ onFinish, onQuit, burst }) {
   const { questions, currentIndex, score, phase, quizId, submitAnswer, nextQuestion } = useGameStore()
   const getQuiz = useQuizStore((s) => s.getQuiz)
+  const soundEnabled = useStatsStore((s) => s.soundEnabled)
 
   const [lastCorrect, setLastCorrect] = useState(null)
   const [chosenIdx, setChosenIdx] = useState(null)
@@ -41,13 +44,16 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
       setLastCorrect(correct)
 
       if (correct) {
+        if (soundEnabled) playSuccessChime()
         burst(window.innerWidth / 2, window.innerHeight * 0.5, 'correct', 55)
         // Auto-advance only on correct — satisfying flow
         setTimeout(advance, 1000)
+      } else {
+        if (soundEnabled) playErrorBuzzer()
       }
       // On wrong: user must tap "Got it →" to advance (no auto-skip)
     },
-    [phase, submitAnswer, burst, advance]
+    [phase, submitAnswer, burst, advance, soundEnabled]
   )
 
   // Keyboard shortcuts A/B/C or 1/2/3
