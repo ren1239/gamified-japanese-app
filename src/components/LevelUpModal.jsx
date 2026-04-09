@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStatsStore } from '../store/statsStore'
+import { playLevelUpFanfare } from '../utils/audio'
 
 const LEVEL_NAMES = [
   '', '入門者', '初心者', '基礎', '学習者', '中級者', '上級者', '達人', '師匠', '先生', '博士'
@@ -10,6 +12,12 @@ function getLevelName(level) {
 }
 
 export default function LevelUpModal({ fromLevel, toLevel, show, onClose }) {
+  const soundEnabled = useStatsStore((s) => s.soundEnabled)
+
+  useEffect(() => {
+    if (show && soundEnabled) playLevelUpFanfare()
+  }, [show, soundEnabled])
+
   return (
     <AnimatePresence>
       {show && (

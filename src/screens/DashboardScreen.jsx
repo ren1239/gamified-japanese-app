@@ -135,10 +135,13 @@ export default function DashboardScreen({ onNavigate }) {
       <div className="section-label">Overview</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 28 }}>
         {statCards.map((s, i) => (
-          <motion.div key={s.label} {...stagger(i)} className="stat-card glass-card">
-            <s.Icon size={20} strokeWidth={2} color={s.color} style={{ marginBottom: 6 }} />
-            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 18, color: s.color, lineHeight: 1 }}>{s.val}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginTop: 2, textAlign: 'center' }}>{s.label}</div>
+          <motion.div key={s.label} {...stagger(i)} className="stat-card glass-card"
+            style={{ position: 'relative', overflow: 'hidden', padding: '16px 8px' }}
+          >
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: s.color, borderRadius: '16px 16px 0 0' }} />
+            <s.Icon size={16} strokeWidth={2.5} color={s.color} style={{ marginBottom: 6, opacity: 0.75 }} />
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, color: s.color, lineHeight: 1 }}>{s.val}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.8px', marginTop: 3, textAlign: 'center', textTransform: 'uppercase' }}>{s.label}</div>
           </motion.div>
         ))}
       </div>
@@ -151,6 +154,13 @@ export default function DashboardScreen({ onNavigate }) {
             const quiz = ch.vocab?.quizId ? quizMap[ch.vocab.quizId] : null
             const played = quiz?.playCount > 0
             const perfect = quiz && quiz.bestScore === quiz.questions?.length
+            // Partial fill: grammar drills progress 0→1
+            const grammarTotal = ch.grammar?.length || 0
+            const grammarDone = ch.grammar?.filter(g => quizMap[g.quizId]?.playCount > 0).length || 0
+            const fillPct = perfect ? 100 : played
+              ? Math.round(50 + (grammarTotal > 0 ? (grammarDone / grammarTotal) * 50 : 0))
+              : grammarDone > 0 ? Math.round((grammarDone / grammarTotal) * 45) : 0
+
             return (
               <motion.div
                 key={ch.number}
@@ -161,22 +171,38 @@ export default function DashboardScreen({ onNavigate }) {
                   minWidth: 64, height: 72,
                   borderRadius: 14,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  position: 'relative', overflow: 'hidden',
                   background: perfect
-                    ? 'linear-gradient(135deg, var(--success), var(--success-dim))'
+                    ? 'linear-gradient(135deg, var(--success), #34D399)'
                     : played
                     ? 'linear-gradient(135deg, var(--primary), var(--primary-light))'
                     : 'var(--surface)',
-                  border: `1.5px solid ${perfect ? 'var(--success)' : played ? 'var(--primary-glow)' : 'var(--border)'}`,
-                  boxShadow: perfect ? '0 4px 16px var(--success-dim)' : played ? '0 4px 16px var(--primary-glow)' : 'none',
-                  cursor: 'default',
-                  flexShrink: 0,
+                  border: `1.5px solid ${perfect ? 'var(--success)' : played ? 'var(--border-md)' : 'var(--border)'}`,
+                  boxShadow: perfect ? '0 4px 16px rgba(16,185,129,0.3)' : played ? 'var(--shadow-sm)' : 'none',
+                  cursor: 'default', flexShrink: 0,
                 }}
               >
-                <div style={{ fontSize: 16 }}>{perfect ? '⭐' : played ? '✓' : ch.number}</div>
+                {/* partial fill bar at bottom */}
+                {!perfect && !played && fillPct > 0 && (
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0,
+                    width: `${fillPct}%`, height: 4,
+                    background: 'var(--primary)', borderRadius: '0 2px 0 14px',
+                    transition: 'width 0.6s ease',
+                  }} />
+                )}
+                {(perfect || played) && (
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0, height: 4,
+                    background: perfect ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{ width: `${fillPct}%`, height: '100%', background: 'rgba(255,255,255,0.5)' }} />
+                  </div>
+                )}
+                <div style={{ fontSize: 16, zIndex: 1 }}>{perfect ? '⭐' : played ? '✓' : ch.number}</div>
                 <div style={{
-                  fontFamily: "'Nunito', sans-serif",
-                  fontWeight: 800,
-                  fontSize: 10,
+                  fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 10, zIndex: 1,
                   color: perfect || played ? 'rgba(255,255,255,0.9)' : 'var(--text-muted)',
                   letterSpacing: '0.5px',
                 }}>
@@ -225,27 +251,31 @@ export default function DashboardScreen({ onNavigate }) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 + 0.2 }}
-              className="glass-card"
+              className={`glass-card${a.unlocked ? ' achievement-unlocked' : ''}`}
               style={{
                 padding: '14px 8px',
                 textAlign: 'center',
                 filter: a.unlocked ? 'none' : 'grayscale(1)',
-                opacity: a.unlocked ? 1 : 0.45,
-                transition: 'all 0.3s',
+                opacity: a.unlocked ? 1 : 0.4,
+                position: 'relative', overflow: 'hidden',
               }}
             >
+              {a.unlocked && (
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2.5, background: a.color, opacity: 0.7 }} />
+              )}
               <div style={{
-                marginBottom: 10, display: 'flex', justifyContent: 'center',
-                ...(a.unlocked ? { filter: `drop-shadow(0 0 8px ${a.color}55)` } : {}),
+                marginBottom: 8, display: 'flex', justifyContent: 'center',
+                ...(a.unlocked ? { filter: `drop-shadow(0 0 10px ${a.color}88)` } : {}),
               }}>
-                <a.icon size={26} strokeWidth={2.5} color={a.unlocked ? a.color : 'var(--text-muted)'} />
+                <a.icon size={24} strokeWidth={2.5} color={a.unlocked ? a.color : 'var(--text-muted)'} />
               </div>
               <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 11, color: 'var(--text)', marginBottom: 2 }}>
                 {a.label}
               </div>
-              {a.unlocked && (
-                <div style={{ fontSize: 9, color: 'var(--success)', fontWeight: 700, letterSpacing: '0.5px' }}>UNLOCKED</div>
-              )}
+              {a.unlocked
+                ? <div style={{ fontSize: 9, color: '#F59E0B', fontWeight: 900, letterSpacing: '1px' }}>✦ UNLOCKED</div>
+                : <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700 }}>Locked</div>
+              }
             </motion.div>
           ))}
         </div>

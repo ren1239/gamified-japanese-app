@@ -31,9 +31,9 @@
   --radius-sm: 12px;
   --radius-xs: 8px;
 
-  --shadow-sm: 0 2px 8px rgba(124, 58, 237, 0.1);
-  --shadow-md: 0 4px 16px rgba(124, 58, 237, 0.15);
-  --shadow-lg: 0 8px 32px rgba(124, 58, 237, 0.2);
+  --shadow-sm: 0 2px 12px rgba(124, 58, 237, 0.12), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 20px rgba(124, 58, 237, 0.16), 0 2px 6px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 36px rgba(124, 58, 237, 0.22), 0 4px 12px rgba(0,0,0,0.09);
 
   /* ─── Legacy aliases (used by original screens) ─── */
   --pink: #EC4899;
@@ -73,7 +73,9 @@
   --yellow: #FCD34D;
   --pink: #FF2D78;
   --cyan: #22D3EE;
-  
+  --gold: #FCD34D;
+  --gold-dim: rgba(252,211,77,0.15);
+
   color-scheme: dark;
 }
 
@@ -88,11 +90,15 @@ html, body, #root {
 
 body {
   background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 18% 35%, rgba(124,58,237,0.07) 0%, transparent 52%),
+    radial-gradient(ellipse at 82% 12%, rgba(249,115,22,0.05) 0%, transparent 45%);
   color: var(--text);
   font-family: 'Nunito', sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
 }
+body.theme-neon { background-image: none; }
 
 button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 input, textarea { font-family: inherit; outline: none; }
@@ -183,6 +189,21 @@ input, textarea { font-family: inherit; outline: none; }
 
 @keyframes xp-fill {
   from { width: 0%; }
+}
+
+@keyframes xp-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+@keyframes achievement-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4), var(--shadow-sm); }
+  50%       { box-shadow: 0 0 0 7px rgba(245,158,11,0.08), var(--shadow-sm); }
+}
+
+@keyframes chapter-fill-wave {
+  0%   { transform: translateX(-100%) skewX(-10deg); }
+  100% { transform: translateX(200%)  skewX(-10deg); }
 }
 
 @keyframes confetti-fall {
@@ -320,16 +341,26 @@ input, textarea { font-family: inherit; outline: none; }
 
 /* ─── XP Bar ─── */
 .xp-bar-track {
-  height: 10px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 5px;
+  height: 14px;
+  background: rgba(255,255,255,0.22);
+  border-radius: 7px;
   overflow: hidden;
 }
 .xp-bar-fill {
   height: 100%;
-  border-radius: 5px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.7), rgba(255,255,255,1));
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.55), rgba(255,255,255,1));
   animation: xp-fill 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  position: relative;
+  overflow: hidden;
+}
+.xp-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: xp-shimmer 2.8s ease-in-out 1.5s infinite;
 }
 
 /* ─── Streak badge ─── */
@@ -364,10 +395,10 @@ input, textarea { font-family: inherit; outline: none; }
 .btn-primary {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
-  box-shadow: 0 4px 16px var(--primary-glow);
+  box-shadow: 0 4px 16px var(--primary-glow), 0 2px 4px rgba(0,0,0,0.1);
 }
-.btn-primary:hover  { transform: scale(1.03); box-shadow: 0 6px 24px var(--primary-glow); }
-.btn-primary:active { transform: scale(0.97); }
+.btn-primary:hover  { transform: scale(1.03) translateY(-1px); box-shadow: 0 8px 28px var(--primary-glow), 0 4px 8px rgba(0,0,0,0.12); }
+.btn-primary:active { transform: scale(0.97) translateY(1px); box-shadow: 0 2px 8px var(--primary-glow); }
 
 .btn-accent {
   background: linear-gradient(135deg, var(--accent), var(--accent-light));
@@ -563,6 +594,12 @@ input, textarea { font-family: inherit; outline: none; }
   color: var(--text-muted); letter-spacing: 0.3px;
 }
 .nav-label-active { color: var(--primary); }
+
+/* ─── Achievement unlocked ─── */
+.achievement-unlocked {
+  border-color: rgba(245,158,11,0.55) !important;
+  animation: achievement-pulse 2.8s ease-in-out infinite;
+}
 
 /* ─── Btn secondary (was missing) ─── */
 .btn-secondary {

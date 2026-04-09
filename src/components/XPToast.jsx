@@ -1,15 +1,19 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useStatsStore } from '../store/statsStore'
+import { playXPCoin } from '../utils/audio'
 
 export default function XPToast({ xp, show, onDone }) {
   const timerRef = useRef(null)
+  const soundEnabled = useStatsStore((s) => s.soundEnabled)
 
   useEffect(() => {
     if (show) {
+      if (soundEnabled) playXPCoin()
       timerRef.current = setTimeout(onDone, 2200)
       return () => clearTimeout(timerRef.current)
     }
-  }, [show, onDone])
+  }, [show, onDone, soundEnabled])
 
   return (
     <AnimatePresence>

@@ -109,15 +109,27 @@ export default function ScoreScreen({ onReview, onPlayAgain, onDashboard, perfec
           </div>
         </motion.div>
 
-        {/* Stars */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          style={{ fontSize: 32, marginBottom: 8, letterSpacing: 4 }}
-        >
-          {result.stars}
-        </motion.div>
+        {/* Stars — animated one-by-one */}
+        <div style={{ fontSize: 32, marginBottom: 8, letterSpacing: 6, display: 'flex', justifyContent: 'center', gap: 4 }}>
+          {Array.from({ length: 5 }).map((_, i) => {
+            const filled = i < (result.stars.match(/★/g) || []).length
+            return (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0, scale: 0, rotate: -40 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ delay: 0.3 + i * 0.13, type: 'spring', stiffness: 280, damping: 14 }}
+                style={{
+                  display: 'inline-block',
+                  color: filled ? 'var(--gold)' : 'var(--border-md)',
+                  filter: filled ? 'drop-shadow(0 0 6px var(--gold))' : 'none',
+                }}
+              >
+                ★
+              </motion.span>
+            )
+          })}
+        </div>
 
         <motion.div
           initial={{ opacity: 0 }}
