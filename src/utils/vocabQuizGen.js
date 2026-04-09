@@ -58,15 +58,15 @@ function buildQuestion(word, direction, pool, qIndex) {
  * @param {string} direction — 'jp-en' | 'en-jp' | 'mix'
  * @param {string} chapterNum — used for quiz ID
  */
-export function generateVocabQuiz(category, direction, chapterNum = 11) {
+export function generateVocabQuiz(category, direction, chapterNum = 11, limit = 10) {
   const pool = getWordsForCategory(category)
 
   if (pool.length < 4) {
     throw new Error('Not enough words to generate a quiz (need at least 4)')
   }
 
-  // Pick up to 10 random words
-  const selected = shuffle(pool).slice(0, Math.min(10, pool.length))
+  // Pick up to limit random words
+  const selected = shuffle(pool).slice(0, Math.min(limit, pool.length))
 
   const questions = selected.map((word, i) => buildQuestion(word, direction, pool, i))
 

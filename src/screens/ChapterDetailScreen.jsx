@@ -60,23 +60,23 @@ function VocabSection({ chapter, onStart }) {
 
   const wordCount = hasDynamic ? getWordsForCategory(cat).length : (staticQuiz?.questions?.length ?? 0)
 
-  const handlePlay = () => {
+  const handleQuick = () => {
     if (hasDynamic) {
       try {
-        const quiz = generateVocabQuiz(cat, dir, chapter.number)
-        onStart(quiz, false)
+        const quiz = generateVocabQuiz(cat, dir, chapter.number, 10)
+        onStart(quiz, true)
       } catch (e) {
         setErr(e.message)
       }
     } else if (staticQuiz) {
-      onStart(staticQuiz, false)
+      onStart(staticQuiz, true)
     }
   }
 
-  const handleShuffle = () => {
+  const handleAll = () => {
     if (hasDynamic) {
       try {
-        const quiz = generateVocabQuiz(cat, dir, chapter.number)
+        const quiz = generateVocabQuiz(cat, dir, chapter.number, wordCount)
         onStart(quiz, true)
       } catch (e) {
         setErr(e.message)
@@ -127,19 +127,19 @@ function VocabSection({ chapter, onStart }) {
             <motion.button
               className="btn btn-primary"
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handlePlay}
+              onClick={handleQuick}
               style={{ flex: 1, padding: '11px 0', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
               {hasDynamic && <RefreshCw size={14} strokeWidth={2.5} />}
-              {hasDynamic ? 'Generate & Play' : 'Play'}
+              {hasDynamic ? 'Quick (10)' : 'Play'}
             </motion.button>
             <motion.button
               className="btn btn-accent"
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handleShuffle}
+              onClick={handleAll}
               style={{ flex: 1, padding: '11px 0', fontSize: 14 }}
             >
-              Shuffle
+              {hasDynamic ? `All (${wordCount})` : 'Shuffle'}
             </motion.button>
           </div>
         ) : (

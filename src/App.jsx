@@ -36,6 +36,10 @@ export default function App() {
   const [reviewQuizId, setReviewQuizId] = useState(null)
   const [reviewBack, setReviewBack] = useState('score')
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [screen, selectedChapter])
+
   // Gamification state
   const [xpToast, setXpToast] = useState({ show: false, xp: 0 })
   const [quitModal, setQuitModal] = useState(false)
@@ -215,23 +219,21 @@ export default function App() {
             />
             <motion.div
               key="quit-modal"
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
+              initial={{ scale: 0.9, y: '-50%', x: '-50%', opacity: 0 }}
+              animate={{ scale: 1, y: '-50%', x: '-50%', opacity: 1 }}
+              exit={{ scale: 0.9, y: '-50%', x: '-50%', opacity: 0 }}
               transition={{ type: 'spring', stiffness: 360, damping: 28 }}
               style={{
-                position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                width: '100%', maxWidth: 448, zIndex: 401,
+                position: 'fixed', top: '50%', left: '50%',
+                width: 'calc(100% - 48px)', maxWidth: 340, zIndex: 401,
                 background: '#fff',
-                borderRadius: '24px 24px 0 0',
-                padding: '28px 24px 40px',
-                boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+                borderRadius: '24px',
+                padding: '32px 24px',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
                 textAlign: 'center',
               }}
             >
-              {/* Handle bar */}
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: '#E5E7EB', margin: '0 auto 20px' }} />
-              <div style={{ fontSize: 28, marginBottom: 10 }}>🚪</div>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>🚪</div>
               <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
                 Quit Quiz?
               </div>
