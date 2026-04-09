@@ -6,6 +6,7 @@ const LABELS = ['A', 'B', 'C', 'D']
 export default function ReviewScreen({ quizId, onBack }) {
   const getQuiz = useQuizStore((s) => s.getQuiz)
   const activeQuiz = useGameStore((s) => s.activeQuiz)
+  const answers = useGameStore((s) => s.answers)
   const quiz = activeQuiz || getQuiz(quizId)
 
   if (!quiz) return null
@@ -37,16 +38,17 @@ export default function ReviewScreen({ quizId, onBack }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {quiz.questions.map((q, qi) => (
-            <ReviewQuestion key={q.id || qi} q={q} qi={qi} />
-          ))}
+          {quiz.questions.map((q, qi) => {
+            const answerDetail = answers.find(a => a.questionIdx === qi) || null
+            return <ReviewQuestion key={q.id || qi} q={q} qi={qi} answer={answerDetail} />
+          })}
         </div>
       </motion.div>
     </div>
   )
 }
 
-function ReviewQuestion({ q, qi }) {
+function ReviewQuestion({ q, qi, answer }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -72,30 +74,53 @@ function ReviewQuestion({ q, qi }) {
         </div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-        {q.choices.map((c, ci) => (
-          <div
-            key={ci}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 14px',
-              borderRadius: 8,
-              border: `1px solid ${ci === q.correct ? 'var(--green)' : 'var(--border)'}`,
-              background: ci === q.correct ? 'var(--green-dim)' : 'transparent',
-              fontSize: 14,
-              color: ci === q.correct ? 'var(--green)' : 'var(--muted)',
-            }}
-          >
-            <span style={{ fontWeight: 700, minWidth: 20 }}>
-              {ci === q.correct ? '✓' : LABELS[ci]}
-            </span>
-            <span style={{
-              fontFamily: q.jp ? "'Noto Sans JP', sans-serif" : 'inherit',
-              fontWeight: q.jp ? 700 : 400,
-            }}>
-              {c}
-            </span>
-          </div>
-        ))}
+        {q.choices.map((c, ci) => {
+          const isCorrectAnswer = ci === q.correct;
+          const isChosenByUser = answer && answer.chosen === ci;
+          const isWrongChoice = isChosenByUser && !isCorrectAnswer;
+
+          let borderColor = 'var(--border)';
+          let bgColor = 'transparent';
+          let textColor = 'var(--muted)';
+          let icon = LABELS[ci];
+
+          if (isCorrectAnswer) {
+            borderColor = 'var(--success)';
+            bgColor = 'var(--success-dim)';
+            textColor = 'var(--success)';
+            icon = '✓';
+          } else if (isWrongChoice) {
+            borderColor = 'var(--error)';
+            bgColor = 'var(--error-dim)';
+            textColor = 'var(--error)';
+            icon = '✗';
+          }
+
+          return (
+            <div
+              key={ci}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '9px 14px',
+                borderRadius: 8,
+                border: `1px solid ${borderColor}`,
+                background: bgColor,
+                fontSize: 14,
+                color: textColor,
+              }}
+            >
+              <span style={{ fontWeight: 700, minWidth: 20 }}>
+                {icon}
+              </span>
+              <span style={{
+                fontFamily: q.jp ? "'Noto Sans JP', sans-serif" : 'inherit',
+                fontWeight: q.jp ? 700 : 400,
+              }}>
+                {c}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </motion.div>
   )
