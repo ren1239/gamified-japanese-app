@@ -306,39 +306,35 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
         <div style={{ maxWidth: 448, margin: '0 auto', position: 'relative', height: 46, paddingLeft: 20, paddingRight: 20 }}>
 
           {/* Romaji toggle — left */}
-          <AnimatePresence>
-            <motion.button
-              key="romaji-btn"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowRomaji((v) => !v)}
-              style={{
-                position: 'absolute', left: 20, top: 0,
-                width: 46, height: 46, borderRadius: '50%',
-                background: showRomaji
-                  ? 'linear-gradient(135deg, var(--accent), #f97316)'
-                  : 'var(--surface-solid)',
-                border: showRomaji ? 'none' : '2px solid var(--border-md)',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: showRomaji ? '0 4px 16px rgba(249,115,22,0.4)' : 'var(--shadow-md)',
-                pointerEvents: 'all',
-                transition: 'background 0.2s, box-shadow 0.2s',
-              }}
-            >
-              <span style={{
-                fontFamily: "'Nunito', sans-serif",
-                fontWeight: 900, fontSize: 16,
-                color: showRomaji ? '#fff' : 'var(--text-muted)',
-                lineHeight: 1,
-                userSelect: 'none',
-              }}>A</span>
-            </motion.button>
-          </AnimatePresence>
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowRomaji((v) => !v)}
+            style={{
+              position: 'absolute', left: 20, top: 0,
+              width: 46, height: 46, borderRadius: '50%',
+              background: showRomaji
+                ? 'linear-gradient(135deg, var(--accent), #f97316)'
+                : 'var(--surface-solid)',
+              border: showRomaji ? 'none' : '2px solid var(--border-md)',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: showRomaji ? '0 4px 16px rgba(249,115,22,0.4)' : 'var(--shadow-md)',
+              pointerEvents: 'all',
+              transition: 'background 0.2s, box-shadow 0.2s',
+            }}
+          >
+            <span style={{
+              fontFamily: "'Nunito', sans-serif",
+              fontWeight: 900, fontSize: 16,
+              color: showRomaji ? '#fff' : 'var(--text-muted)',
+              lineHeight: 1,
+              userSelect: 'none',
+            }}>A</span>
+          </motion.button>
 
           {/* Grammar hint — center */}
           <AnimatePresence>
