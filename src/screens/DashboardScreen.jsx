@@ -140,7 +140,7 @@ export default function DashboardScreen({ onNavigate }) {
           >
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: s.color, borderRadius: '16px 16px 0 0' }} />
             <s.Icon size={16} strokeWidth={2.5} color={s.color} style={{ marginBottom: 6, opacity: 0.75 }} />
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, color: s.color, lineHeight: 1 }}>{s.val}</div>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 21, color: s.color, lineHeight: 1 }}>{s.val}</div>
             <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.8px', marginTop: 3, textAlign: 'center', textTransform: 'uppercase' }}>{s.label}</div>
           </motion.div>
         ))}
