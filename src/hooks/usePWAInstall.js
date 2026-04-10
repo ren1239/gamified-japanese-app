@@ -1,31 +1,29 @@
 import { useState, useEffect } from 'react'
 
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches
+  || window.navigator.standalone === true
+
 export function usePWAInstall() {
-  const [prompt, setPrompt] = useState(null)
-  const [installed, setInstalled] = useState(false)
+  const [prompt, setPrompt] = useState(() => window.__pwaPrompt || null)
+  const [installed, setInstalled] = useState(isInStandaloneMode)
 
   useEffect(() => {
-    // Already running as standalone PWA
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setInstalled(true)
-      return
+    if (isInStandaloneMode) return
+
+    // Pick up prompt if it already fired before this component mounted
+    if (window.__pwaPrompt && !prompt) {
+      setPrompt(window.__pwaPrompt)
     }
 
-    const handler = (e) => {
-      e.preventDefault()
-      setPrompt(e)
-    }
+    const onReady = () => setPrompt(window.__pwaPrompt)
+    const onInstalled = () => { setInstalled(true); setPrompt(null) }
 
-    const installedHandler = () => {
-      setInstalled(true)
-      setPrompt(null)
-    }
-
-    window.addEventListener('beforeinstallprompt', handler)
-    window.addEventListener('appinstalled', installedHandler)
+    window.addEventListener('pwaPromptReady', onReady)
+    window.addEventListener('appinstalled', onInstalled)
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler)
-      window.removeEventListener('appinstalled', installedHandler)
+      window.removeEventListener('pwaPromptReady', onReady)
+      window.removeEventListener('appinstalled', onInstalled)
     }
   }, [])
 
@@ -36,11 +34,14 @@ export function usePWAInstall() {
     if (outcome === 'accepted') {
       setInstalled(true)
       setPrompt(null)
+      window.__pwaPrompt = null
     }
   }
 
-  // Show button only if prompt is available and not yet installed
-  const canInstall = !!prompt && !installed
-
-  return { canInstall, install, installed }
+  return {
+    canInstall: !installed && (!!prompt || isIOS),
+    isIOS,
+    install,
+    installed,
+  }
 }

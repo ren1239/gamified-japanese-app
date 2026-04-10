@@ -5,7 +5,7 @@ import { useQuizStore } from '../store/quizStore'
 import { usePWAInstall } from '../hooks/usePWAInstall'
 
 export default function SettingsScreen() {
-  const { canInstall, install, installed } = usePWAInstall()
+  const { canInstall, isIOS, install, installed } = usePWAInstall()
   const resetStats = useStatsStore((s) => s.resetStats)
   const resetQuizzesProgress = useQuizStore((s) => s.resetQuizzesProgress)
   const soundEnabled = useStatsStore((s) => s.soundEnabled)
@@ -186,22 +186,32 @@ export default function SettingsScreen() {
 
             {canInstall && (
               <div style={{ borderTop: '1px solid var(--border)', padding: '14px 20px' }}>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={install}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                    padding: '12px 0', borderRadius: 12,
-                    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-                    border: 'none', cursor: 'pointer',
-                    color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14,
-                    boxShadow: '0 4px 16px var(--primary-glow)',
-                  }}
-                >
-                  <Smartphone size={16} />
-                  Install App
-                </motion.button>
+                {isIOS ? (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <Smartphone size={15} color="var(--primary)" style={{ marginTop: 2, flexShrink: 0 }} />
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.6 }}>
+                      Tap <strong style={{ color: 'var(--text)' }}>Share</strong> then{' '}
+                      <strong style={{ color: 'var(--text)' }}>Add to Home Screen</strong> to install.
+                    </div>
+                  </div>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={install}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                      padding: '12px 0', borderRadius: 12,
+                      background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+                      border: 'none', cursor: 'pointer',
+                      color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14,
+                      boxShadow: '0 4px 16px var(--primary-glow)',
+                    }}
+                  >
+                    <Smartphone size={16} />
+                    Install App
+                  </motion.button>
+                )}
               </div>
             )}
 

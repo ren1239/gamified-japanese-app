@@ -15,6 +15,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Capture install prompt as early as possible — before React mounts
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.__pwaPrompt = e;
+        window.dispatchEvent(new Event('pwaPromptReady'));
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
