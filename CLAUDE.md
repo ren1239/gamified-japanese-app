@@ -83,10 +83,10 @@ export const chNNMyGrammarQuiz = {
 ```
 
 **Rules:**
-- Always **10 questions** per grammar point.
+- **10–15 questions** per grammar point. Aim for 10 as the default; use up to 15 when a topic benefits from broader coverage (e.g. mixing question forms, affirmative statements, negative statements, and interpretation in one quiz).
 - `id`: format `ch{NN}-{keyword}` — e.g. `ch12-potential`, `ch13-volitional`.
 - `grammarPoint` and `description` are required — the hint button uses them.
-- Questions should target common learner mistakes (wrong form, wrong conjugation, etc.).
+- Questions should target common learner mistakes (wrong form, wrong conjugation, etc.). Mix question types: statement (affirmative), statement (negative), question formation ("how do you ask…?"), and interpretation.
 - Use `jp` field for the Japanese word/sentence that is being tested — it displays large in purple.
 - `choices` in **wrong answers**: use plausible distractors — similar conjugations, not random words.
 - Shuffle `correct` index across questions (don't always put the answer at index 0).
@@ -199,7 +199,7 @@ To enable the **Category / Direction / Generate & Play** vocab UI for a new chap
 
 - [ ] `src/data/chNNVocabData.js` created with all words, correct categories
 - [ ] `src/data/chNNGrammar.js` created with 1 export per grammar point
-- [ ] Each grammar quiz has exactly 10 questions with `grammarPoint` and `description`
+- [ ] Each grammar quiz has 10–15 questions with `grammarPoint` and `description`
 - [ ] All quiz `id`s are globally unique
 - [ ] Quizzes imported and added to `builtinQuizzes` in `quizStore.js`
 - [ ] Chapter entry updated in `chapterData.js` with grammar array
