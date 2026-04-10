@@ -48,7 +48,7 @@ export default function ChapterListScreen({ onSelect }) {
       {/* Chapter grid */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {chapters.map((ch, i) => {
-          const isLocked = ch.number !== 11
+          const isLocked = !ch.vocab?.available && ch.grammar.length === 0
           const status = isLocked ? 'locked' : getChapterStatus(ch, quizMap)
           const vocab = ch.vocab?.quizId ? quizMap[ch.vocab.quizId] : null
           const grammarCount = ch.grammar.length

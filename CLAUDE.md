@@ -12,7 +12,8 @@ src/
 │   ├── chapterData.js          ← Chapter registry (all 23 chapters)
 │   ├── ch11VocabData.js        ← Raw vocab words for Ch.11 (reference)
 │   ├── ch11Grammar.js          ← Grammar quiz objects for Ch.11 (reference)
-│   └── genkiQuizzes.js         ← Legacy static quizzes (Chs.1–10)
+│   ├── ch12VocabData.js        ← Raw vocab words for Ch.12
+│   └── genkiQuizzes.js         ← Static vocab quiz for Ch.11 only (legacy format)
 ├── utils/
 │   └── vocabQuizGen.js         ← Dynamic vocab quiz generator
 ├── store/
@@ -21,6 +22,13 @@ src/
 └── screens/
     └── ChapterDetailScreen.jsx ← Vocab picker + grammar drill cards
 ```
+
+### Chapter unlock logic
+A chapter is **unlocked** (clickable in the chapter list) when `vocab.available: true` OR it has at least one grammar entry. This is controlled by `isLocked` in `ChapterListScreen.jsx`:
+```js
+const isLocked = !ch.vocab?.available && ch.grammar.length === 0
+```
+So to unlock a chapter: set `vocab: { available: true }` in `chapterData.js`.
 
 ---
 
@@ -50,7 +58,7 @@ export function getWordsForCategory(cat) {
 **Rules:**
 - IDs: prefix `n` = noun, `u` = u-verb, `r` = ru-verb, `i` = irregular, `o` = other. Zero-pad to 2 digits.
 - Always include `kana` (hiragana/katakana reading). `kanji` is empty string `''` if none.
-- `english` should be concise — match the Genki textbook exactly.
+- `english` should be concise — match the Genki textbook exactly. All lowercase, no trailing punctuation.
 - Categories map to the UI chips: **Nouns / Verbs / Other**.
 
 ---
@@ -61,11 +69,11 @@ Each grammar point is a named export. Use this shape:
 
 ```js
 export const chNNMyGrammarQuiz = {
-  id: 'chNN-mygrammar',            // e.g. 'ch11-tai' — must be globally unique
-  title: 'Ch.NN · Grammar Name',   // e.g. 'Ch.11 · たい'
+  id: 'chNN-mygrammar',            // e.g. 'ch12-potential' — must be globally unique
+  title: 'Ch.NN · Grammar Name',   // e.g. 'Ch.12 · potential form'
   topic: 'Grammar Label',          // shown as a pill on the question card
-  grammarPoint: 'たい・たかった',     // shown in the hint sheet header
-  description: 'Express wanting to do something: V-stem + たい (present), + たかった (past). Common mistake: using て-form instead of stem.',
+  grammarPoint: 'られる・える',      // shown in the hint sheet header
+  description: 'Express ability: ru-verb stem + られる, u-verb stem + える. Common mistake: using dictionary form instead of stem.',
   created: 'YYYY-MM-DD',
   playCount: 0,
   bestScore: null,
@@ -83,31 +91,31 @@ export const chNNMyGrammarQuiz = {
 ```
 
 **Rules:**
-- **10–15 questions** per grammar point. Aim for 10 as the default; use up to 15 when a topic benefits from broader coverage (e.g. mixing question forms, affirmative statements, negative statements, and interpretation in one quiz).
+- **10–15 questions** per grammar point. Aim for 10 as the default; use up to 15 when a topic benefits from broader coverage.
 - `id`: format `ch{NN}-{keyword}` — e.g. `ch12-potential`, `ch13-volitional`.
 - `grammarPoint` and `description` are required — the hint button uses them.
 - Questions should target common learner mistakes (wrong form, wrong conjugation, etc.). Mix question types: statement (affirmative), statement (negative), question formation ("how do you ask…?"), and interpretation.
 - Use `jp` field for the Japanese word/sentence that is being tested — it displays large in purple.
-- `choices` in **wrong answers**: use plausible distractors — similar conjugations, not random words.
+- `choices` wrong answers: use plausible distractors — similar conjugations, not random words.
 - Shuffle `correct` index across questions (don't always put the answer at index 0).
 
 ---
 
 ## 3 — Registering Grammar Quizzes in the Store
 
-After creating the quiz objects, add them to `src/store/quizStore.js`:
+After creating the grammar quiz file, import and add to `src/store/quizStore.js`:
 
 ```js
-// Add the import at the top
-import { chNNMyGrammarQuiz, chNNOtherQuiz } from '../data/chNNGrammar'
+// Add the import at the top of quizStore.js
+import { chNNGrammar1, chNNGrammar2 } from '../data/chNNGrammar'
 
-// Add to builtinQuizzes array
+// Add to builtinQuizzes array (current state shown — append new ones here)
 const builtinQuizzes = [
   ...genkiQuizzes,
-  // Ch.11 (existing)
+  // Ch.11
   ch11TeformQuiz, ch11GivingQuiz, ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz,
   // Ch.NN (add here)
-  chNNMyGrammarQuiz, chNNOtherQuiz,
+  chNNGrammar1, chNNGrammar2,
 ]
 ```
 
@@ -115,20 +123,26 @@ const builtinQuizzes = [
 
 ## 4 — Registering in `chapterData.js`
 
-Add/update the chapter entry in `src/data/chapterData.js`:
+The chapter entry in `src/data/chapterData.js` controls what is shown and what is unlocked.
 
+**Vocab-only (no grammar yet):**
+```js
+{
+  number: 12,
+  title: 'Chapter 12',
+  subtitle: '病気',
+  vocab: { available: true },   // no quizId needed for dynamic chapters
+  grammar: [],
+},
+```
+
+**Full chapter (vocab + grammar):**
 ```js
 {
   number: 11,
   title: 'Chapter 11',
-  subtitle: '友達とのトラブル',   // Japanese subtitle from Genki
-
-  // For chapters with a raw vocab data file (dynamic quiz generation):
-  // The quizId here is only used for legacy/fallback; dynamic chapters use
-  // vocabQuizGen.js which reads directly from chXXVocabData.js
+  subtitle: '友達とのトラブル',
   vocab: { quizId: 'genki-g1c11', available: true },
-
-  // Each grammar point in order of the Genki chapter
   grammar: [
     { id: 'tai',    label: 'たい・たかった',    desc: 'Want to do',              quizId: 'ch11-tai',    available: true },
     { id: 'tari',   label: 'たり〜たりする',    desc: 'Doing things like…',      quizId: 'ch11-tari',   available: true },
@@ -156,15 +170,47 @@ Add/update the chapter entry in `src/data/chapterData.js`:
 To enable the **Category / Direction / Generate & Play** vocab UI for a new chapter:
 
 1. Create `src/data/chNNVocabData.js` (see §1)
-2. In `ChapterDetailScreen.jsx`, the `VocabSection` component checks `chapter.number === 11` — update this condition to also include the new chapter number:
+2. In `src/utils/vocabQuizGen.js`, add two cases for the new chapter:
    ```js
-   const hasDynamic = [11, 12, 13].includes(chapter.number)
+   import { chNNVocab, getWordsForCategory as chNNGetWords } from '../data/chNNVocabData'
+
+   export function getWordsForChapterAndCategory(chapterNum, category) {
+     if (chapterNum === 11) return ch11GetWords(category)
+     if (chapterNum === 12) return ch12GetWords(category)
+     if (chapterNum === NN) return chNNGetWords(category)   // ← add this
+     return []
+   }
+
+   export function getVocabForChapter(chapterNum) {
+     if (chapterNum === 11) return ch11Vocab
+     if (chapterNum === 12) return ch12Vocab
+     if (chapterNum === NN) return chNNVocab                // ← add this
+     return []
+   }
    ```
-3. Update `CATEGORIES` counts at the top of `ChapterDetailScreen.jsx` — or make them dynamic by importing the new vocab file.
+3. In `src/screens/ChapterDetailScreen.jsx`, add the chapter number to `hasDynamic`:
+   ```js
+   const hasDynamic = [11, 12, NN].includes(chapter.number)
+   ```
+4. Set `vocab: { available: true }` in `chapterData.js` for the chapter (no `quizId` needed for dynamic chapters).
 
 ---
 
-## 6 — Question Writing Guidelines
+## 6 — Adding Grammar to an Existing Vocab-Only Chapter
+
+When a chapter already has vocab but no grammar (e.g. Ch.12 after its initial vocab release), follow these steps **only** — the vocab wiring is already done:
+
+1. **Create** `src/data/chNNGrammar.js` with one named export per grammar point (see §2).
+2. **Import** the quiz objects in `src/store/quizStore.js` and add them to `builtinQuizzes` (see §3).
+3. **Update** the chapter entry in `chapterData.js`: populate the `grammar` array with entries for each quiz (see §4). Set `available: true` for each quiz that exists.
+4. **Do NOT** touch `vocabQuizGen.js` or `ChapterDetailScreen.jsx` — those are already wired.
+5. **Do NOT** change `vocab.available` — it is already `true`.
+
+**Current chapters with vocab but no grammar yet:** Ch.12
+
+---
+
+## 7 — Question Writing Guidelines
 
 | Do | Don't |
 |----|--------|
@@ -175,14 +221,14 @@ To enable the **Category / Direction / Generate & Play** vocab UI for a new chap
 | Reference Genki's example sentences | Invent non-standard usages |
 | Catch common errors (て-form vs. stem, etc.) | Only test easy/obvious cases |
 
-**Example question (grammar — たい):**
+**Example question (grammar — potential form):**
 
 ```js
 {
   id: 1,
-  question: 'How do you say "I want to eat sushi"?',
+  question: 'How do you say "I can eat sushi"?',
   jp: 'すしを___。',
-  choices: ['食べたいです', '食べてたいです', '食べたかったです'],
+  choices: ['食べられます', '食べれます', '食べます'],
   correct: 0,
 }
 ```
@@ -195,12 +241,17 @@ To enable the **Category / Direction / Generate & Play** vocab UI for a new chap
 
 ---
 
-## 7 — Checklist for Adding a New Chapter
+## 8 — Checklist for Adding a New Chapter
 
-- [ ] `src/data/chNNVocabData.js` created with all words, correct categories
-- [ ] `src/data/chNNGrammar.js` created with 1 export per grammar point
+### Vocab only (first pass)
+- [ ] `src/data/chNNVocabData.js` created with all words, correct categories, lowercase english
+- [ ] `vocabQuizGen.js` updated with new chapter cases in both functions
+- [ ] `ChapterDetailScreen.jsx` `hasDynamic` array updated to include new chapter number
+- [ ] `chapterData.js` chapter entry set to `vocab: { available: true }`, `grammar: []`
+
+### Grammar (second pass — can be done separately)
+- [ ] `src/data/chNNGrammar.js` created with 1 named export per grammar point
 - [ ] Each grammar quiz has 10–15 questions with `grammarPoint` and `description`
-- [ ] All quiz `id`s are globally unique
+- [ ] All quiz `id`s are globally unique (format: `chNN-keyword`)
 - [ ] Quizzes imported and added to `builtinQuizzes` in `quizStore.js`
-- [ ] Chapter entry updated in `chapterData.js` with grammar array
-- [ ] `ChapterDetailScreen.jsx` `hasDynamic` condition updated if adding dynamic vocab
+- [ ] `chapterData.js` grammar array populated with all quiz entries

@@ -67,7 +67,7 @@ export const chapters = [
   },
   {
     number: 12, title: 'Chapter 12', subtitle: '病気',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
