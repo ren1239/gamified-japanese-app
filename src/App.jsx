@@ -88,6 +88,11 @@ export default function App() {
     setScreen(scoreBackTo)
   }, [scoreBackTo])
 
+  const handleSubmitEarly = useCallback(() => {
+    setQuitModal(false)
+    handleFinish()
+  }, [handleFinish])
+
   const handlePlayAgain = useCallback(() => {
     const quiz = useGameStore.getState().activeQuiz
     if (quiz) handleStart(quiz, shuffled, scoreBackTo)
@@ -250,7 +255,7 @@ export default function App() {
               <div style={{ fontFamily: "'Nunito'", fontSize: 14, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 28, lineHeight: 1.5 }}>
                 Your progress on this quiz will be lost.<br />XP won't be saved.
               </div>
-              <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setQuitModal(false)}
@@ -281,6 +286,21 @@ export default function App() {
                   Quit
                 </motion.button>
               </div>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleSubmitEarly}
+                style={{
+                  width: '100%', padding: '14px 0',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+                  border: 'none',
+                  borderRadius: 14,
+                  fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15,
+                  color: '#fff', cursor: 'pointer',
+                  boxShadow: '0 4px 16px var(--primary-glow)',
+                }}
+              >
+                Submit & See Score
+              </motion.button>
             </motion.div>
           </>
         )}

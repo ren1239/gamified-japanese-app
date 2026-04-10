@@ -200,8 +200,15 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                 {q.question}
               </div>
               {q.jp && (
-                <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900, color: 'var(--primary)', lineHeight: 1.3 }}>
-                  {q.jp}
+                <div>
+                  <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900, color: 'var(--primary)', lineHeight: 1.3 }}>
+                    {q.jp}
+                  </div>
+                  {showRomaji && toRomajiSafe(q.jp) && (
+                    <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.3px' }}>
+                      {toRomajiSafe(q.jp)}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -307,9 +314,9 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
 
           {/* Romaji toggle — left */}
           <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowRomaji((v) => !v)}
@@ -339,37 +346,34 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
           {/* Grammar hint — center */}
           <AnimatePresence>
             {hasHint && !answered && (
-              <motion.button
-                key="hint-btn"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.4 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setHintOpen(true)}
-                style={{
-                  position: 'absolute', left: '50%', top: 0,
-                  transform: 'translateX(-50%)',
-                  width: 46, height: 46, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-                  border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 16px var(--primary-glow)',
-                  pointerEvents: 'all',
-                }}
-              >
-                <Lightbulb size={20} color="#fff" strokeWidth={2.5} />
-              </motion.button>
+              <div key="hint-wrap" style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)', pointerEvents: 'all' }}>
+                <motion.button
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.4 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setHintOpen(true)}
+                  style={{
+                    width: 46, height: 46, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 16px var(--primary-glow)',
+                  }}
+                >
+                  <Lightbulb size={20} color="#fff" strokeWidth={2.5} />
+                </motion.button>
+              </div>
             )}
           </AnimatePresence>
 
           {/* Flag button — right */}
           <motion.button
-            key="flag-btn"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.35 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.35 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={handleToggleFlag}

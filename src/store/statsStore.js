@@ -31,7 +31,7 @@ export const useStatsStore = create(
     (set, get) => ({
       totalXp: 0,
       soundEnabled: true,
-      theme: 'default',
+      theme: 'neon',
       username: '',
       history: [], // [{ date, quizId, score, total, xpEarned }]
       lastPlayedDate: null,
@@ -71,7 +71,7 @@ export const useStatsStore = create(
         lastPlayedDate: null,
         streak: 0,
         soundEnabled: true,
-        theme: 'default',
+        theme: 'neon',
       }),
 
       addWrongAnswers: (quizId, quizTitle, wrongQuestions) => {
