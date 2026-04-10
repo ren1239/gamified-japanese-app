@@ -1,8 +1,9 @@
 import { toRomaji } from 'wanakana'
 
-// Kanji → kana replacements ordered longest-first to avoid partial matches.
+// Kanji → kana replacements, longest-first to avoid partial matches.
 // Covers Genki I & II vocabulary appearing in quiz choices.
 const KANJI_MAP = [
+  // ── Multi-kanji words ───────────────────────────
   ['授業中', 'じゅぎょうちゅう'],
   ['韓国語', 'かんこくご'],
   ['日本語', 'にほんご'],
@@ -13,19 +14,34 @@ const KANJI_MAP = [
   ['映画', 'えいが'],
   ['神社', 'じんじゃ'],
   ['広島', 'ひろしま'],
+  ['友達', 'ともだち'],
+  ['先生', 'せんせい'],
+  ['医者', 'いしゃ'],
+  ['彼女', 'かのじょ'],
   ['日本', 'にほん'],
+  // ── Verb stems / conjugated forms ──────────────
   ['食べ', 'たべ'],
+  ['飲め', 'のめ'],
   ['飲み', 'のみ'],
   ['飲む', 'のむ'],
   ['飲ん', 'のん'],
+  ['飲', 'の'],
+  ['聞い', 'きい'],
+  ['聞く', 'きく'],
+  ['聞け', 'きけ'],
+  ['聞か', 'きか'],
+  ['聞', 'き'],
   ['働い', 'はたらい'],
   ['働く', 'はたらく'],
+  ['働か', 'はたらか'],
   ['書い', 'かい'],
   ['書く', 'かく'],
   ['書け', 'かけ'],
+  ['書か', 'かか'],
   ['登っ', 'のぼっ'],
   ['登る', 'のぼる'],
   ['登れ', 'のぼれ'],
+  ['登', 'のぼ'],
   ['寝', 'ね'],
   ['来る', 'くる'],
   ['来た', 'きた'],
@@ -47,15 +63,22 @@ const KANJI_MAP = [
   ['見る', 'みる'],
   ['見れ', 'みれ'],
   ['見', 'み'],
+  ['話し', 'はなし'],
+  ['話す', 'はなす'],
+  ['話', 'はなし'],
+  // ── Common nouns / particles ────────────────────
   ['机', 'つくえ'],
+  ['上', 'うえ'],
+  ['下', 'した'],
+  ['中', 'なか'],
+  ['前', 'まえ'],
   ['本', 'ほん'],
   ['私', 'わたし'],
+  ['彼', 'かれ'],
   ['車', 'くるま'],
   ['母', 'はは'],
   ['父', 'ちち'],
-  ['友達', 'ともだち'],
-  ['先生', 'せんせい'],
-  ['医者', 'いしゃ'],
+  ['花', 'はな'],
 ]
 
 function applyKanjiMap(str) {
@@ -66,27 +89,18 @@ function applyKanjiMap(str) {
   return result
 }
 
-const KATAKANA_RE = /[\u30A0-\u30FF]/
-const HIRAGANA_RE = /[\u3040-\u309F]/
-const KANJI_RE = /[\u4E00-\u9FFF]/
+const HAS_JAPANESE = /[\u3040-\u30FF\u4E00-\u9FFF]/
 
 /**
  * Returns romaji for a Japanese string, or null if the string has no Japanese.
+ * Remaining unconverted kanji are replaced with · so output is never garbage.
  */
 export function toRomajiSafe(str) {
-  if (!str) return null
-  if (!KATAKANA_RE.test(str) && !HIRAGANA_RE.test(str) && !KANJI_RE.test(str)) return null
+  if (!str || !HAS_JAPANESE.test(str)) return null
 
   const preprocessed = applyKanjiMap(str)
   const romaji = toRomaji(preprocessed, { upcaseKatakana: false })
 
-  // If kanji remain (unconverted), they'll still be in the output — strip them
-  // so we don't show half-converted garbage
-  const remainingKanji = romaji.match(/[\u4E00-\u9FFF]/g)
-  if (remainingKanji) {
-    // Replace remaining kanji with · placeholder
-    return romaji.replace(/[\u4E00-\u9FFF]+/g, '·')
-  }
-
-  return romaji
+  // Replace any kanji that slipped through with · so it doesn't look broken
+  return romaji.replace(/[\u4E00-\u9FFF]+/g, '·')
 }

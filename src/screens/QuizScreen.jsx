@@ -22,6 +22,7 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
   const [lastCorrect, setLastCorrect] = useState(null)
   const [chosenIdx, setChosenIdx] = useState(null)
   const [hintOpen, setHintOpen] = useState(false)
+  const [showRomaji, setShowRomaji] = useState(false)
 
   const q = questions[currentIndex]
   const total = questions.length
@@ -258,7 +259,7 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                       }}>
                         {choice}
                       </span>
-                      {toRomajiSafe(choice) && (
+                      {showRomaji && toRomajiSafe(choice) && (
                         <span style={{
                           fontFamily: "'Nunito', sans-serif",
                           fontWeight: 600, fontSize: 11,
@@ -281,33 +282,78 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
         </AnimatePresence>
       </div>
 
-      {/* ── Grammar Hint Button (floating, bottom-left) ── */}
-      <AnimatePresence>
-        {hasHint && !answered && (
-          <motion.button
-            key="hint-btn"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.4 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setHintOpen(true)}
-            style={{
-              position: 'fixed', bottom: 28, left: '50%',
-              // offset from center to left within 448px container
-              transform: 'translateX(calc(-224px + 20px))',
-              width: 46, height: 46, borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-              border: 'none', cursor: 'pointer', zIndex: 150,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 16px var(--primary-glow)',
-            }}
-          >
-            <Lightbulb size={20} color="#fff" strokeWidth={2.5} />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* ── Floating Action Buttons (romaji left, hint center) ── */}
+      <div style={{
+        position: 'fixed', bottom: 28, left: 0, right: 0,
+        zIndex: 150, pointerEvents: 'none',
+      }}>
+        <div style={{ maxWidth: 448, margin: '0 auto', position: 'relative', height: 46, paddingLeft: 20, paddingRight: 20 }}>
+
+          {/* Romaji toggle — left */}
+          <AnimatePresence>
+            <motion.button
+              key="romaji-btn"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowRomaji((v) => !v)}
+              style={{
+                position: 'absolute', left: 20, top: 0,
+                width: 46, height: 46, borderRadius: '50%',
+                background: showRomaji
+                  ? 'linear-gradient(135deg, var(--accent), #f97316)'
+                  : 'var(--surface-solid)',
+                border: showRomaji ? 'none' : '2px solid var(--border-md)',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: showRomaji ? '0 4px 16px rgba(249,115,22,0.4)' : 'var(--shadow-md)',
+                pointerEvents: 'all',
+                transition: 'background 0.2s, box-shadow 0.2s',
+              }}
+            >
+              <span style={{
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 900, fontSize: 16,
+                color: showRomaji ? '#fff' : 'var(--text-muted)',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}>A</span>
+            </motion.button>
+          </AnimatePresence>
+
+          {/* Grammar hint — center */}
+          <AnimatePresence>
+            {hasHint && !answered && (
+              <motion.button
+                key="hint-btn"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.4 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setHintOpen(true)}
+                style={{
+                  position: 'absolute', left: '50%', top: 0,
+                  transform: 'translateX(-50%)',
+                  width: 46, height: 46, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+                  border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 16px var(--primary-glow)',
+                  pointerEvents: 'all',
+                }}
+              >
+                <Lightbulb size={20} color="#fff" strokeWidth={2.5} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+        </div>
+      </div>
 
       {/* ── Wrong Answer Feedback + "Got it" button ── */}
       <AnimatePresence>
