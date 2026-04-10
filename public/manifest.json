@@ -1,7 +1,7 @@
 {
-  "name": "Nihongo Quiz",
-  "short_name": "Nihongo",
-  "description": "Interactive Japanese vocabulary and grammar quiz.",
+  "name": "日本語ToGo",
+  "short_name": "日本語ToGo",
+  "description": "Gamified Japanese learning — Genki vocabulary and grammar",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#07070F",
