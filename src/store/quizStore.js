@@ -92,13 +92,17 @@ export const useQuizStore = create(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ quizzes: state.quizzes }),
       merge: (persisted, current) => {
+        const builtinMap = new Map(builtinQuizzes.map((q) => [q.id, q]))
+        // For builtin quizzes: always use latest questions/metadata, but keep user's playCount + bestScore
+        const merged = (persisted.quizzes || []).map((q) => {
+          const builtin = builtinMap.get(q.id)
+          if (builtin) return { ...builtin, playCount: q.playCount, bestScore: q.bestScore }
+          return q // user-imported quiz — keep as-is
+        })
+        // Add any brand-new builtins not yet in persisted
         const persistedIds = new Set(persisted.quizzes?.map((q) => q.id) || [])
-        const newSamples = builtinQuizzes.filter((s) => !persistedIds.has(s.id))
-        return {
-          ...current,
-          ...persisted,
-          quizzes: [...(persisted.quizzes || []), ...newSamples],
-        }
+        const newBuiltins = builtinQuizzes.filter((q) => !persistedIds.has(q.id))
+        return { ...current, ...persisted, quizzes: [...merged, ...newBuiltins] }
       },
     }
   )
