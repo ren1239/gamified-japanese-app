@@ -4,6 +4,7 @@ import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight, Check, X } from 'lucide
 import { useGameStore, useQuizStore } from '../store/quizStore'
 import { useStatsStore } from '../store/statsStore'
 import { playSuccessChime, playErrorBuzzer } from '../utils/audio'
+import { toRomajiSafe } from '../utils/romaji'
 
 const LABELS = ['A', 'B', 'C', 'D']
 const BADGE_COLORS = [
@@ -249,12 +250,24 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                     >
                       {showIcon ?? LABELS[idx]}
                     </motion.div>
-                    <span style={{
-                      fontFamily: choice.match(/[\u3040-\u30FF\u4E00-\u9FAF]/) ? "'Noto Sans JP', sans-serif" : "'Nunito', sans-serif",
-                      fontWeight: 700, fontSize: 15, color: textColor, lineHeight: 1.35, flex: 1,
-                      transition: 'color 0.2s',
-                    }}>
-                      {choice}
+                    <span style={{ flex: 1 }}>
+                      <span style={{
+                        fontFamily: choice.match(/[\u3040-\u30FF\u4E00-\u9FAF]/) ? "'Noto Sans JP', sans-serif" : "'Nunito', sans-serif",
+                        fontWeight: 700, fontSize: 15, color: textColor, lineHeight: 1.35,
+                        display: 'block', transition: 'color 0.2s',
+                      }}>
+                        {choice}
+                      </span>
+                      {toRomajiSafe(choice) && (
+                        <span style={{
+                          fontFamily: "'Nunito', sans-serif",
+                          fontWeight: 600, fontSize: 11,
+                          color: textColor, opacity: 0.55,
+                          display: 'block', marginTop: 2, lineHeight: 1.2,
+                        }}>
+                          {toRomajiSafe(choice)}
+                        </span>
+                      )}
                     </span>
                   </motion.button>
                 )
