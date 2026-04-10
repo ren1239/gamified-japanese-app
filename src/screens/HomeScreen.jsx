@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Dumbbell, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, ChevronDown, Check } from 'lucide-react'
+import { Dumbbell, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, ChevronDown, Check, Flag } from 'lucide-react'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import ImportModal from '../components/ImportModal'
@@ -222,6 +222,7 @@ function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleCha
 // ── Main screen ───────────────────────────────────────────────────────
 export default function HomeScreen({ onStart, onReview }) {
   const wrongBank = useStatsStore((s) => s.wrongBank)
+  const flaggedBank = useStatsStore((s) => s.flaggedBank)
   const quizzes = useQuizStore((s) => s.quizzes)
   const removeQuiz = useQuizStore((s) => s.removeQuiz)
 
@@ -286,7 +287,62 @@ export default function HomeScreen({ onStart, onReview }) {
       created: new Date().toISOString().slice(0, 10),
       playCount: 0,
       bestScore: null,
-      // Embed _bankKey so updateStats can remove mastered questions
+      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key })),
+    }
+    onStart(practiceQuiz, false)
+  }
+
+  // ── Flagged bank state ──
+  const [flagCount, setFlagCount] = useState(10)
+  const [flagMode, setFlagMode] = useState('random')
+  const [flagSelectedSources, setFlagSelectedSources] = useState(null)
+
+  const flagAllSourceIds = useMemo(() => new Set(flaggedBank.map((e) => e.quizId)), [flaggedBank])
+  const flagActiveSourceIds = flagSelectedSources ?? flagAllSourceIds
+
+  const handleToggleFlagSource = (quizId) => {
+    const current = new Set(flagActiveSourceIds)
+    if (current.has(quizId) && current.size > 1) current.delete(quizId)
+    else if (!current.has(quizId)) current.add(quizId)
+    setFlagSelectedSources(current.size === flagAllSourceIds.size ? null : current)
+  }
+
+  const handleToggleFlagChapter = (group) => {
+    const chapterIds = group.sources.map((s) => s.quizId)
+    const allActive = chapterIds.every((id) => flagActiveSourceIds.has(id))
+    const current = new Set(flagActiveSourceIds)
+    if (allActive) {
+      const remaining = [...current].filter((id) => !chapterIds.includes(id))
+      if (remaining.length === 0) return
+      setFlagSelectedSources(remaining.length === flagAllSourceIds.size ? null : new Set(remaining))
+    } else {
+      chapterIds.forEach((id) => current.add(id))
+      setFlagSelectedSources(current.size === flagAllSourceIds.size ? null : current)
+    }
+  }
+
+  const filteredFlagBank = useMemo(
+    () => flaggedBank.filter((e) => flagActiveSourceIds.has(e.quizId)),
+    [flaggedBank, flagActiveSourceIds]
+  )
+
+  const flagBankSize = filteredFlagBank.length
+  const actualFlagCount = Math.min(flagCount, flagBankSize)
+
+  const handleGenerateFlagged = () => {
+    if (flagBankSize === 0) return
+    const sorted = flagMode === 'random'
+      ? [...filteredFlagBank].sort(() => Math.random() - 0.5)
+      : [...filteredFlagBank]
+
+    const selected = sorted.slice(0, actualFlagCount)
+    const practiceQuiz = {
+      id: `practice_${Date.now()}`,
+      title: 'Flagged Practice',
+      topic: 'Flagged',
+      created: new Date().toISOString().slice(0, 10),
+      playCount: 0,
+      bestScore: null,
       questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key })),
     }
     onStart(practiceQuiz, false)
@@ -433,6 +489,144 @@ export default function HomeScreen({ onStart, onReview }) {
               >
                 <Dumbbell size={16} />
                 Start Practice · {actualCount} question{actualCount !== 1 ? 's' : ''}
+                <ChevronRight size={16} />
+              </motion.button>
+            </>
+          )}
+        </motion.div>
+
+        {/* ── Flagged Questions card ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.14 }}
+          className="glass-card"
+          style={{ padding: '20px', marginBottom: 20, position: 'relative', overflow: 'hidden' }}
+        >
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+            background: flaggedBank.length > 0 ? 'linear-gradient(90deg, #DC2626, #F97316)' : 'var(--border)',
+          }} />
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: flaggedBank.length > 0 ? 18 : 0 }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+              background: flaggedBank.length > 0 ? 'rgba(220,38,38,0.12)' : 'var(--border)',
+              color: flaggedBank.length > 0 ? '#EF4444' : 'var(--text-muted)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Flag size={22} fill={flaggedBank.length > 0 ? '#EF4444' : 'none'} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>
+                Flagged Questions
+              </div>
+              {flaggedBank.length === 0 ? (
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.5 }}>
+                  Tap the flag button during a quiz to<br />bookmark questions you want to revisit.
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                  <span style={{ color: '#EF4444', fontWeight: 900, fontSize: 15 }}>{flaggedBank.length}</span>
+                  {' '}question{flaggedBank.length !== 1 ? 's' : ''} flagged
+                  {flagSelectedSources && flagBankSize !== flaggedBank.length && (
+                    <span style={{ color: 'var(--accent)', fontWeight: 900 }}> · {flagBankSize} selected</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {flaggedBank.length > 0 && (
+            <>
+              {/* Chapter accordion */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Filter by chapter
+                </div>
+                <ChapterFilter
+                  wrongBank={flaggedBank}
+                  activeSourceIds={flagActiveSourceIds}
+                  onToggleSource={handleToggleFlagSource}
+                  onToggleChapter={handleToggleFlagChapter}
+                />
+              </div>
+
+              {/* Count selector */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Questions per session
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {COUNT_OPTIONS.map((n) => {
+                    const disabled = n > flagBankSize
+                    const active = flagCount === n && !disabled
+                    return (
+                      <button key={n} onClick={() => !disabled && setFlagCount(n)} style={{
+                        flex: 1, padding: '9px 0', borderRadius: 10,
+                        border: active ? '1.5px solid #EF4444' : '1.5px solid var(--border-md)',
+                        background: active ? 'rgba(220,38,38,0.08)' : 'transparent',
+                        color: disabled ? 'var(--border-md)' : active ? '#EF4444' : 'var(--text-muted)',
+                        fontFamily: "'Nunito'", fontWeight: 900, fontSize: 15,
+                        cursor: disabled ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
+                      }}>
+                        {n}
+                      </button>
+                    )
+                  })}
+                  <button onClick={() => setFlagCount(flagBankSize)} style={{
+                    flex: 1.2, padding: '9px 0', borderRadius: 10,
+                    border: flagCount === flagBankSize && !COUNT_OPTIONS.includes(flagBankSize) ? '1.5px solid #EF4444' : '1.5px solid var(--border-md)',
+                    background: flagCount === flagBankSize && !COUNT_OPTIONS.includes(flagBankSize) ? 'rgba(220,38,38,0.08)' : 'transparent',
+                    color: flagCount === flagBankSize && !COUNT_OPTIONS.includes(flagBankSize) ? '#EF4444' : 'var(--text-muted)',
+                    fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}>
+                    All{flagBankSize !== flaggedBank.length ? ` (${flagBankSize})` : ''}
+                  </button>
+                </div>
+              </div>
+
+              {/* Mode selector */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Order
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[{ key: 'random', label: 'Shuffle' }, { key: 'order', label: 'Flagged Order' }].map(({ key, label }) => (
+                    <button key={key} onClick={() => setFlagMode(key)} style={{
+                      flex: 1, padding: '9px 12px', borderRadius: 10,
+                      border: flagMode === key ? '1.5px solid #EF4444' : '1.5px solid var(--border-md)',
+                      background: flagMode === key ? 'rgba(220,38,38,0.08)' : 'transparent',
+                      color: flagMode === key ? '#EF4444' : 'var(--text-muted)',
+                      fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12,
+                      cursor: 'pointer', transition: 'all 0.15s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    }}>
+                      {key === 'random' && <Shuffle size={12} />}
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Start button */}
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleGenerateFlagged}
+                disabled={flagBankSize === 0}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '14px 0', borderRadius: 12, fontSize: 15, fontFamily: "'Nunito'", fontWeight: 800,
+                  background: 'linear-gradient(135deg, #DC2626, #EF4444)',
+                  border: 'none', color: '#fff', cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(220,38,38,0.35)',
+                  opacity: flagBankSize === 0 ? 0.4 : 1,
+                }}
+              >
+                <Flag size={16} fill="#fff" />
+                Start Flagged · {actualFlagCount} question{actualFlagCount !== 1 ? 's' : ''}
                 <ChevronRight size={16} />
               </motion.button>
             </>

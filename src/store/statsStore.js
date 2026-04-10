@@ -37,6 +37,7 @@ export const useStatsStore = create(
       lastPlayedDate: null,
       streak: 0,
       wrongBank: [], // [{ key, quizId, quizTitle, question, wrongCount, lastWrong }]
+      flaggedBank: [], // [{ key, quizId, quizTitle, question, flaggedDate }]
 
       recordResult: (quizId, score, total) => {
         const state = get()
@@ -96,6 +97,23 @@ export const useStatsStore = create(
 
       clearWrongBank: () => set({ wrongBank: [] }),
 
+      flagQuestion: (quizId, quizTitle, question) => {
+        set((state) => {
+          const key = `${quizId}-${question.id ?? question.question.slice(0, 30)}`
+          if (state.flaggedBank.some((e) => e.key === key)) return {} // already flagged
+          return {
+            flaggedBank: [
+              ...state.flaggedBank,
+              { key, quizId, quizTitle, question, flaggedDate: todayStr() },
+            ].slice(0, 200),
+          }
+        })
+      },
+
+      unflagQuestion: (key) => set((state) => ({
+        flaggedBank: state.flaggedBank.filter((e) => e.key !== key),
+      })),
+
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
       setTheme: (theme) => set({ theme }),
       setUsername: (username) => set({ username }),
@@ -112,6 +130,7 @@ export const useStatsStore = create(
         lastPlayedDate: state.lastPlayedDate,
         streak: state.streak,
         wrongBank: state.wrongBank,
+        flaggedBank: state.flaggedBank,
       }),
     }
   )

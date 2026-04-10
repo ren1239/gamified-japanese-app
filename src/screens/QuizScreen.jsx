@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight, Check, X } from 'lucide-react'
+import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight, Check, X, Flag } from 'lucide-react'
 import { useGameStore, useQuizStore } from '../store/quizStore'
 import { useStatsStore } from '../store/statsStore'
 import { playSuccessChime, playErrorBuzzer } from '../utils/audio'
@@ -18,6 +18,9 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
   const { questions, currentIndex, score, phase, quizId, submitAnswer, nextQuestion } = useGameStore()
   const getQuiz = useQuizStore((s) => s.getQuiz)
   const soundEnabled = useStatsStore((s) => s.soundEnabled)
+  const flaggedBank = useStatsStore((s) => s.flaggedBank)
+  const flagQuestion = useStatsStore((s) => s.flagQuestion)
+  const unflagQuestion = useStatsStore((s) => s.unflagQuestion)
 
   const [lastCorrect, setLastCorrect] = useState(null)
   const [chosenIdx, setChosenIdx] = useState(null)
@@ -31,6 +34,19 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
   // Get grammar metadata for hint (only exists on grammar drills)
   const quizMeta = quizId ? getQuiz(quizId) : null
   const hasHint = !!(quizMeta?.grammarPoint || quizMeta?.description)
+
+  // Flag state for current question
+  const flagKey = q ? (q._bankKey ?? `${quizId}-${q.id ?? q.question.slice(0, 30)}`) : null
+  const isFlagged = flagKey ? flaggedBank.some((e) => e.key === flagKey) : false
+
+  const handleToggleFlag = () => {
+    if (!flagKey || !q) return
+    if (isFlagged) {
+      unflagQuestion(flagKey)
+    } else {
+      flagQuestion(quizId, quizMeta?.title ?? 'Quiz', q)
+    }
+  }
 
   const advance = useCallback(() => {
     nextQuestion()
@@ -351,6 +367,32 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
               </motion.button>
             )}
           </AnimatePresence>
+
+          {/* Flag button — right */}
+          <motion.button
+            key="flag-btn"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.35 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleToggleFlag}
+            style={{
+              position: 'absolute', right: 20, top: 0,
+              width: 46, height: 46, borderRadius: '50%',
+              background: isFlagged
+                ? 'linear-gradient(135deg, #DC2626, #EF4444)'
+                : 'var(--surface-solid)',
+              border: isFlagged ? 'none' : '2px solid var(--border-md)',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: isFlagged ? '0 4px 16px rgba(239,68,68,0.4)' : 'var(--shadow-md)',
+              pointerEvents: 'all',
+              transition: 'background 0.2s, box-shadow 0.2s',
+            }}
+          >
+            <Flag size={18} color={isFlagged ? '#fff' : 'var(--text-muted)'} strokeWidth={2.5} fill={isFlagged ? '#fff' : 'none'} />
+          </motion.button>
 
         </div>
       </div>
