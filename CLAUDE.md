@@ -249,6 +249,10 @@ When a chapter already has vocab but no grammar (e.g. Ch.12 after its initial vo
 
 ## 8 — Checklist for Adding a New Chapter
 
+### After writing grammar questions
+- [ ] Check every kanji in every `jp` field against `src/utils/romaji.js` KANJI_MAP
+- [ ] Add any missing kanji/words (longest forms first) so romaji toggle works correctly
+
 ### Vocab only (first pass)
 - [ ] `src/data/chNNVocabData.js` created with all words, correct categories, lowercase english
 - [ ] `vocabQuizGen.js` updated with new chapter cases in both functions
