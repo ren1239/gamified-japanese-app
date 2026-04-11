@@ -26,15 +26,15 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
   const [chosenIdx, setChosenIdx] = useState(null)
   const [hintOpen, setHintOpen] = useState(false)
   const [showRomaji, setShowRomaji] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(3)
+  const [timeLeft, setTimeLeft] = useState(5)
   const answeredRef = useRef(false)
 
-  const TIMER_DURATION = 3
+  const TIMER_DURATION = 5
   const TIMER_RADIUS = 14
   const TIMER_CIRC = 2 * Math.PI * TIMER_RADIUS
   const timerProgress = timeLeft / TIMER_DURATION
   const timerOffset = TIMER_CIRC * (1 - timerProgress)
-  const timerColor = timeLeft > 2 ? 'rgba(255,255,255,0.9)' : timeLeft > 1 ? '#FCD34D' : '#EF4444'
+  const timerColor = timeLeft > 3 ? 'rgba(255,255,255,0.9)' : timeLeft > 1.5 ? '#FCD34D' : '#EF4444'
 
   const q = questions[currentIndex]
   const total = questions.length
