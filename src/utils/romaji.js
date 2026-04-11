@@ -4,9 +4,11 @@ import { toRomaji } from 'wanakana'
 // Covers Genki I & II vocabulary appearing in quiz choices.
 const KANJI_MAP = [
   // ── Multi-kanji words ───────────────────────────
-  // Ch.1
+  // Ch.1 & Ch.11 additions
   ['大学生', 'だいがくせい'],
   ['留学生', 'りゅうがくせい'],
+  ['留学', 'りゅうがく'],
+  ['着物', 'きもの'],
   ['電話番号', 'でんわばんごう'],
   ['三年生', 'さんねんせい'],
   ['何年生', 'なんねんせい'],
@@ -58,6 +60,7 @@ const KANJI_MAP = [
   ['買い', 'かい'],
   ['買', 'か'],
   ['診', 'み'],
+  ['着', 'き'],
   ['食べ', 'たべ'],
   ['飲め', 'のめ'],
   ['飲み', 'のみ'],

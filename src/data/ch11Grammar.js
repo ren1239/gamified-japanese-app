@@ -246,6 +246,27 @@ export const ch11TaiQuiz = {
       choices: ['したいでしたか', 'したかったですか', 'してたいですか'],
       correct: 1,
     },
+    {
+      id: 11,
+      question: 'How do you say "I\'ve been wanting to study abroad" (an ongoing wish, not just right now)?',
+      jp: '留学し＿＿＿。',
+      choices: ['たいです', 'たいと思っています', 'たいと言っていました'],
+      correct: 1,
+    },
+    {
+      id: 12,
+      question: 'Mary said she wanted to go to Tibet. How do you report her desire?',
+      jp: 'チベットに行き＿＿＿。',
+      choices: ['たいです', 'たいと思っています', 'たいと言っていました'],
+      correct: 2,
+    },
+    {
+      id: 13,
+      question: 'To describe that a THIRD PERSON wants to wear a kimono (observable behavior), which form is correct?',
+      jp: 'メアリーさんは着物を着＿＿＿。',
+      choices: ['たいです', 'たがっています', 'たいと思っています'],
+      correct: 1,
+    },
   ],
 }
 

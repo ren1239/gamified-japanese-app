@@ -1,10 +1,17 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { genkiQuizzes } from '../data/genkiQuizzes'
-import { ch11TeformQuiz, ch11GivingQuiz, ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz } from '../data/ch11Grammar'
+import { ch1DesuQuiz, ch1KaQuiz, ch1NoQuiz } from '../data/ch1Grammar'
+import { ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz } from '../data/ch11Grammar'
 import { useStatsStore } from './statsStore'
 
-const builtinQuizzes = [...genkiQuizzes, ch11TeformQuiz, ch11GivingQuiz, ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz]
+const builtinQuizzes = [
+  ...genkiQuizzes,
+  // Ch.1
+  ch1DesuQuiz, ch1KaQuiz, ch1NoQuiz,
+  // Ch.11
+  ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz,
+]
 
 
 

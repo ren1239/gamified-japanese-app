@@ -5,8 +5,12 @@
 export const chapters = [
   {
     number: 1, title: 'Chapter 1', subtitle: 'あのう、すみません',
-    vocab: { available: false },
-    grammar: [],
+    vocab: { available: true },
+    grammar: [
+      { id: 'desu', label: 'X は Y です', desc: 'Basic statements (X is Y)', quizId: 'ch1-desu', available: true },
+      { id: 'ka',   label: '〜ですか',     desc: 'Asking questions',          quizId: 'ch1-ka',   available: true },
+      { id: 'no',   label: '名詞 の 名詞', desc: 'Connecting nouns with no',  quizId: 'ch1-no',   available: true },
+    ],
   },
   {
     number: 2, title: 'Chapter 2', subtitle: 'じゃ、また明日',
@@ -57,12 +61,10 @@ export const chapters = [
     number: 11, title: 'Chapter 11', subtitle: '友達とのトラブル',
     vocab: { quizId: 'genki-g1c11', available: true },
     grammar: [
-      { id: 'tai',    label: 'たい・たかった',   desc: 'Want to do', quizId: 'ch11-tai',    available: true },
-      { id: 'tari',   label: 'たり〜たりする',   desc: 'Doing things like…', quizId: 'ch11-tari',   available: true },
-      { id: 'koto',   label: 'ことがある',       desc: 'Have done before', quizId: 'ch11-koto',   available: true },
-      { id: 'ya',     label: 'や（など）',       desc: 'Listing: and, among others', quizId: 'ch11-ya',    available: true },
-      { id: 'teform', label: '〜て forms',       desc: 'てしまう・ておく・てみる', quizId: 'ch11-teform', available: true },
-      { id: 'giving', label: 'Giving & Receiving', desc: 'あげる・もらう・くれる', quizId: 'ch11-giving', available: true },
+      { id: 'tai',  label: 'たい・たかった',    desc: 'Want to do',               quizId: 'ch11-tai',  available: true },
+      { id: 'tari', label: 'たり〜たりする',   desc: 'Doing things like…',        quizId: 'ch11-tari', available: true },
+      { id: 'koto', label: 'ことがある',       desc: 'Have done before',          quizId: 'ch11-koto', available: true },
+      { id: 'ya',   label: 'や（など）',       desc: 'Listing: and, among others', quizId: 'ch11-ya',   available: true },
     ],
   },
   {
