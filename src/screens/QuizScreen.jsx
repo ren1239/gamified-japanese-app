@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight, Check, X, Flag } from 'lucide-react'
 import { useGameStore, useQuizStore } from '../store/quizStore'
@@ -26,6 +26,15 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
   const [chosenIdx, setChosenIdx] = useState(null)
   const [hintOpen, setHintOpen] = useState(false)
   const [showRomaji, setShowRomaji] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(3)
+  const answeredRef = useRef(false)
+
+  const TIMER_DURATION = 3
+  const TIMER_RADIUS = 14
+  const TIMER_CIRC = 2 * Math.PI * TIMER_RADIUS
+  const timerProgress = timeLeft / TIMER_DURATION
+  const timerOffset = TIMER_CIRC * (1 - timerProgress)
+  const timerColor = timeLeft > 2 ? 'rgba(255,255,255,0.9)' : timeLeft > 1 ? '#FCD34D' : '#EF4444'
 
   const q = questions[currentIndex]
   const total = questions.length
@@ -96,6 +105,23 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
     if (phase === 'finished') onFinish()
   }, [phase, onFinish])
 
+  // Keep answeredRef in sync so the timer interval can read it without stale closure
+  useEffect(() => { answeredRef.current = phase === 'answered' }, [phase])
+
+  // Reset and run timer on each new question
+  useEffect(() => {
+    answeredRef.current = false
+    setTimeLeft(TIMER_DURATION)
+    const interval = setInterval(() => {
+      if (answeredRef.current) { clearInterval(interval); return }
+      setTimeLeft(prev => {
+        if (prev <= 0.05) { clearInterval(interval); return 0 }
+        return Math.max(0, +(prev - 0.1).toFixed(2))
+      })
+    }, 100)
+    return () => clearInterval(interval)
+  }, [currentIndex])
+
   if (!q) return null
 
   return (
@@ -151,7 +177,33 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
             </motion.div>
           </div>
 
-          <div style={{ width: 38 }} />
+          {/* Timer circle — right, symmetrical with quit button */}
+          <div style={{ width: 38, height: 38, position: 'relative', flexShrink: 0 }}>
+            {/* SVG ring */}
+            <svg width="38" height="38" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
+              <circle cx="19" cy="19" r={TIMER_RADIUS} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2.5" />
+              <circle
+                cx="19" cy="19" r={TIMER_RADIUS}
+                fill="none"
+                stroke={timerColor}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeDasharray={TIMER_CIRC}
+                strokeDashoffset={timerOffset}
+                style={{ transition: 'stroke-dashoffset 0.1s linear, stroke 0.3s ease' }}
+              />
+            </svg>
+            {/* Background + number */}
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 13, color: '#fff', lineHeight: 1 }}>
+                {Math.ceil(timeLeft)}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
