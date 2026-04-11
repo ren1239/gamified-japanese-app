@@ -287,7 +287,7 @@ export default function HomeScreen({ onStart, onReview }) {
       created: new Date().toISOString().slice(0, 10),
       playCount: 0,
       bestScore: null,
-      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key })),
+      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key, _sourceQuizId: entry.quizId, _sourceQuizTitle: entry.quizTitle })),
     }
     onStart(practiceQuiz, false)
   }
@@ -343,7 +343,7 @@ export default function HomeScreen({ onStart, onReview }) {
       created: new Date().toISOString().slice(0, 10),
       playCount: 0,
       bestScore: null,
-      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key })),
+      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key, _sourceQuizId: entry.quizId, _sourceQuizTitle: entry.quizTitle })),
     }
     onStart(practiceQuiz, false)
   }

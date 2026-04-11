@@ -15,7 +15,7 @@ const BADGE_COLORS = [
 ]
 
 export default function QuizScreen({ onFinish, onQuit, burst }) {
-  const { questions, currentIndex, score, phase, quizId, submitAnswer, nextQuestion } = useGameStore()
+  const { questions, currentIndex, score, phase, quizId, activeQuiz, submitAnswer, nextQuestion } = useGameStore()
   const getQuiz = useQuizStore((s) => s.getQuiz)
   const soundEnabled = useStatsStore((s) => s.soundEnabled)
   const flaggedBank = useStatsStore((s) => s.flaggedBank)
@@ -47,13 +47,15 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
   // Flag state for current question
   const flagKey = q ? (q._bankKey ?? `${quizId}-${q.id ?? q.question.slice(0, 30)}`) : null
   const isFlagged = flagKey ? flaggedBank.some((e) => e.key === flagKey) : false
+  const effectiveFlagQuizId = q?._sourceQuizId ?? quizId
+  const effectiveFlagTitle = q?._sourceQuizTitle ?? quizMeta?.title ?? activeQuiz?.title ?? 'Quiz'
 
   const handleToggleFlag = () => {
     if (!flagKey || !q) return
     if (isFlagged) {
       unflagQuestion(flagKey)
     } else {
-      flagQuestion(quizId, quizMeta?.title ?? 'Quiz', q)
+      flagQuestion(effectiveFlagQuizId, effectiveFlagTitle, q)
     }
   }
 
