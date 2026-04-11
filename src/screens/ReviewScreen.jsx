@@ -15,13 +15,17 @@ const BADGE_COLORS = [
 export default function ReviewScreen({ quizId, onBack }) {
   const getQuiz = useQuizStore((s) => s.getQuiz)
   const activeQuiz = useGameStore((s) => s.activeQuiz)
+  const gameQuestions = useGameStore((s) => s.questions)
   const answers = useGameStore((s) => s.answers)
   const quiz = activeQuiz || getQuiz(quizId)
 
+  // Use the shuffled question order from gameStore so questionIdx lines up correctly
+  const questionsToShow = gameQuestions?.length > 0 ? gameQuestions : quiz?.questions ?? []
+
   const score = useMemo(() => {
-    if (!quiz || !answers.length) return null
-    return answers.filter((a) => a.chosen === quiz.questions[a.questionIdx]?.correct).length
-  }, [quiz, answers])
+    if (!questionsToShow.length || !answers.length) return null
+    return answers.filter((a) => a.chosen === questionsToShow[a.questionIdx]?.correct).length
+  }, [questionsToShow, answers])
 
   if (!quiz) return null
 
@@ -109,11 +113,11 @@ export default function ReviewScreen({ quizId, onBack }) {
 
       {/* ── Question list ── */}
       <div style={{ flex: 1, padding: '0 16px 80px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {quiz.questions.map((q, qi) => {
+        {questionsToShow.map((q, qi) => {
           const answerDetail = answers.find((a) => a.questionIdx === qi) || null
           return (
             <ReviewQuestion
-              key={q.id || qi}
+              key={q.id ?? qi}
               q={q} qi={qi}
               answer={answerDetail}
               quizId={quiz.id}
