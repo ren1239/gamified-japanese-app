@@ -194,21 +194,15 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
               />
             </svg>
             {/* Background + number */}
-            <motion.div
-              animate={timeLeft === 0 ? { scale: [1, 1.15, 1] } : {}}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              style={{
-                position: 'absolute', inset: 0, borderRadius: '50%',
-                background: timeLeft === 0 ? 'rgba(239,68,68,0.85)' : 'rgba(255,255,255,0.2)',
-                border: `1.5px solid ${timeLeft === 0 ? 'rgba(239,68,68,0.9)' : 'rgba(255,255,255,0.35)'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.2s, border-color 0.2s',
-              }}
-            >
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
               <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 13, color: '#fff', lineHeight: 1 }}>
                 {Math.ceil(timeLeft)}
               </span>
-            </motion.div>
+            </div>
           </div>
         </div>
 
