@@ -8,8 +8,17 @@ import { toRomajiSafe } from '../utils/romaji'
 const CAT_LABEL = { all: 'All', noun: 'Nouns', verb: 'Verbs', other: 'Other' }
 const DIR_LABEL = { 'jp-en': 'JP→EN', 'en-jp': 'EN→JP', mix: 'Mix' }
 
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 function buildDeck(words, direction) {
-  return words.map((word) => ({
+  return shuffle(words).map((word) => ({
     ...word,
     frontJp: direction === 'jp-en' || (direction === 'mix' && Math.random() > 0.5),
   }))
