@@ -284,10 +284,10 @@ export const ch11TariQuiz = {
     },
     {
       id: 4,
-      question: 'Common mistake: the たり form of 食べる is...',
-      jp: '食べる →',
-      choices: ['食べてり ✗', '食べたり ✓', '食べり ✗'],
-      correct: 1,
+      question: 'Translate: "I do things like running and learning."',
+      jp: null,
+      choices: ['走ったり、習ったりします', '走ってり、習ってりします', '走りたり、習いたりします'],
+      correct: 0,
     },
     {
       id: 5,

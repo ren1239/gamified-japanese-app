@@ -220,6 +220,12 @@ When a chapter already has vocab but no grammar (e.g. Ch.12 after its initial vo
 | Write 10 questions spread across use-cases | Repeat the same pattern 10 times |
 | Reference Genki's example sentences | Invent non-standard usages |
 | Catch common errors (て-form vs. stem, etc.) | Only test easy/obvious cases |
+| **Use vocab from the chapter's vocab list** | **Use generic verbs like 食べる/飲む/行く** |
+| Write translation questions ("How do you say…?") | Write "common mistake: X is…" questions |
+
+**Vocab in sentences:** Grammar questions should use verbs, nouns, and expressions from the chapter's vocab list (`chNNVocabData.js`) as much as possible. This reinforces vocab alongside grammar. Generic standbys like 食べる, 飲む, 行く are acceptable only when no suitable chapter vocab exists.
+
+**No "common mistake" questions:** Don't frame questions as "Common mistake: X is..." — instead test the same knowledge by asking the student to produce or identify the correct form directly (fill-in, translation, or "which is correct?").
 
 **Example question (grammar — potential form):**
 
