@@ -2,16 +2,9 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, BookText, PenLine, ChevronRight, Star, Lock, RefreshCw } from 'lucide-react'
 import { useQuizStore } from '../store/quizStore'
-import { generateVocabQuiz } from '../utils/vocabQuizGen'
-import { ch11Vocab, getWordsForCategory } from '../data/ch11VocabData'
+import { generateVocabQuiz, getVocabForChapter, getWordsForChapterAndCategory } from '../utils/vocabQuizGen'
 
 // ── Vocab categories & directions ────────────────────────────────────────────
-const CATEGORIES = [
-  { id: 'all',   label: 'All',   count: ch11Vocab.length },
-  { id: 'noun',  label: 'Nouns', count: ch11Vocab.filter(w => w.category === 'noun').length },
-  { id: 'verb',  label: 'Verbs', count: ch11Vocab.filter(w => ['u-verb','ru-verb','irregular'].includes(w.category)).length },
-  { id: 'other', label: 'Other', count: ch11Vocab.filter(w => w.category === 'other').length },
-]
 const DIRECTIONS = [
   { id: 'jp-en', label: 'JP → EN' },
   { id: 'en-jp', label: 'EN → JP' },
@@ -49,16 +42,23 @@ function ChipGroup({ options, value, onChange }) {
 
 // ── Vocab Section ─────────────────────────────────────────────────────────────
 function VocabSection({ chapter, onStart }) {
-  // Only chapter 11 has structured vocab data right now
-  const hasDynamic = chapter.number === 11
+  const hasDynamic = [11, 12].includes(chapter.number)
   const getQuiz = useQuizStore(s => s.getQuiz)
   const staticQuiz = chapter.vocab?.quizId ? getQuiz(chapter.vocab.quizId) : null
+
+  const chapterVocab = getVocabForChapter(chapter.number)
+  const CATEGORIES = [
+    { id: 'all',   label: 'All',   count: chapterVocab.length },
+    { id: 'noun',  label: 'Nouns', count: chapterVocab.filter(w => w.category === 'noun').length },
+    { id: 'verb',  label: 'Verbs', count: chapterVocab.filter(w => ['u-verb','ru-verb','irregular'].includes(w.category)).length },
+    { id: 'other', label: 'Other', count: chapterVocab.filter(w => w.category === 'other').length },
+  ]
 
   const [cat,  setCat]  = useState('all')
   const [dir,  setDir]  = useState('jp-en')
   const [err,  setErr]  = useState(null)
 
-  const wordCount = hasDynamic ? getWordsForCategory(cat).length : (staticQuiz?.questions?.length ?? 0)
+  const wordCount = hasDynamic ? getWordsForChapterAndCategory(chapter.number, cat).length : (staticQuiz?.questions?.length ?? 0)
 
   const handleQuick = () => {
     if (hasDynamic) {

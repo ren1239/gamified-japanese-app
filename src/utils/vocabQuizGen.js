@@ -2,8 +2,20 @@
 // direction: 'jp-en' | 'en-jp' | 'mix'
 // Returns a quiz object compatible with useGameStore.startGame
 
-import { getWordsForCategory } from '../data/ch11VocabData'
+import { ch11Vocab, getWordsForCategory as ch11GetWords } from '../data/ch11VocabData'
+import { ch12Vocab, getWordsForCategory as ch12GetWords } from '../data/ch12VocabData'
 
+export function getWordsForChapterAndCategory(chapterNum, category) {
+  if (chapterNum === 11) return ch11GetWords(category)
+  if (chapterNum === 12) return ch12GetWords(category)
+  return []
+}
+
+export function getVocabForChapter(chapterNum) {
+  if (chapterNum === 11) return ch11Vocab
+  if (chapterNum === 12) return ch12Vocab
+  return []
+}
 function shuffle(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -59,7 +71,7 @@ function buildQuestion(word, direction, pool, qIndex) {
  * @param {string} chapterNum — used for quiz ID
  */
 export function generateVocabQuiz(category, direction, chapterNum = 11, limit = 10) {
-  const pool = getWordsForCategory(category)
+  const pool = getWordsForChapterAndCategory(chapterNum, category)
 
   if (pool.length < 4) {
     throw new Error('Not enough words to generate a quiz (need at least 4)')
