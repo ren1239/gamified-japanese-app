@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, BookText, PenLine, ChevronRight, Star, Lock, RefreshCw } from 'lucide-react'
+import { ChevronLeft, BookText, PenLine, ChevronRight, Star, Lock, RefreshCw, Layers } from 'lucide-react'
 import { useQuizStore } from '../store/quizStore'
 import { generateVocabQuiz, getVocabForChapter, getWordsForChapterAndCategory } from '../utils/vocabQuizGen'
 
@@ -41,7 +41,7 @@ function ChipGroup({ options, value, onChange }) {
 }
 
 // ── Vocab Section ─────────────────────────────────────────────────────────────
-function VocabSection({ chapter, onStart }) {
+function VocabSection({ chapter, onStart, onFlashcard }) {
   const hasDynamic = [11, 12].includes(chapter.number)
   const getQuiz = useQuizStore(s => s.getQuiz)
   const staticQuiz = chapter.vocab?.quizId ? getQuiz(chapter.vocab.quizId) : null
@@ -123,24 +123,37 @@ function VocabSection({ chapter, onStart }) {
         )}
 
         {(hasDynamic || staticQuiz) ? (
-          <div style={{ display: 'flex', gap: 10 }}>
-            <motion.button
-              className="btn btn-primary"
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handleQuick}
-              style={{ flex: 1, padding: '11px 0', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-            >
-              {hasDynamic && <RefreshCw size={14} strokeWidth={2.5} />}
-              {hasDynamic ? 'Quick (10)' : 'Play'}
-            </motion.button>
-            <motion.button
-              className="btn btn-accent"
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handleAll}
-              style={{ flex: 1, padding: '11px 0', fontSize: 14 }}
-            >
-              {hasDynamic ? `All (${wordCount})` : 'Shuffle'}
-            </motion.button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <motion.button
+                className="btn btn-primary"
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={handleQuick}
+                style={{ flex: 1, padding: '11px 0', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              >
+                {hasDynamic && <RefreshCw size={14} strokeWidth={2.5} />}
+                {hasDynamic ? 'Quick (10)' : 'Play'}
+              </motion.button>
+              <motion.button
+                className="btn btn-accent"
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={handleAll}
+                style={{ flex: 1, padding: '11px 0', fontSize: 14 }}
+              >
+                {hasDynamic ? `All (${wordCount})` : 'Shuffle'}
+              </motion.button>
+            </div>
+            {hasDynamic && (
+              <motion.button
+                className="btn btn-ghost"
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                onClick={() => onFlashcard({ chapter, category: cat, direction: dir })}
+                style={{ padding: '11px 0', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}
+              >
+                <Layers size={14} strokeWidth={2.5} />
+                Flashcards ({wordCount})
+              </motion.button>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 13 }}>
@@ -177,7 +190,7 @@ function ProgressBar({ quiz }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function ChapterDetailScreen({ chapter, onStart, onBack }) {
+export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashcard }) {
   const getQuiz = useQuizStore(s => s.getQuiz)
 
   return (
@@ -200,7 +213,7 @@ export default function ChapterDetailScreen({ chapter, onStart, onBack }) {
 
       {/* Vocab */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <VocabSection chapter={chapter} onStart={onStart} />
+        <VocabSection chapter={chapter} onStart={onStart} onFlashcard={onFlashcard} />
       </motion.div>
 
       {/* Grammar Drills */}

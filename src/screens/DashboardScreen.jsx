@@ -20,7 +20,7 @@ const ACHIEVEMENTS = [
 function stagger(i) { return { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06 + 0.1, duration: 0.35 } } }
 
 export default function DashboardScreen({ onNavigate }) {
-  const { totalXp, history, streak, username } = useStatsStore()
+  const { totalXp, history, streak, username, learnedBank } = useStatsStore()
   const quizzes = useQuizStore((s) => s.quizzes)
 
   const level = computeLevel(totalXp)
@@ -44,18 +44,20 @@ export default function DashboardScreen({ onNavigate }) {
       const entries = history.filter((e) => e.date === key)
       const correct = entries.reduce((s, e) => s + e.score, 0)
       const wrong = entries.reduce((s, e) => s + (e.total - e.score), 0)
+      const learned = (learnedBank ?? []).filter((e) => e.date === key).length
       days.push({
         key,
         correct,
         wrong,
-        total: correct + wrong,
+        learned,
+        total: correct + wrong + learned,
         dow: ['S','M','T','W','T','F','S'][d.getDay()],
         shortDate: `${d.getMonth()+1}/${d.getDate()}`,
         fullLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
       })
     }
     return days
-  }, [history, activityWindow])
+  }, [history, learnedBank, activityWindow])
 
   // Chapter completion status
   const quizMap = useMemo(() => {
@@ -162,7 +164,7 @@ export default function DashboardScreen({ onNavigate }) {
         <div className="section-label">Chapter Progress</div>
         <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }}>
           {chapters.slice(0, 23).map((ch, i) => {
-            const isLocked = ch.number !== 11
+            const isLocked = !ch.vocab?.available && ch.grammar.length === 0
             const quiz = ch.vocab?.quizId ? quizMap[ch.vocab.quizId] : null
             const played = quiz?.playCount > 0
             const perfect = quiz && quiz.bestScore === quiz.questions?.length
@@ -236,7 +238,7 @@ export default function DashboardScreen({ onNavigate }) {
           {/* Header: legend + toggle */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ display: 'flex', gap: 10 }}>
-              {[{ color: '#10B981', label: 'Correct' }, { color: '#EF4444', label: 'Wrong' }].map(({ color, label }) => (
+              {[{ color: '#3B82F6', label: 'Learned' }, { color: '#10B981', label: 'Correct' }, { color: '#EF4444', label: 'Wrong' }].map(({ color, label }) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', fontFamily: "'Nunito'" }}>{label}</span>
@@ -271,7 +273,8 @@ export default function DashboardScreen({ onNavigate }) {
                   <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', height: 100, gap: activityWindow === 30 ? 2 : 6 }}>
                     {chartData.map((day, i) => {
                       const barH = (day.total / maxTotal) * 100
-                      const wrongH = day.total > 0 ? (day.wrong / day.total) * 100 : 0
+                      const wrongPct = day.total > 0 ? (day.wrong / day.total) * 100 : 0
+                      const correctPct = day.total > 0 ? (day.correct / day.total) * 100 : 0
                       const isActive = activeBarIdx === i
                       return (
                         <div
@@ -285,7 +288,7 @@ export default function DashboardScreen({ onNavigate }) {
                             background: isActive ? 'rgba(124,58,237,0.07)' : 'var(--border)',
                             borderRadius: '3px 3px 0 0', transition: 'background 0.15s',
                           }} />
-                          {/* Stacked bar */}
+                          {/* Stacked bar: wrong (top) → correct (middle) → learned (bottom) */}
                           {day.total > 0 && (
                             <motion.div
                               key={`${activityWindow}-${day.key}`}
@@ -301,8 +304,9 @@ export default function DashboardScreen({ onNavigate }) {
                                 outline: isActive ? '1.5px solid var(--primary)' : 'none',
                               }}
                             >
-                              <div style={{ height: `${wrongH}%`, background: '#EF4444', flexShrink: 0, minHeight: wrongH > 0 ? 1 : 0 }} />
-                              <div style={{ flex: 1, background: '#10B981' }} />
+                              <div style={{ height: `${wrongPct}%`, background: '#EF4444', flexShrink: 0, minHeight: wrongPct > 0 ? 1 : 0 }} />
+                              <div style={{ height: `${correctPct}%`, background: '#10B981', flexShrink: 0, minHeight: correctPct > 0 ? 1 : 0 }} />
+                              <div style={{ flex: 1, background: '#3B82F6' }} />
                             </motion.div>
                           )}
                         </div>
@@ -346,11 +350,18 @@ export default function DashboardScreen({ onNavigate }) {
                           {chartData[activeBarIdx].fullLabel}
                         </span>
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          {chartData[activeBarIdx].learned > 0 && (
+                            <span style={{ fontSize: 12, fontWeight: 900, color: '#3B82F6', fontFamily: "'Nunito'" }}>
+                              ★ {chartData[activeBarIdx].learned}
+                            </span>
+                          )}
                           <span style={{ fontSize: 12, fontWeight: 900, color: '#10B981', fontFamily: "'Nunito'" }}>✓ {chartData[activeBarIdx].correct}</span>
                           <span style={{ fontSize: 12, fontWeight: 900, color: '#EF4444', fontFamily: "'Nunito'" }}>✗ {chartData[activeBarIdx].wrong}</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', fontFamily: "'Nunito'" }}>
-                            {Math.round((chartData[activeBarIdx].correct / chartData[activeBarIdx].total) * 100)}%
-                          </span>
+                          {(chartData[activeBarIdx].correct + chartData[activeBarIdx].wrong) > 0 && (
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', fontFamily: "'Nunito'" }}>
+                              {Math.round((chartData[activeBarIdx].correct / (chartData[activeBarIdx].correct + chartData[activeBarIdx].wrong)) * 100)}%
+                            </span>
+                          )}
                         </div>
                       </div>
                     </motion.div>

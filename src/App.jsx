@@ -8,6 +8,7 @@ import ChapterListScreen from './screens/ChapterListScreen'
 import ChapterDetailScreen from './screens/ChapterDetailScreen'
 import HomeScreen from './screens/HomeScreen'
 import QuizScreen from './screens/QuizScreen'
+import FlashcardScreen from './screens/FlashcardScreen'
 import ScoreScreen from './screens/ScoreScreen'
 import ReviewScreen from './screens/ReviewScreen'
 import SettingsScreen from './screens/SettingsScreen'
@@ -25,6 +26,7 @@ const SCREENS = {
   score: 'score',
   review: 'review',
   settings: 'settings',
+  flashcard: 'flashcard',
 }
 
 const NAV_SCREENS = new Set(['dashboard', 'chapters', 'chapterDetail', 'custom', 'settings'])
@@ -37,6 +39,7 @@ export default function App() {
   const [scoreBackTo, setScoreBackTo] = useState('dashboard') // where score → back goes
   const [reviewQuizId, setReviewQuizId] = useState(null)
   const [reviewBack, setReviewBack] = useState('score')
+  const [flashcardConfig, setFlashcardConfig] = useState(null) // { chapter, category, direction }
 
   // Gamification state
   const [xpToast, setXpToast] = useState({ show: false, xp: 0 })
@@ -97,6 +100,11 @@ export default function App() {
     const quiz = useGameStore.getState().activeQuiz
     if (quiz) handleStart(quiz, shuffled, scoreBackTo)
   }, [shuffled, handleStart, scoreBackTo])
+
+  const handleFlashcard = useCallback(({ chapter, category, direction }) => {
+    setFlashcardConfig({ chapter, category, direction })
+    setScreen(SCREENS.flashcard)
+  }, [])
 
   const handleOpenReview = useCallback((id, back) => {
     setReviewQuizId(id)
@@ -161,6 +169,7 @@ export default function App() {
               chapter={selectedChapter}
               onStart={(quiz, shuffle) => handleStart(quiz, shuffle, 'chapterDetail')}
               onBack={handleBackFromChapter}
+              onFlashcard={handleFlashcard}
             />
           </motion.div>
         )}
@@ -204,6 +213,17 @@ export default function App() {
         {screen === SCREENS.settings && (
           <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
             <SettingsScreen />
+          </motion.div>
+        )}
+
+        {screen === SCREENS.flashcard && flashcardConfig && (
+          <motion.div key="flashcard" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
+            <FlashcardScreen
+              chapter={flashcardConfig.chapter}
+              category={flashcardConfig.category}
+              direction={flashcardConfig.direction}
+              onBack={() => setScreen(SCREENS.chapterDetail)}
+            />
           </motion.div>
         )}
 
