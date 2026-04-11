@@ -46,6 +46,7 @@ function buildQuestion(word, direction, pool, qIndex) {
       id: qIndex + 1,
       question: 'What does this mean?',
       jp: word.kanji ? `${word.kana}（${word.kanji}）` : word.kana,
+      jpRomaji: word.kana, // kana-only for romaji conversion — no map needed
       choices,
       correct: choices.indexOf(correctAnswer),
     }

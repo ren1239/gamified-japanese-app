@@ -256,9 +256,9 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                   <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900, color: 'var(--primary)', lineHeight: 1.3 }}>
                     {q.jp}
                   </div>
-                  {showRomaji && toRomajiSafe(q.jp) && (
+                  {showRomaji && toRomajiSafe(q.jpRomaji ?? q.jp) && (
                     <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.3px' }}>
-                      {toRomajiSafe(q.jp)}
+                      {toRomajiSafe(q.jpRomaji ?? q.jp)}
                     </div>
                   )}
                 </div>
