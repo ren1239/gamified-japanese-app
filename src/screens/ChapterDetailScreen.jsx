@@ -42,17 +42,17 @@ function ChipGroup({ options, value, onChange }) {
 
 // ── Vocab Section ─────────────────────────────────────────────────────────────
 function VocabSection({ chapter, onStart, onFlashcard }) {
-  const hasDynamic = [11, 12].includes(chapter.number)
+  const hasDynamic = [1, 11, 12].includes(chapter.number)
   const getQuiz = useQuizStore(s => s.getQuiz)
   const staticQuiz = chapter.vocab?.quizId ? getQuiz(chapter.vocab.quizId) : null
 
   const chapterVocab = getVocabForChapter(chapter.number)
-  const CATEGORIES = [
+  const displayCategories = [
     { id: 'all',   label: 'All',   count: chapterVocab.length },
     { id: 'noun',  label: 'Nouns', count: chapterVocab.filter(w => w.category === 'noun').length },
     { id: 'verb',  label: 'Verbs', count: chapterVocab.filter(w => ['u-verb','ru-verb','irregular'].includes(w.category)).length },
     { id: 'other', label: 'Other', count: chapterVocab.filter(w => w.category === 'other').length },
-  ]
+  ].filter(c => c.count > 0)
 
   const [cat,  setCat]  = useState('all')
   const [dir,  setDir]  = useState('jp-en')
@@ -109,7 +109,7 @@ function VocabSection({ chapter, onStart, onFlashcard }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 7 }}>Category</div>
-              <ChipGroup options={CATEGORIES} value={cat} onChange={c => { setCat(c); setErr(null) }} />
+              <ChipGroup options={displayCategories} value={cat} onChange={c => { setCat(c); setErr(null) }} />
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 7 }}>Direction</div>
