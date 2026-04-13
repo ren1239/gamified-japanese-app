@@ -222,6 +222,24 @@ function ReviewQuestion({ q, qi, answer, quizId, quizTitle }) {
         </div>
       )}
 
+      {/* Explanation — shown only when answered wrong */}
+      {gotItWrong && q.explanation && (
+        <div style={{
+          background: 'rgba(239,68,68,0.08)',
+          border: '1px solid rgba(239,68,68,0.2)',
+          borderRadius: 12,
+          padding: '10px 14px',
+          marginBottom: 10,
+          fontFamily: "'Nunito', sans-serif",
+          fontWeight: 700,
+          fontSize: 13,
+          color: 'var(--text)',
+          lineHeight: 1.55,
+        }}>
+          {q.explanation}
+        </div>
+      )}
+
       {/* Choices */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {q.choices.map((c, ci) => {

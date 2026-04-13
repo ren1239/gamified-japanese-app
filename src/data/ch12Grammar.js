@@ -15,6 +15,7 @@ export const ch12NdesuQuiz = {
       jp: 'のどが痛___んです。',
       choices: ['い', 'な', 'かった', 'くない'],
       correct: 0,
+      explanation: '痛い is an い-adjective. In present tense, い-adjectives attach directly to んです → 痛いんです.',
     },
     {
       id: 2,
@@ -22,6 +23,7 @@ export const ch12NdesuQuiz = {
       jp: 'おなかは痛___んです。',
       choices: ['い', 'くない', 'くなかった', 'な'],
       correct: 1,
+      explanation: 'Negative い-adjectives (痛くない) attach directly to んです — no な needed → 痛くないんです.',
     },
     {
       id: 3,
@@ -29,6 +31,7 @@ export const ch12NdesuQuiz = {
       jp: 'さむ___んです。',
       choices: ['くない', 'い', 'かった', 'くなかった'],
       correct: 2,
+      explanation: 'さむい → past short form → さむかった. い-adjectives attach directly → さむかったんです.',
     },
     {
       id: 4,
@@ -36,6 +39,7 @@ export const ch12NdesuQuiz = {
       jp: 'ぜんぜん痛___んです。',
       choices: ['かった', 'くない', 'な', 'くなかった'],
       correct: 3,
+      explanation: 'Past negative of 痛い is 痛くなかった. Attach directly to んです → 痛くなかったんです.',
     },
     // ── な-adjective ───────────────────────────────────────────
     {
@@ -44,6 +48,7 @@ export const ch12NdesuQuiz = {
       jp: '服が素敵___んです。',
       choices: ['な', 'だ', 'の', 'に'],
       correct: 0,
+      explanation: '素敵 is a な-adjective. Present affirmative な-adjectives need な before んです → 素敵なんです. Never 素敵だんです.',
     },
     {
       id: 6,
@@ -51,6 +56,7 @@ export const ch12NdesuQuiz = {
       jp: '___んです。',
       choices: ['心配くない', '心配ない', '心配じゃない', '心配でない'],
       correct: 2,
+      explanation: '心配 is a な-adjective. Negatives use じゃない — not くない, which is for い-adjectives only → 心配じゃないんです.',
     },
     {
       id: 7,
@@ -58,21 +64,24 @@ export const ch12NdesuQuiz = {
       jp: 'ホームシック___んです。',
       choices: ['なだった', 'だった', 'だな', 'な'],
       correct: 1,
+      explanation: 'Past tense of nouns/な-adjectives uses だった — no な. Don\'t carry な into the past → ホームシックだったんです.',
     },
     // ── Noun ──────────────────────────────────────────────────
     {
       id: 8,
-      question: "Explain you have a cold. What goes before んです?",
+      question: 'Explain you have a cold. What goes before んです?',
       jp: '風邪___んです。',
       choices: ['な', 'だ', 'の', 'は'],
       correct: 0,
+      explanation: '風邪 is a noun. Nouns need な before んです in present affirmative → 風邪なんです. Not 風邪だんです.',
     },
     {
       id: 9,
-      question: "Explain it is NOT a cold. What goes before んです?",
+      question: 'Explain it is NOT a cold. What goes before んです?',
       jp: '風邪___んです。',
       choices: ['くない', 'なじゃない', 'じゃない', 'じゃなかった'],
       correct: 2,
+      explanation: 'Noun negatives use じゃない, not くない (that\'s for い-adjectives) → 風邪じゃないんです.',
     },
     {
       id: 10,
@@ -80,6 +89,7 @@ export const ch12NdesuQuiz = {
       jp: '二日酔い___んです。',
       choices: ['なだった', 'だな', 'な', 'だった'],
       correct: 3,
+      explanation: 'Past tense nouns use だった — no な → 二日酔いだったんです. Don\'t add な before だった.',
     },
     // ── Verb ──────────────────────────────────────────────────
     {
@@ -88,6 +98,7 @@ export const ch12NdesuQuiz = {
       jp: '彼女と___んです。',
       choices: ['別れる', '別れた', '別れて', '別れない'],
       correct: 1,
+      explanation: '別れる is a ru-verb. Past short form → 別れた. Verbs attach directly to んです → 別れたんです.',
     },
     {
       id: 12,
@@ -95,6 +106,7 @@ export const ch12NdesuQuiz = {
       jp: '代を___んです。',
       choices: ['払わない', '払った', '払わなかった', '払う'],
       correct: 2,
+      explanation: '払う → negative past short form → 払わなかった. Attach directly → 払わなかったんです.',
     },
     {
       id: 13,
@@ -102,6 +114,7 @@ export const ch12NdesuQuiz = {
       jp: '試合のことで___んです。',
       choices: ['心配する', '心配した', '心配していた', '心配している'],
       correct: 3,
+      explanation: '心配している = currently worried (ongoing state). Use 〜ている for ongoing states → 心配しているんです. 心配した is past (already over).',
     },
     // ── Question form ──────────────────────────────────────────
     {
@@ -109,6 +122,7 @@ export const ch12NdesuQuiz = {
       question: "Your classmate looks pale. Which asks 'What's wrong?' (seeking explanation)",
       choices: ['どうしたんですか', 'どうしましたか', 'どうするんですか', 'どうしてですか'],
       correct: 0,
+      explanation: 'どうしたんですか invites an explanation — you\'ve noticed something and want to understand why. どうしましたか just asks what happened as a plain fact.',
     },
     {
       id: 15,
@@ -116,6 +130,7 @@ export const ch12NdesuQuiz = {
       jp: 'どうして彼氏と___んですか。',
       choices: ['別れます', '別れた', '別れて', '別れない'],
       correct: 1,
+      explanation: 'In a どうして question, use past short form + んですか → 別れたんですか. The polite form 別れます cannot combine with んです.',
     },
   ],
 }

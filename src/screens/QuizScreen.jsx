@@ -481,7 +481,12 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                   {lastCorrect ? '正解！ 🎉' : '不正解 😤'}
                 </motion.div>
                 <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.9)', lineHeight: 1.4 }}>
-                  {lastCorrect ? 'Great job! Keep it up!' : `Correct answer: ${q.choices[q.correct]}`}
+                  {lastCorrect
+                    ? 'Great job! Keep it up!'
+                    : q.explanation
+                      ? q.explanation
+                      : `Correct answer: ${q.choices[q.correct]}`
+                  }
                 </div>
               </div>
 
