@@ -1,0 +1,121 @@
+export const ch12NdesuQuiz = {
+  id: 'ch12-ndesu',
+  title: 'Ch.12 · んです',
+  topic: 'んです',
+  grammarPoint: '〜んです',
+  description: 'Explanation mode: short form + んです. Nouns/な-adjectives add な in present affirmative; い-adjectives and verbs attach directly.',
+  created: '2026-04-13',
+  playCount: 0,
+  bestScore: null,
+  questions: [
+    // ── い-adjective ───────────────────────────────────────────
+    {
+      id: 1,
+      question: 'Explain your throat hurts right now.',
+      jp: 'のどが痛___んです。',
+      choices: ['い', 'な', 'かった', 'くない'],
+      correct: 0,
+    },
+    {
+      id: 2,
+      question: 'Explain your stomach does NOT hurt.',
+      jp: 'おなかは痛___んです。',
+      choices: ['い', 'くない', 'くなかった', 'な'],
+      correct: 1,
+    },
+    {
+      id: 3,
+      question: 'Explain why you stayed home — it WAS cold.',
+      jp: 'さむ___んです。',
+      choices: ['くない', 'い', 'かった', 'くなかった'],
+      correct: 2,
+    },
+    {
+      id: 4,
+      question: 'Explain it did NOT hurt at all.',
+      jp: 'ぜんぜん痛___んです。',
+      choices: ['かった', 'くない', 'な', 'くなかった'],
+      correct: 3,
+    },
+    // ── な-adjective ───────────────────────────────────────────
+    {
+      id: 5,
+      question: 'Your clothes are lovely. What goes before んです? (素敵 = な-adjective)',
+      jp: '服が素敵___んです。',
+      choices: ['な', 'だ', 'の', 'に'],
+      correct: 0,
+    },
+    {
+      id: 6,
+      question: "Which correctly explains 'I'm not worried'? (心配 = な-adjective)",
+      jp: '___んです。',
+      choices: ['心配くない', '心配ない', '心配じゃない', '心配でない'],
+      correct: 2,
+    },
+    {
+      id: 7,
+      question: 'Explain you USED TO BE homesick. What goes before んです?',
+      jp: 'ホームシック___んです。',
+      choices: ['なだった', 'だった', 'だな', 'な'],
+      correct: 1,
+    },
+    // ── Noun ──────────────────────────────────────────────────
+    {
+      id: 8,
+      question: "Explain you have a cold. What goes before んです?",
+      jp: '風邪___んです。',
+      choices: ['な', 'だ', 'の', 'は'],
+      correct: 0,
+    },
+    {
+      id: 9,
+      question: "Explain it is NOT a cold. What goes before んです?",
+      jp: '風邪___んです。',
+      choices: ['くない', 'なじゃない', 'じゃない', 'じゃなかった'],
+      correct: 2,
+    },
+    {
+      id: 10,
+      question: 'Explain you HAD a hangover. What goes before んです?',
+      jp: '二日酔い___んです。',
+      choices: ['なだった', 'だな', 'な', 'だった'],
+      correct: 3,
+    },
+    // ── Verb ──────────────────────────────────────────────────
+    {
+      id: 11,
+      question: 'Someone notices you look sad. Explain you broke up.',
+      jp: '彼女と___んです。',
+      choices: ['別れる', '別れた', '別れて', '別れない'],
+      correct: 1,
+    },
+    {
+      id: 12,
+      question: 'Explain you did NOT pay the fee.',
+      jp: '代を___んです。',
+      choices: ['払わない', '払った', '払わなかった', '払う'],
+      correct: 2,
+    },
+    {
+      id: 13,
+      question: 'Explain you ARE worried about the match.',
+      jp: '試合のことで___んです。',
+      choices: ['心配する', '心配した', '心配していた', '心配している'],
+      correct: 3,
+    },
+    // ── Question form ──────────────────────────────────────────
+    {
+      id: 14,
+      question: "Your classmate looks pale. Which asks 'What's wrong?' (seeking explanation)",
+      choices: ['どうしたんですか', 'どうしましたか', 'どうするんですか', 'どうしてですか'],
+      correct: 0,
+    },
+    {
+      id: 15,
+      question: 'Ask why your friend broke up with their boyfriend.',
+      jp: 'どうして彼氏と___んですか。',
+      choices: ['別れます', '別れた', '別れて', '別れない'],
+      correct: 1,
+    },
+  ],
+}

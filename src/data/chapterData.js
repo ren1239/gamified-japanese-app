@@ -70,7 +70,9 @@ export const chapters = [
   {
     number: 12, title: 'Chapter 12', subtitle: '病気',
     vocab: { available: true },
-    grammar: [],
+    grammar: [
+      { id: 'ndesu', label: '〜んです', desc: 'Explanation mode', quizId: 'ch12-ndesu', available: true },
+    ],
   },
   {
     number: 13, title: 'Chapter 13', subtitle: 'アルバイト探し',
