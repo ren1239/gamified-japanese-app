@@ -35,11 +35,11 @@ export const ch12NdesuQuiz = {
     },
     {
       id: 4,
-      question: 'Explain it did NOT hurt at all.',
-      jp: 'ぜんぜん痛___んです。',
+      question: 'Explain that the exam was NOT difficult.',
+      jp: '試験が難し___んです。',
       choices: ['かった', 'くない', 'な', 'くなかった'],
       correct: 3,
-      explanation: 'Past negative of 痛い is 痛くなかった. Attach directly to んです → 痛くなかったんです.',
+      explanation: 'Past negative of 難しい is 難しくなかった. Attach directly to んです → 難しくなかったんです.',
     },
     // ── な-adjective ───────────────────────────────────────────
     {
@@ -85,11 +85,11 @@ export const ch12NdesuQuiz = {
     },
     {
       id: 10,
-      question: 'Explain you HAD a hangover. What goes before んです?',
-      jp: '二日酔い___んです。',
+      question: "Explain that yesterday was your birthday. What goes before んです?",
+      jp: 'きのうは誕生日___んです。',
       choices: ['なだった', 'だな', 'な', 'だった'],
       correct: 3,
-      explanation: 'Past tense nouns use だった — no な → 二日酔いだったんです. Don\'t add な before だった.',
+      explanation: 'Past tense nouns use だった — no な → 誕生日だったんです. Don\'t add な before だった.',
     },
     // ── Verb ──────────────────────────────────────────────────
     {
@@ -131,6 +131,23 @@ export const ch12NdesuQuiz = {
       choices: ['別れます', '別れた', '別れて', '別れない'],
       correct: 1,
       explanation: 'In a どうして question, use past short form + んですか → 別れたんですか. The polite form 別れます cannot combine with んです.',
+    },
+    // ── Verb present affirmative ───────────────────────────────
+    {
+      id: 16,
+      question: "Your friend asks why you can't go out tonight. Explain you have an exam tomorrow.",
+      jp: 'あした試験が___んです。',
+      choices: ['あります', 'ある', 'あった', 'あって'],
+      correct: 1,
+      explanation: 'Verbs attach to んです in short form. Plain present of ある is ある → あるんです. The polite form あります cannot combine with んです.',
+    },
+    {
+      id: 17,
+      question: 'Explain that you lost your train ticket.',
+      jp: '切符を___んです。',
+      choices: ['なくします', 'なくした', 'なくして', 'なくさない'],
+      correct: 1,
+      explanation: 'なくす is a u-verb. Past short form → なくした. Attach directly to んです → なくしたんです.',
     },
   ],
 }

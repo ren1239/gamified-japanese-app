@@ -96,6 +96,8 @@ export default function App() {
     handleFinish()
   }, [handleFinish])
 
+  const handleXpDone = useCallback(() => setXpToast({ show: false, xp: 0 }), [])
+
   const handlePlayAgain = useCallback(() => {
     const quiz = useGameStore.getState().activeQuiz
     if (quiz) handleStart(quiz, shuffled, scoreBackTo)
@@ -231,7 +233,7 @@ export default function App() {
 
       {showNav && <BottomNav active={activeTab} onChange={handleTabChange} />}
 
-      <XPToast xp={xpToast.xp} show={xpToast.show} onDone={() => setXpToast({ show: false, xp: 0 })} />
+      <XPToast xp={xpToast.xp} show={xpToast.show} onDone={handleXpDone} />
       <LevelUpModal fromLevel={levelUp.from} toLevel={levelUp.to} show={levelUp.show} onClose={() => setLevelUp({ show: false, from: 0, to: 0 })} />
 
       {/* ── Quit Confirmation Modal ── */}
