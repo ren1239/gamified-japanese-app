@@ -2,11 +2,13 @@
 // direction: 'jp-en' | 'en-jp' | 'mix'
 // Returns a quiz object compatible with useGameStore.startGame
 
+import { ch00Vocab, getWordsForCategory as ch00GetWords } from '../data/ch00VocabData'
 import { ch11Vocab, getWordsForCategory as ch11GetWords } from '../data/ch11VocabData'
 import { ch12Vocab, getWordsForCategory as ch12GetWords } from '../data/ch12VocabData'
 import { ch1Vocab, getWordsForCategory as ch1GetWords } from '../data/ch1VocabData'
 
 export function getWordsForChapterAndCategory(chapterNum, category) {
+  if (chapterNum === 0)  return ch00GetWords(category)
   if (chapterNum === 1)  return ch1GetWords(category)
   if (chapterNum === 11) return ch11GetWords(category)
   if (chapterNum === 12) return ch12GetWords(category)
@@ -14,6 +16,7 @@ export function getWordsForChapterAndCategory(chapterNum, category) {
 }
 
 export function getVocabForChapter(chapterNum) {
+  if (chapterNum === 0)  return ch00Vocab
   if (chapterNum === 1)  return ch1Vocab
   if (chapterNum === 11) return ch11Vocab
   if (chapterNum === 12) return ch12Vocab

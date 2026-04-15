@@ -7,7 +7,7 @@ export const chapters = [
     number: 0,
     title: 'Chapter 0',
     subtitle: '★ 動詞の活用ドリル',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [
       { id: 'masu',        label: '〜ます',       desc: 'Polite present form',    quizId: 'ch00-masu',        available: true },
       { id: 'teform',      label: '〜て・〜で',    desc: 'Te-form (all types)',    quizId: 'ch00-teform',      available: true },
