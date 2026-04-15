@@ -4,6 +4,19 @@
 
 export const chapters = [
   {
+    number: 0,
+    title: 'Chapter 0',
+    subtitle: '★ 動詞の活用ドリル',
+    vocab: { available: false },
+    grammar: [
+      { id: 'masu',        label: '〜ます',       desc: 'Polite present form',    quizId: 'ch00-masu',        available: true },
+      { id: 'teform',      label: '〜て・〜で',    desc: 'Te-form (all types)',    quizId: 'ch00-teform',      available: true },
+      { id: 'shortpast',   label: '〜た・〜だ',    desc: 'Short past',             quizId: 'ch00-shortpast',   available: true },
+      { id: 'shortneg',    label: '〜ない',        desc: 'Short present negative', quizId: 'ch00-shortneg',    available: true },
+      { id: 'shortpastneg',label: '〜なかった',    desc: 'Short past negative',    quizId: 'ch00-shortpastneg',available: true },
+    ],
+  },
+  {
     number: 1, title: 'Chapter 1', subtitle: 'あのう、すみません',
     vocab: { available: true },
     grammar: [

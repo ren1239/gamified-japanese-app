@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { genkiQuizzes } from '../data/genkiQuizzes'
+import { ch00MasuQuiz, ch00TeformQuiz, ch00ShortPastQuiz, ch00ShortNegQuiz, ch00ShortPastNegQuiz } from '../data/ch00Grammar'
 import { ch1DesuQuiz, ch1KaQuiz, ch1NoQuiz } from '../data/ch1Grammar'
 import { ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz } from '../data/ch11Grammar'
 import { ch12NdesuQuiz } from '../data/ch12Grammar'
@@ -8,6 +9,8 @@ import { useStatsStore } from './statsStore'
 
 const builtinQuizzes = [
   ...genkiQuizzes,
+  // Ch.0 (Bonus — Conjugation Drills)
+  ch00MasuQuiz, ch00TeformQuiz, ch00ShortPastQuiz, ch00ShortNegQuiz, ch00ShortPastNegQuiz,
   // Ch.1
   ch1DesuQuiz, ch1KaQuiz, ch1NoQuiz,
   // Ch.11
