@@ -1,3 +1,149 @@
+export const ch12SugiruQuiz = {
+  id: 'ch12-sugiru',
+  title: 'Ch.12 · すぎる',
+  topic: 'すぎる',
+  grammarPoint: '〜すぎる',
+  description: 'Express excess: verb stem + すぎる ("too much/too many"). U-verbs: drop -u → -i stem. Ru-verbs: drop る. する → し. い-adj: drop い. な-adj: drop な. すぎる itself conjugates as a ru-verb.',
+  created: '2026-04-17',
+  playCount: 0,
+  bestScore: null,
+  questions: [
+    // ── Q1: U-verb stem — 歩く (present positive, polite) ──────
+    {
+      id: 1,
+      question: 'Which correctly means "I walked too much"?',
+      choices: ['歩きすぎました', '歩くすぎました', '歩いすぎました', '歩いてすぎました'],
+      correct: 0,
+      explanation: 'U-verb 歩く → stem 歩き (drop く → き). Attach すぎる → 歩きすぎる → polite: 歩きすぎました. Never use the て-form or dictionary form before すぎる.',
+    },
+    // ── Q2: Ru-verb stem — 出る (て-form, cause-effect) ────────
+    {
+      id: 2,
+      question: 'You coughed too much and now your throat hurts. Which て-form is correct?',
+      jp: 'せきが___、のどが痛いんです。',
+      choices: ['出すぎて', '出るすぎて', '出てすぎて', '出いすぎて'],
+      correct: 0,
+      explanation: '出る is a ru-verb. Drop る → 出 + すぎる → 出すぎる → て-form: 出すぎて. Never keep る before すぎる.',
+    },
+    // ── Q3: い-adj stem — 痛い (present positive, plain) ───────
+    {
+      id: 3,
+      question: 'Your tooth hurts too much. Which is correct?',
+      jp: '歯が___んです。',
+      choices: ['痛すぎる', '痛いすぎる', '痛くすぎる', '痛なすぎる'],
+      correct: 0,
+      explanation: 'い-adjective 痛い → drop い → 痛 + すぎる → 痛すぎる. Never keep い before すぎる — this is the #1 mistake with い-adjectives.',
+    },
+    // ── Q4: Irregular stem — 緊張する (past positive, plain) ───
+    {
+      id: 4,
+      question: 'Which correctly means "I got too nervous"?',
+      jp: '___んです。',
+      choices: ['緊張しすぎた', '緊張するすぎた', '緊張してすぎた', '緊張すぎた'],
+      correct: 0,
+      explanation: 'する → irregular stem し. 緊張する → 緊張し + すぎる → past: 緊張しすぎた. Skipping し (緊張すぎた) or using して are both wrong.',
+    },
+    // ── Q5: な-adj stem — 素敵 (present positive, polite) ──────
+    {
+      id: 5,
+      question: 'The present is too nice (beyond what\'s proper). Which is correct?',
+      jp: 'このプレゼントは___。',
+      choices: ['素敵すぎます', '素敵なすぎます', '素敵いすぎます', '素敵にすぎます'],
+      correct: 0,
+      explanation: 'な-adjective 素敵 → drop な → 素敵 + すぎる → 素敵すぎます. Drop な before attaching すぎる.',
+    },
+    // ── Q6: U-verb — 飲む (present negative instruction) ───────
+    {
+      id: 6,
+      question: 'Your doctor says you must not drink too much alcohol. Complete the sentence.',
+      jp: 'お酒を___はいけません。',
+      choices: ['飲みすぎては', '飲むすぎては', '飲んですぎては', '飲みすぎれば'],
+      correct: 0,
+      explanation: '飲む → u-verb stem 飲み + すぎる → て-form: 飲みすぎて + はいけません. The stem is 飲み, not 飲ん (that\'s the て-form 飲んで).',
+    },
+    // ── Q7: Irregular — 心配する (present negative request) ─────
+    {
+      id: 7,
+      question: 'Tell your friend "please don\'t worry too much."',
+      jp: '心配___ください。',
+      choices: ['しすぎないで', 'するすぎないで', 'しすぎずに', 'しすぎなくて'],
+      correct: 0,
+      explanation: '心配する → stem し → 心配しすぎる → negative: 心配しすぎない + でください → 心配しすぎないでください.',
+    },
+    // ── Q8: い-adj — 甘い (past positive, plain) ────────────────
+    {
+      id: 8,
+      question: 'Last night\'s egg dish was too sweet. Which past form is correct?',
+      jp: 'ゆうべの卵は___んです。',
+      choices: ['甘すぎた', '甘いすぎた', '甘かったすぎた', '甘くすぎた'],
+      correct: 0,
+      explanation: '甘い → drop い → 甘 + すぎる → すぎる conjugates as a ru-verb → past: 甘すぎた. Don\'t add かった to the adjective — すぎる handles the tense.',
+    },
+    // ── Q9: U-verb — 払う (past positive, plain) ────────────────
+    {
+      id: 9,
+      question: 'You paid too much for the ticket. Which past form is correct?',
+      jp: '切符の代を___んです。',
+      choices: ['払いすぎた', '払うすぎた', '払ってすぎた', '払わすぎた'],
+      correct: 0,
+      explanation: '払う → u-verb stem 払い (drop う → い). + すぎる → past: 払いすぎた.',
+    },
+    // ── Q10: Irregular — 心配する (present negative, polite) ────
+    {
+      id: 10,
+      question: 'Politely say "I don\'t worry too much." Which is correct?',
+      jp: '___んです。',
+      choices: ['心配しすぎません', '心配するすぎません', '心配しないすぎます', '心配しすぎないです'],
+      correct: 0,
+      explanation: '心配する → stem し → 心配しすぎる → polite negative: 心配しすぎません. This is the same stem rule as positive — just conjugate すぎる as a normal ru-verb.',
+    },
+    // ── Q11: い-adj — 多い (て-form, cause-effect) ───────────────
+    {
+      id: 11,
+      question: 'There is too much homework, so you\'re stressed. Which て-form is correct?',
+      jp: '宿題が___、大変なんです。',
+      choices: ['多すぎて', '多いすぎて', '多くすぎて', '多なすぎて'],
+      correct: 0,
+      explanation: '多い → drop い → 多 + すぎる → て-form: 多すぎて. Same stem rule as always — drop い first, then conjugate すぎる.',
+    },
+    // ── Q12: U-verb — 歩く (past negative, polite) ──────────────
+    {
+      id: 12,
+      question: 'Politely tell your doctor you did NOT walk too much.',
+      jp: '歩き___。',
+      choices: ['すぎませんでした', 'すぎなかった', 'すぎないでした', 'すぎていません'],
+      correct: 0,
+      explanation: 'すぎる → polite negative past: すぎませんでした → 歩きすぎませんでした. すぎなかった is correct grammar but too plain for a doctor.',
+    },
+    // ── Q13: な-adj — 素敵 (past positive, plain) ───────────────
+    {
+      id: 13,
+      question: 'The present they gave you was too nice. Which past form is correct?',
+      jp: 'もらったプレゼントが___んです。',
+      choices: ['素敵すぎた', '素敵なすぎた', '素敵だすぎた', '素敵いすぎた'],
+      correct: 0,
+      explanation: 'な-adj 素敵 → drop な → 素敵 + すぎる → past: 素敵すぎた. The な rule applies in all tenses — always drop な before すぎる.',
+    },
+    // ── Q14: Ru-verb — 出る (past positive, plain) ──────────────
+    {
+      id: 14,
+      question: 'During the match your cough was excessive. Which past form is correct?',
+      jp: '試合中にせきが___んです。',
+      choices: ['出すぎた', '出るすぎた', '出てすぎた', 'でいすぎた'],
+      correct: 0,
+      explanation: '出る → ru-verb stem 出 (drop る) + すぎる → past plain: 出すぎた. Ru-verb stems are simply the dictionary form minus る.',
+    },
+    // ── Q15: Nuance — すぎる = unwelcome excess ─────────────────
+    {
+      id: 15,
+      question: 'Your friend\'s new apartment is wonderfully spacious and you love it. Which expresses genuine admiration (not unwelcome excess)?',
+      choices: ['とても広いですね！', '広すぎますね！', '広いすぎますね！', '広がすぎますね！'],
+      correct: 0,
+      explanation: 'すぎる implies excess that is beyond normal or unwelcome. 広すぎますね suggests "uncomfortably too spacious." For a sincere compliment, use とても or すごく instead.',
+    },
+  ],
+}
+
 export const ch12NdesuQuiz = {
   id: 'ch12-ndesu',
   title: 'Ch.12 · んです',

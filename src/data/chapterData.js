@@ -84,7 +84,8 @@ export const chapters = [
     number: 12, title: 'Chapter 12', subtitle: '病気',
     vocab: { available: true },
     grammar: [
-      { id: 'ndesu', label: '〜んです', desc: 'Explanation mode', quizId: 'ch12-ndesu', available: true },
+      { id: 'ndesu',  label: '〜んです',  desc: 'Explanation mode',  quizId: 'ch12-ndesu',  available: true },
+      { id: 'sugiru', label: '〜すぎる', desc: 'Too much / excess',  quizId: 'ch12-sugiru', available: true },
     ],
   },
   {
