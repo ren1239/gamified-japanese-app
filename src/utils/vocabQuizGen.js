@@ -3,13 +3,25 @@
 // Returns a quiz object compatible with useGameStore.startGame
 
 import { ch00Vocab, getWordsForCategory as ch00GetWords } from '../data/ch00VocabData'
+import { ch1Vocab, getWordsForCategory as ch1GetWords } from '../data/ch1VocabData'
+import { ch05Vocab, getWordsForCategory as ch05GetWords } from '../data/ch05VocabData'
+import { ch06Vocab, getWordsForCategory as ch06GetWords } from '../data/ch06VocabData'
+import { ch07Vocab, getWordsForCategory as ch07GetWords } from '../data/ch07VocabData'
+import { ch08Vocab, getWordsForCategory as ch08GetWords } from '../data/ch08VocabData'
+import { ch09Vocab, getWordsForCategory as ch09GetWords } from '../data/ch09VocabData'
+import { ch10Vocab, getWordsForCategory as ch10GetWords } from '../data/ch10VocabData'
 import { ch11Vocab, getWordsForCategory as ch11GetWords } from '../data/ch11VocabData'
 import { ch12Vocab, getWordsForCategory as ch12GetWords } from '../data/ch12VocabData'
-import { ch1Vocab, getWordsForCategory as ch1GetWords } from '../data/ch1VocabData'
 
 export function getWordsForChapterAndCategory(chapterNum, category) {
   if (chapterNum === 0)  return ch00GetWords(category)
   if (chapterNum === 1)  return ch1GetWords(category)
+  if (chapterNum === 5)  return ch05GetWords(category)
+  if (chapterNum === 6)  return ch06GetWords(category)
+  if (chapterNum === 7)  return ch07GetWords(category)
+  if (chapterNum === 8)  return ch08GetWords(category)
+  if (chapterNum === 9)  return ch09GetWords(category)
+  if (chapterNum === 10) return ch10GetWords(category)
   if (chapterNum === 11) return ch11GetWords(category)
   if (chapterNum === 12) return ch12GetWords(category)
   return []
@@ -18,6 +30,12 @@ export function getWordsForChapterAndCategory(chapterNum, category) {
 export function getVocabForChapter(chapterNum) {
   if (chapterNum === 0)  return ch00Vocab
   if (chapterNum === 1)  return ch1Vocab
+  if (chapterNum === 5)  return ch05Vocab
+  if (chapterNum === 6)  return ch06Vocab
+  if (chapterNum === 7)  return ch07Vocab
+  if (chapterNum === 8)  return ch08Vocab
+  if (chapterNum === 9)  return ch09Vocab
+  if (chapterNum === 10) return ch10Vocab
   if (chapterNum === 11) return ch11Vocab
   if (chapterNum === 12) return ch12Vocab
   return []

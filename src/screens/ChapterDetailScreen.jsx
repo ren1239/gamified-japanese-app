@@ -42,7 +42,7 @@ function ChipGroup({ options, value, onChange }) {
 
 // ── Vocab Section ─────────────────────────────────────────────────────────────
 function VocabSection({ chapter, onStart, onFlashcard }) {
-  const hasDynamic = [0, 1, 11, 12].includes(chapter.number)
+  const hasDynamic = [0, 1, 5, 6, 7, 8, 9, 10, 11, 12].includes(chapter.number)
   const getQuiz = useQuizStore(s => s.getQuiz)
   const staticQuiz = chapter.vocab?.quizId ? getQuiz(chapter.vocab.quizId) : null
 

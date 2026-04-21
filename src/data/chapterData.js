@@ -42,32 +42,32 @@ export const chapters = [
   },
   {
     number: 5, title: 'Chapter 5', subtitle: '沖縄への旅行',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
     number: 6, title: 'Chapter 6', subtitle: 'ロバートさんのアルバイト',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
     number: 7, title: 'Chapter 7', subtitle: '家族の写真',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
     number: 8, title: 'Chapter 8', subtitle: 'バーベキュー',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
     number: 9, title: 'Chapter 9', subtitle: 'かぜ',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
     number: 10, title: 'Chapter 10', subtitle: '冬休みの予定',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
