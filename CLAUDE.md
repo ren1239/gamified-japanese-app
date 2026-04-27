@@ -210,7 +210,25 @@ When a chapter already has vocab but no grammar (e.g. Ch.12 after its initial vo
 
 ---
 
-## 7 — Question Writing Guidelines
+## 7 — Grammar Question Coverage Spectrum
+
+When writing grammar quizzes, spread your 10–15 questions across this spectrum **where applicable** to the grammar point:
+
+| Dimension | Coverage to include |
+|-----------|---------------------|
+| **Tense** | Present affirmative, present negative, past affirmative, past negative |
+| **Verb type** | U-verbs (e.g., 飲む, 歩く, 払う), ru-verbs (e.g., 食べる, 寝る, 別れる), irregular (する, くる) |
+| **Adjective type** | い-adjectives (drop い before pattern), な-adjectives (drop な or add な depending on pattern) |
+| **Noun** | Noun + grammar pattern (often requires な or だ connector — check the rule) |
+| **Polite vs. plain** | Mix short/plain form questions with polite (〜ます/〜です) output where natural |
+| **Te-form chains** | Cause-effect sentences using て-form, ので, or combined patterns like すぎる + ので |
+| **Cross-pattern** | At least one question combining the new pattern with a previously learned pattern (e.g., すぎる + ほうがいいです, すぎる + ので) |
+
+Not every dimension applies to every grammar point (e.g., ほうがいいです only works with verbs). Cover as many as naturally apply without forcing unnatural usage.
+
+---
+
+## 8 — Question Writing Guidelines
 
 | Do | Don't |
 |----|--------|
@@ -247,7 +265,7 @@ When a chapter already has vocab but no grammar (e.g. Ch.12 after its initial vo
 
 ---
 
-## 8 — Checklist for Adding a New Chapter
+## 9 — Checklist for Adding a New Chapter
 
 ### After writing grammar questions
 - [ ] Check every kanji in every `jp` field against `src/utils/romaji.js` KANJI_MAP
