@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2, Layers } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2, Flag } from 'lucide-react'
 import { getWordsForChapterAndCategory } from '../utils/vocabQuizGen'
 import { useStatsStore } from '../store/statsStore'
 import { toRomajiSafe } from '../utils/romaji'
@@ -16,7 +16,7 @@ function buildDeck(words, direction) {
 }
 
 // ── Summary screen ─────────────────────────────────────────────────────────
-function SummaryView({ newLearnedCount, totalLearned, chapter, onRestart, onBack }) {
+function SummaryView({ newLearnedCount, totalLearned, chapter, flaggedCount, onRestart, onRetestFlagged, onBack }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.93 }}
@@ -55,6 +55,16 @@ function SummaryView({ newLearnedCount, totalLearned, chapter, onRestart, onBack
         >
           <RotateCcw size={15} strokeWidth={2.5} /> Go Again
         </motion.button>
+        {flaggedCount > 0 && (
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={onRetestFlagged}
+            className="btn btn-primary"
+            style={{ padding: '14px 0', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+          >
+            <Flag size={15} strokeWidth={2.5} fill="currentColor" /> Re-test Flagged ({flaggedCount})
+          </motion.button>
+        )}
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={onBack}
@@ -71,12 +81,15 @@ function SummaryView({ newLearnedCount, totalLearned, chapter, onRestart, onBack
 // ── Main component ─────────────────────────────────────────────────────────
 export default function FlashcardScreen({ chapter, category, direction, onBack }) {
   const words = getWordsForChapterAndCategory(chapter.number, category)
-  const [deck] = useState(() => buildDeck(words, direction))
+  const fullWordsRef = useRef(words)
+  const [deck, setDeck] = useState(() => buildDeck(words, direction))
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [showSummary, setShowSummary] = useState(false)
   const flippedThisSession = useRef(new Set())
   const newLearnedCount = useRef(0)
+  const flaggedCards = useRef(new Set())
+  const [flaggedVersion, setFlaggedVersion] = useState(0)
 
   const recordLearned = useStatsStore((s) => s.recordLearned)
   const learnedBank = useStatsStore((s) => s.learnedBank)
@@ -84,6 +97,7 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
   const card = deck[currentIndex]
   const wordId = card ? `ch${chapter.number}-${card.id}` : null
   const isAlreadyLearned = wordId ? learnedBank.some((e) => e.wordId === wordId) : false
+  const isCurrentFlagged = card ? flaggedCards.current.has(card.id) : false
   const totalLearned = learnedBank.filter((e) => e.chapterNum === chapter.number).length
 
   const handleFlip = useCallback(() => {
@@ -117,13 +131,39 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
     }
   }, [currentIndex])
 
+  const handleToggleFlag = useCallback(() => {
+    if (!card) return
+    const s = flaggedCards.current
+    if (s.has(card.id)) s.delete(card.id)
+    else s.add(card.id)
+    setFlaggedVersion((v) => v + 1)
+  }, [card])
+
   const handleRestart = useCallback(() => {
+    const newDeck = buildDeck(fullWordsRef.current, direction)
+    setDeck(newDeck)
     setCurrentIndex(0)
     setIsFlipped(false)
     setShowSummary(false)
     flippedThisSession.current = new Set()
     newLearnedCount.current = 0
-  }, [])
+    flaggedCards.current = new Set()
+    setFlaggedVersion(0)
+  }, [direction])
+
+  const handleRetestFlagged = useCallback(() => {
+    const flaggedIds = new Set(flaggedCards.current)
+    const flaggedWords = fullWordsRef.current.filter((w) => flaggedIds.has(w.id))
+    const newDeck = buildDeck(flaggedWords, direction)
+    setDeck(newDeck)
+    setCurrentIndex(0)
+    setIsFlipped(false)
+    setShowSummary(false)
+    flippedThisSession.current = new Set()
+    newLearnedCount.current = 0
+    flaggedCards.current = new Set()
+    setFlaggedVersion(0)
+  }, [direction])
 
   if (!card) {
     return (
@@ -179,7 +219,9 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
             newLearnedCount={newLearnedCount.current}
             totalLearned={totalLearned}
             chapter={chapter}
+            flaggedCount={flaggedCards.current.size}
             onRestart={handleRestart}
+            onRetestFlagged={handleRetestFlagged}
             onBack={onBack}
           />
         ) : (
@@ -314,6 +356,26 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
                 </div>
               </motion.div>
             </AnimatePresence>
+
+            {/* ── Flag button ── */}
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', maxWidth: 380, marginTop: 14 }}>
+              <motion.button
+                onClick={handleToggleFlag}
+                whileTap={{ scale: 0.93 }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px', borderRadius: 20,
+                  border: isCurrentFlagged ? '2px solid #F59E0B' : '2px solid var(--border-md)',
+                  background: isCurrentFlagged ? 'rgba(245,158,11,0.12)' : 'transparent',
+                  color: isCurrentFlagged ? '#F59E0B' : 'var(--text-muted)',
+                  fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12,
+                  cursor: 'pointer',
+                }}
+              >
+                <Flag size={13} strokeWidth={2.5} fill={isCurrentFlagged ? 'currentColor' : 'none'} />
+                {isCurrentFlagged ? 'Flagged for re-test' : 'Flag for re-test'}
+              </motion.button>
+            </div>
 
             {/* ── Navigation ── */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 380, marginTop: 20, gap: 12 }}>
