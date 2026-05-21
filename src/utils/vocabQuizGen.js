@@ -12,6 +12,7 @@ import { ch09Vocab, getWordsForCategory as ch09GetWords } from '../data/ch09Voca
 import { ch10Vocab, getWordsForCategory as ch10GetWords } from '../data/ch10VocabData'
 import { ch11Vocab, getWordsForCategory as ch11GetWords } from '../data/ch11VocabData'
 import { ch12Vocab, getWordsForCategory as ch12GetWords } from '../data/ch12VocabData'
+import { ch13Vocab, getWordsForCategory as ch13GetWords } from '../data/ch13VocabData'
 
 export function getWordsForChapterAndCategory(chapterNum, category) {
   if (chapterNum === 0)  return ch00GetWords(category)
@@ -24,6 +25,7 @@ export function getWordsForChapterAndCategory(chapterNum, category) {
   if (chapterNum === 10) return ch10GetWords(category)
   if (chapterNum === 11) return ch11GetWords(category)
   if (chapterNum === 12) return ch12GetWords(category)
+  if (chapterNum === 13) return ch13GetWords(category)
   return []
 }
 
@@ -38,6 +40,7 @@ export function getVocabForChapter(chapterNum) {
   if (chapterNum === 10) return ch10Vocab
   if (chapterNum === 11) return ch11Vocab
   if (chapterNum === 12) return ch12Vocab
+  if (chapterNum === 13) return ch13Vocab
   return []
 }
 function shuffle(arr) {

@@ -92,7 +92,7 @@ export const chapters = [
   },
   {
     number: 13, title: 'Chapter 13', subtitle: 'アルバイト探し',
-    vocab: { available: false },
+    vocab: { available: true },
     grammar: [],
   },
   {
