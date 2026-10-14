@@ -17,6 +17,7 @@ import SettingsScreen from './screens/SettingsScreen'
 import BottomNav from './components/BottomNav'
 import LevelUpModal from './components/LevelUpModal'
 import QuitModal from './components/QuitModal'
+import WelcomeSplash from './components/WelcomeSplash'
 import './index.css'
 
 const SCREENS = {
@@ -48,6 +49,9 @@ export default function App() {
     const t = new URLSearchParams(window.location.search).get('tab')
     return t === 'review' ? 'custom' : 'learn'
   })()
+  // Welcome-back hero on launch (skipped when a notification deep-links straight to a tab)
+  const [showWelcome, setShowWelcome] = useState(initialTab === 'learn')
+  const dismissWelcome = useCallback(() => setShowWelcome(false), [])
   const [screen, setScreen] = useState(initialTab)
   const [activeTab, setActiveTab] = useState(initialTab)
   const [selectedChapter, setSelectedChapter] = useState(null)
@@ -274,6 +278,10 @@ export default function App() {
       {showNav && <BottomNav active={activeTab} onChange={handleTabChange} />}
 
       <LevelUpModal fromLevel={levelUp.from} toLevel={levelUp.to} show={levelUp.show} onClose={() => setLevelUp({ show: false, from: 0, to: 0 })} />
+
+      <AnimatePresence>
+        {showWelcome && <WelcomeSplash key="welcome" onDone={dismissWelcome} />}
+      </AnimatePresence>
 
       <QuitModal show={quitModal} onCancel={() => setQuitModal(false)} onQuit={confirmQuit} onSubmit={handleSubmitEarly} />
     </div>

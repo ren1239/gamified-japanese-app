@@ -37,6 +37,19 @@ function Face({ mood, cx = 60, eyeY = 50, spicy = false }) {
           <path d={`M${cx - 6} ${eyeY + 12}h12`} stroke={ink} strokeWidth="3.5" strokeLinecap="round" />
         </g>
       )
+    case 'sparkle': {
+      // Big round eyes with a four-point star glint (welcome screen)
+      const star = (x, y, r) => `M${x} ${y - r}Q${x + r * 0.22} ${y - r * 0.22} ${x + r} ${y}Q${x + r * 0.22} ${y + r * 0.22} ${x} ${y + r}Q${x - r * 0.22} ${y + r * 0.22} ${x - r} ${y}Q${x - r * 0.22} ${y - r * 0.22} ${x} ${y - r}Z`
+      return (
+        <g>
+          <circle cx={l} cy={eyeY} r="8.5" fill={ink} />
+          <circle cx={r} cy={eyeY} r="8.5" fill={ink} />
+          <path d={star(l, eyeY, 5.2)} fill="#fff" />
+          <path d={star(r, eyeY, 5.2)} fill="#fff" />
+          <path d={`M${cx - 6} ${eyeY + 13}q6 6 12 0`} fill="none" stroke={ink} strokeWidth="3.5" strokeLinecap="round" />
+        </g>
+      )
+    }
     case 'sleep':
       return (
         <g>
