@@ -1,451 +1,256 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2, Flag, Volume2 } from 'lucide-react'
-import { canSpeak, speakJapanese } from '../utils/speech'
-import RomajiToggle from '../components/RomajiToggle'
-import Mascot from '../components/Mascot'
-import { getWordsForChapterAndCategory } from '../utils/vocabQuizGen'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
+import { getWordsForChapterAndCategory, buildWordQuestion } from '../utils/vocabQuizGen'
 import { useStatsStore } from '../store/statsStore'
 import { toRomajiSafe } from '../utils/romaji'
+import { canSpeak, speakJapanese } from '../utils/speech'
+import Icon from '../components/Icon'
+import Mascot from '../components/Mascot'
+import RomajiToggle from '../components/RomajiToggle'
+import ChipGroup from '../components/ChipGroup'
 
-const CAT_LABEL = { all: 'All', noun: 'Nouns', verb: 'Verbs', other: 'Other' }
-const DIR_LABEL = { 'jp-en': 'JP→EN', 'en-jp': 'EN→JP', mix: 'Mix' }
+const CAT_LABEL = { all: 'All words', noun: 'Nouns', verb: 'Verbs', other: 'Adjectives & expressions' }
+const MODES = [
+  { id: 'jp-en', label: 'JP → EN' },
+  { id: 'en-jp', label: 'EN → JP' },
+  { id: 'kanji', label: 'Kanji' },
+]
+const SWIPE = 110
 
-function buildDeck(words, direction) {
-  return words.map((word) => ({
-    ...word,
-    frontJp: direction === 'jp-en' || (direction === 'mix' && Math.random() > 0.5),
-  }))
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
 }
 
-// ── Summary screen ─────────────────────────────────────────────────────────
-function SummaryView({ newLearnedCount, totalLearned, chapter, flaggedCount, onRestart, onRetestFlagged, onBack }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.93 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.35, type: 'spring', stiffness: 260, damping: 26 }}
-      style={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}
-    >
-      <Mascot who="nori" mood="cheer" size={110} className="mascot-bounce" />
-      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 36, color: 'var(--text)', letterSpacing: '2px', lineHeight: 1 }}>
-        DECK COMPLETE
-      </div>
-      <div className="glass-card" style={{ width: '100%', padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
-        <div style={{ textAlign: 'center', borderRight: '1px solid var(--border-md)', paddingRight: 12 }}>
-          <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 40, color: '#3B82F6', lineHeight: 1 }}>
-            {newLearnedCount}
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', marginTop: 5, fontFamily: "'Nunito'", letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            Cards Seen
-          </div>
-        </div>
-        <div style={{ textAlign: 'center', paddingLeft: 12 }}>
-          <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 40, color: '#10B981', lineHeight: 1 }}>
-            {totalLearned}
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', marginTop: 5, fontFamily: "'Nunito'", letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            Ch.{chapter.number} Learned
-          </div>
-        </div>
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textAlign: 'center', lineHeight: 1.5, marginTop: -8 }}>
-        Words count as learned after 2 correct quiz answers in a row.
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={onRestart}
-          className="btn btn-primary"
-          style={{ padding: '14px 0', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-        >
-          <RotateCcw size={15} strokeWidth={2.5} /> Go Again
-        </motion.button>
-        {flaggedCount > 0 && (
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={onRetestFlagged}
-            className="btn btn-primary"
-            style={{ padding: '14px 0', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
-          >
-            <Flag size={15} strokeWidth={2.5} fill="currentColor" /> Re-test Flagged ({flaggedCount})
-          </motion.button>
-        )}
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={onBack}
-          className="btn btn-ghost"
-          style={{ padding: '14px 0', fontSize: 15 }}
-        >
-          Back to Chapter
-        </motion.button>
-      </div>
-    </motion.div>
-  )
-}
+const clean = (kana) => kana.replace(/〜/g, '')
 
-// ── Main component ─────────────────────────────────────────────────────────
+// Flashcards with self-grading. "I knew it" counts as a correct answer toward "learned"
+// (2 in a row); "Still learning" counts as a miss and puts the word into the review schedule.
 export default function FlashcardScreen({ chapter, category, direction, onBack }) {
-  const words = getWordsForChapterAndCategory(chapter.number, category)
-  const fullWordsRef = useRef(words)
-  const [deck, setDeck] = useState(() => buildDeck(words, direction))
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isFlipped, setIsFlipped] = useState(false)
-  const [showSummary, setShowSummary] = useState(false)
-  const flippedThisSession = useRef(new Set())
-  const newLearnedCount = useRef(0)
-  const flaggedCards = useRef(new Set())
-  const [flaggedVersion, setFlaggedVersion] = useState(0)
+  const allWords = useMemo(() => getWordsForChapterAndCategory(chapter.number, category), [chapter.number, category])
+  const kanjiWords = useMemo(() => allWords.filter((w) => w.kanji), [allWords])
+  const [mode, setMode] = useState(direction === 'en-jp' ? 'en-jp' : 'jp-en')
+  const [shuffled, setShuffled] = useState(true)
+  const [deck, setDeck] = useState(() => shuffle(allWords))
+  const [index, setIndex] = useState(0)
+  const [flipped, setFlipped] = useState(false)
+  const [results, setResults] = useState({}) // word.id -> 'knew' | 'learning'
+  const [done, setDone] = useState(false)
 
   const autoSpeak = useStatsStore((s) => s.autoSpeak)
   const showRomaji = useStatsStore((s) => s.showRomaji)
   const learnedBank = useStatsStore((s) => s.learnedBank)
+  const recordVocabAnswer = useStatsStore((s) => s.recordVocabAnswer)
+  const applyAnswersToBank = useStatsStore((s) => s.applyAnswersToBank)
 
-  const card = deck[currentIndex]
-  const wordId = card ? `ch${chapter.number}-${card.id}` : null
-  const isAlreadyLearned = wordId ? learnedBank.some((e) => e.wordId === wordId) : false
-  const isCurrentFlagged = card ? flaggedCards.current.has(card.id) : false
-  const totalLearned = learnedBank.filter((e) => e.chapterNum === chapter.number).length
+  const card = deck[index]
+  const learnedSet = useMemo(() => new Set(learnedBank.map((e) => e.wordId)), [learnedBank])
+  const totalLearned = allWords.filter((w) => learnedSet.has(`ch${chapter.number}-${w.id}`)).length
+  const wordsForMode = (m) => (m === 'kanji' && kanjiWords.length ? kanjiWords : allWords)
 
-  const handleFlip = useCallback(() => {
-    if (!isFlipped && card) {
-      if (!flippedThisSession.current.has(card.id)) {
-        flippedThisSession.current.add(card.id)
-        newLearnedCount.current += 1 // cards seen this session
-      }
-      if (!card.frontJp && autoSpeak) speakJapanese(card.kana.replace(/〜/g, ''))
-    }
-    setIsFlipped((f) => !f)
-  }, [isFlipped, card, autoSpeak])
+  const x = useMotionValue(0)
+  const rotate = useTransform(x, [-200, 200], [-12, 12])
+  const knewOpacity = useTransform(x, [20, SWIPE], [0, 1])
+  const learningOpacity = useTransform(x, [-SWIPE, -20], [1, 0])
 
-  // Read the word aloud when a Japanese-front card comes up
+  const startDeck = (words, doShuffle = shuffled) => {
+    setDeck(doShuffle ? shuffle(words) : words)
+    setIndex(0)
+    setFlipped(false)
+    setResults({})
+    setDone(false)
+    x.set(0)
+  }
+  const changeMode = (m) => {
+    if (m === 'kanji' && !kanjiWords.length) return
+    setMode(m)
+    startDeck(wordsForMode(m))
+  }
+  const toggleShuffle = () => {
+    const next = !shuffled
+    setShuffled(next)
+    startDeck(wordsForMode(mode), next)
+  }
+
+  // What each face shows for the current mode
+  const faces = useMemo(() => {
+    if (!card) return null
+    const jp = card.kanji ? `${card.kana}（${card.kanji}）` : card.kana
+    if (mode === 'en-jp') return { front: { kind: 'en', text: card.english }, back: { kind: 'jp', text: jp, reading: card.kana } }
+    if (mode === 'kanji') return { front: { kind: 'jp', text: card.kanji || card.kana, reading: card.kana, hideRomaji: true }, back: { kind: 'reading', text: card.kana, sub: card.english, reading: card.kana } }
+    return { front: { kind: 'jp', text: jp, reading: card.kana }, back: { kind: 'en', text: card.english, reading: card.kana } }
+  }, [card, mode])
+
+  // Read the word aloud when its Japanese side is showing
   useEffect(() => {
-    if (autoSpeak && card?.frontJp && !showSummary) speakJapanese(card.kana.replace(/〜/g, ''))
-  }, [card, autoSpeak, showSummary])
+    if (!autoSpeak || !card || done) return
+    const jpShowing = mode === 'jp-en' ? !flipped : flipped
+    if (jpShowing) speakJapanese(clean(card.kana))
+  }, [card, flipped, mode, autoSpeak, done])
 
-  const handleNext = useCallback(() => {
-    if (currentIndex < deck.length - 1) {
-      setCurrentIndex((i) => i + 1)
-      setIsFlipped(false)
-    } else {
-      setShowSummary(true)
-    }
-  }, [currentIndex, deck.length])
+  const flip = useCallback(() => setFlipped((f) => !f), [])
 
-  const handlePrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((i) => i - 1)
-      setIsFlipped(false)
-    }
-  }, [currentIndex])
-
-  const handleToggleFlag = useCallback(() => {
+  const grade = useCallback((knew) => {
     if (!card) return
-    const s = flaggedCards.current
-    if (s.has(card.id)) s.delete(card.id)
-    else s.add(card.id)
-    setFlaggedVersion((v) => v + 1)
-  }, [card])
+    recordVocabAnswer(`ch${chapter.number}-${card.id}`, chapter.number, knew)
+    const question = buildWordQuestion(card, chapter.number, mode === 'en-jp' ? 'en-jp' : 'jp-en')
+    applyAnswersToBank([{ quizId: question._sourceQuizId, quizTitle: question._sourceQuizTitle, question, correct: knew }])
+    setResults((r) => ({ ...r, [card.id]: knew ? 'knew' : 'learning' }))
+    animate(x, knew ? 420 : -420, { duration: 0.2 }).then(() => {
+      x.set(0)
+      setFlipped(false)
+      if (index < deck.length - 1) setIndex((i) => i + 1)
+      else setDone(true)
+    })
+  }, [card, chapter.number, mode, index, deck.length, recordVocabAnswer, applyAnswersToBank, x])
 
-  const handleRestart = useCallback(() => {
-    const newDeck = buildDeck(fullWordsRef.current, direction)
-    setDeck(newDeck)
-    setCurrentIndex(0)
-    setIsFlipped(false)
-    setShowSummary(false)
-    flippedThisSession.current = new Set()
-    newLearnedCount.current = 0
-    flaggedCards.current = new Set()
-    setFlaggedVersion(0)
-  }, [direction])
+  const back = useCallback(() => {
+    if (index === 0) return
+    setIndex((i) => i - 1)
+    setFlipped(false)
+  }, [index])
 
-  const handleRetestFlagged = useCallback(() => {
-    const flaggedIds = new Set(flaggedCards.current)
-    const flaggedWords = fullWordsRef.current.filter((w) => flaggedIds.has(w.id))
-    const newDeck = buildDeck(flaggedWords, direction)
-    setDeck(newDeck)
-    setCurrentIndex(0)
-    setIsFlipped(false)
-    setShowSummary(false)
-    flippedThisSession.current = new Set()
-    newLearnedCount.current = 0
-    flaggedCards.current = new Set()
-    setFlaggedVersion(0)
-  }, [direction])
+  // Keys: Space/Enter flip · → knew · ← still learning · Backspace previous
+  useEffect(() => {
+    const onKey = (e) => {
+      if (done) return
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip() }
+      else if (e.key === 'ArrowRight') grade(true)
+      else if (e.key === 'ArrowLeft') grade(false)
+      else if (e.key === 'Backspace') back()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [flip, grade, back, done])
 
-  if (!card) {
+  const knewCount = Object.values(results).filter((r) => r === 'knew').length
+  const learningIds = Object.entries(results).filter(([, r]) => r === 'learning').map(([id]) => id)
+
+  if (!allWords.length) {
     return (
-      <div className="page" style={{ paddingTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh' }}>
-        <div style={{ fontFamily: "'Nunito'", fontWeight: 700, color: 'var(--text-muted)', fontSize: 14 }}>No words in this category.</div>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={onBack} className="btn btn-ghost" style={{ marginTop: 16 }}>Go Back</motion.button>
+      <div className="page flash-page" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <Mascot who="nori" mood="think" size={90} />
+        <p className="tab-sub">No words in this group.</p>
+        <button type="button" className="btn btn-ghost" onClick={onBack}>Go back</button>
       </div>
     )
   }
 
-  const jpText = card.kanji ? `${card.kana}（${card.kanji}）` : card.kana
-  const romaji = toRomajiSafe(card.kana)
+  const renderFace = (f, side) => {
+    const romaji = f.reading ? toRomajiSafe(f.reading) : null
+    const showR = romaji && (side === 'back' ? f.kind !== 'en' || showRomaji : showRomaji && !f.hideRomaji && f.kind !== 'en')
+    return (
+      <div className={`flash-face ${side} ${f.kind}`}>
+        <span className="flash-face-label">{f.kind === 'en' ? 'English' : f.kind === 'reading' ? 'Reading' : 'Japanese'}</span>
+        {f.kind === 'en' ? <span className="flash-en">{f.text}</span> : <span className="flash-jp jp">{f.text}</span>}
+        {f.kind === 'reading' && <span className="flash-sub">{f.sub}</span>}
+        {f.kind === 'en' && side === 'back' && <span className="flash-romaji jp">{f.reading}</span>}
+        {showR && <span className="flash-romaji">{romaji}</span>}
+        {side === 'front' && <span className="flash-hint">Tap to flip · swipe to grade</span>}
+      </div>
+    )
+  }
 
   return (
-    <div className="page" style={{ paddingTop: 16, paddingBottom: 32, display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div className="page flash-page">
+      <header className="flash-top">
+        <button type="button" className="lesson-icon-btn" onClick={onBack} aria-label="Back"><Icon name="back" size={22} /></button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="answer-review-title">Flashcards · Ch.{chapter.number}</div>
+          <div className="answer-review-sub">{CAT_LABEL[category] ?? category} · {totalLearned}/{allWords.length} learned</div>
+        </div>
+        <RomajiToggle />
+      </header>
 
-      {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <motion.button
-          onClick={onBack}
-          whileTap={{ scale: 0.93 }}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, padding: '4px 0' }}
-        >
-          <ChevronLeft size={18} strokeWidth={2.5} /> Back
-        </motion.button>
+      <div className="flash-controls">
+        <ChipGroup options={MODES.map((m) => (m.id === 'kanji' && !kanjiWords.length ? { ...m, label: 'Kanji (none here)' } : m))} value={mode} onChange={changeMode} />
+        <button type="button" className={`flash-shuffle ${shuffled ? 'on' : ''}`} onClick={toggleShuffle} aria-pressed={shuffled} title={shuffled ? 'Shuffled' : 'Textbook order'}>
+          <Icon name="shuffle" size={18} />
+        </button>
+      </div>
 
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13, color: 'var(--text)' }}>Flashcards</div>
-          <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: 'var(--text-muted)' }}>
-            Ch.{chapter.number} · {CAT_LABEL[category] ?? category} · {DIR_LABEL[direction] ?? direction}
+      {!done && card ? (
+        <>
+          <div className="flash-meta">
+            <div className="lesson-bar"><i style={{ width: `${Math.max((index / deck.length) * 100, 3)}%` }} /></div>
+            <span>{index + 1} / {deck.length}</span>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13, color: 'var(--text-muted)' }}>
-            {showSummary ? '✓' : `${currentIndex + 1}/${deck.length}`}
-          </span>
-          <RomajiToggle />
-        </div>
-      </div>
-
-      {/* ── Progress bar ── */}
-      <div style={{ height: 3, background: 'var(--border)', borderRadius: 2, marginBottom: 24, overflow: 'hidden' }}>
-        <motion.div
-          animate={{ width: `${((currentIndex + (showSummary ? 1 : 0)) / deck.length) * 100}%` }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          style={{ height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--primary-light))', borderRadius: 2 }}
-        />
-      </div>
-
-      {/* ── Main content ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-
-        {showSummary ? (
-          <SummaryView
-            newLearnedCount={newLearnedCount.current}
-            totalLearned={totalLearned}
-            chapter={chapter}
-            flaggedCount={flaggedCards.current.size}
-            onRestart={handleRestart}
-            onRetestFlagged={handleRetestFlagged}
-            onBack={onBack}
-          />
-        ) : (
-          <>
-            {/* Learned badge */}
-            <div style={{ height: 24, marginBottom: 8, display: 'flex', alignItems: 'center' }}>
-              <AnimatePresence>
-                {isAlreadyLearned && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#10B981', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12 }}
-                  >
-                    <CheckCircle2 size={13} strokeWidth={2.5} /> Already learned
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* ── 3D Card ── */}
-            <AnimatePresence mode="wait">
+          <div className="flash-stage">
+            <AnimatePresence mode="popLayout" initial={false}>
               <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -24 }}
-                transition={{ duration: 0.2 }}
-                style={{ width: '100%', maxWidth: 380 }}
+                key={`${mode}-${card.id}-${index}`}
+                className="flash-card-wrap"
+                style={{ x, rotate }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.9}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x > SWIPE) grade(true)
+                  else if (info.offset.x < -SWIPE) grade(false)
+                }}
+                initial={{ scale: 0.92, opacity: 0, y: 12 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 26 }}
               >
-                <div
-                  style={{ perspective: 1200, width: '100%' }}
-                  onClick={handleFlip}
-                >
-                  <motion.div
-                    style={{
-                      position: 'relative',
-                      width: '100%',
-                      height: 260,
-                      transformStyle: 'preserve-3d',
-                      cursor: 'pointer',
-                    }}
-                    animate={{ rotateY: isFlipped ? 180 : 0 }}
-                    transition={{ duration: 0.52, type: 'spring', stiffness: 270, damping: 30 }}
-                  >
-                    {/* ── Front face ── */}
-                    <div style={{
-                      position: 'absolute', inset: 0,
-                      backfaceVisibility: 'hidden',
-                      borderRadius: 24,
-                      background: card.frontJp ? 'var(--primary)' : 'var(--accent)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      padding: '28px 24px',
-                      boxShadow: card.frontJp ? '0 8px 0 var(--primary-deep)' : '0 8px 0 var(--accent-deep)',
-                      border: '1px solid rgba(255,255,255,0.07)',
-                    }}>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '2.5px', textTransform: 'uppercase', fontFamily: "'Nunito'", marginBottom: 22 }}>
-                        {card.frontJp ? 'Japanese' : 'English'}
-                      </div>
-
-                      {card.frontJp ? (
-                        <>
-                          <div style={{ fontFamily: "'M PLUS Rounded 1c'", fontWeight: 900, fontSize: 'clamp(26px,7vw,40px)', color: '#fff', textAlign: 'center', lineHeight: 1.35, marginBottom: 10 }}>
-                            {jpText}
-                          </div>
-                          {showRomaji && romaji && (
-                            <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 15, color: 'rgba(255,255,255,0.8)', marginTop: -4, marginBottom: 8 }}>{romaji}</div>
-                          )}
-                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: "'Nunito'", fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                            {card.category}
-                          </div>
-                        </>
-                      ) : (
-                        <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 'clamp(22px,6vw,34px)', color: '#fff', textAlign: 'center', lineHeight: 1.35 }}>
-                          {card.english}
-                        </div>
-                      )}
-
-                      <div style={{ position: 'absolute', bottom: 18, display: 'flex', alignItems: 'center', gap: 5, color: 'rgba(255,255,255,0.28)', fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11 }}>
-                        <RotateCcw size={10} strokeWidth={2.5} /> tap to flip
-                      </div>
-                    </div>
-
-                    {/* ── Back face ── */}
-                    <div style={{
-                      position: 'absolute', inset: 0,
-                      backfaceVisibility: 'hidden',
-                      transform: 'rotateY(180deg)',
-                      borderRadius: 24,
-                      background: card.frontJp ? 'var(--success)' : 'var(--primary)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      padding: '28px 24px',
-                      boxShadow: card.frontJp ? '0 8px 0 var(--success-deep)' : '0 8px 0 var(--primary-deep)',
-                      border: '1px solid rgba(255,255,255,0.07)',
-                    }}>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '2.5px', textTransform: 'uppercase', fontFamily: "'Nunito'", marginBottom: 22 }}>
-                        {card.frontJp ? 'English' : 'Japanese'}
-                      </div>
-
-                      {card.frontJp ? (
-                        <>
-                          <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 'clamp(22px,6vw,34px)', color: '#fff', textAlign: 'center', lineHeight: 1.35, marginBottom: 12 }}>
-                            {card.english}
-                          </div>
-                          {romaji && (
-                            <div style={{ fontFamily: "'Nunito'", fontWeight: 600, fontSize: 14, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic', letterSpacing: '0.5px' }}>
-                              {romaji}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <div style={{ fontFamily: "'M PLUS Rounded 1c'", fontWeight: 900, fontSize: 'clamp(26px,7vw,40px)', color: '#fff', textAlign: 'center', lineHeight: 1.35, marginBottom: 10 }}>
-                            {jpText}
-                          </div>
-                          {romaji && (
-                            <div style={{ fontFamily: "'Nunito'", fontWeight: 600, fontSize: 14, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic', letterSpacing: '0.5px' }}>
-                              {romaji}
-                            </div>
-                          )}
-                        </>
-                      )}
-
-                      <div style={{ position: 'absolute', bottom: 18, display: 'flex', alignItems: 'center', gap: 5, color: 'rgba(255,255,255,0.28)', fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11 }}>
-                        <RotateCcw size={10} strokeWidth={2.5} /> tap to flip back
-                      </div>
-                    </div>
+                <motion.span className="flash-stamp knew" style={{ opacity: knewOpacity }}>I knew it</motion.span>
+                <motion.span className="flash-stamp learning" style={{ opacity: learningOpacity }}>Still learning</motion.span>
+                <button type="button" className="flash-card" onClick={flip} aria-label={flipped ? 'Show front' : 'Show answer'}>
+                  <motion.div className="flash-inner" animate={{ rotateY: flipped ? 180 : 0 }} transition={{ type: 'spring', stiffness: 260, damping: 26 }}>
+                    {renderFace(faces.front, 'front')}
+                    {renderFace(faces.back, 'back')}
                   </motion.div>
-                </div>
+                </button>
               </motion.div>
             </AnimatePresence>
+          </div>
 
-            {/* ── Audio + Flag buttons ── */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, width: '100%', maxWidth: 380, marginTop: 14 }}>
-              {canSpeak && (
-                <motion.button
-                  onClick={() => speakJapanese(card.kana.replace(/〜/g, ''))}
-                  whileTap={{ scale: 0.93 }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '8px 16px', borderRadius: 20,
-                    border: '2px solid var(--border-md)', background: 'transparent',
-                    color: 'var(--text-muted)', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer',
-                  }}
-                >
-                  <Volume2 size={13} strokeWidth={2.5} /> Listen
-                </motion.button>
-              )}
-              <motion.button
-                onClick={handleToggleFlag}
-                whileTap={{ scale: 0.93 }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 16px', borderRadius: 20,
-                  border: isCurrentFlagged ? '2px solid #F59E0B' : '2px solid var(--border-md)',
-                  background: isCurrentFlagged ? 'rgba(245,158,11,0.12)' : 'transparent',
-                  color: isCurrentFlagged ? '#F59E0B' : 'var(--text-muted)',
-                  fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12,
-                  cursor: 'pointer',
-                }}
-              >
-                <Flag size={13} strokeWidth={2.5} fill={isCurrentFlagged ? 'currentColor' : 'none'} />
-                {isCurrentFlagged ? 'Flagged for re-test' : 'Flag for re-test'}
-              </motion.button>
-            </div>
+          <div className="flash-tools">
+            <button type="button" className="lesson-icon-btn" onClick={back} disabled={index === 0} aria-label="Previous card"><Icon name="back" size={20} /></button>
+            {canSpeak && <button type="button" className="flash-listen" onClick={() => speakJapanese(clean(card.kana))}><Icon name="speaker" size={18} /> Listen</button>}
+            {learnedSet.has(`ch${chapter.number}-${card.id}`) && <span className="flash-learned"><Icon name="check" size={16} color="var(--success)" /> Learned</span>}
+          </div>
 
-            {/* ── Navigation ── */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 380, marginTop: 20, gap: 12 }}>
-              <motion.button
-                onClick={handlePrev}
-                whileTap={{ scale: 0.9 }}
-                disabled={currentIndex === 0}
-                style={{
-                  width: 50, height: 50, borderRadius: '50%',
-                  border: '2px solid var(--border-md)',
-                  background: currentIndex === 0 ? 'transparent' : 'var(--surface)',
-                  color: currentIndex === 0 ? 'var(--border-md)' : 'var(--text)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: currentIndex === 0 ? 'default' : 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                <ChevronLeft size={20} strokeWidth={2.5} />
-              </motion.button>
-
-              <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-                {isFlipped ? 'tap card to hide' : 'tap card to reveal'}
-              </div>
-
-              <motion.button
-                onClick={handleNext}
-                whileTap={{ scale: 0.9 }}
-                style={{
-                  width: 50, height: 50, borderRadius: '50%',
-                  border: 'none',
-                  background: currentIndex === deck.length - 1
-                    ? 'linear-gradient(135deg, #10B981, #059669)'
-                    : 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-                  color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: currentIndex === deck.length - 1
-                    ? '0 4px 16px rgba(16,185,129,0.4)'
-                    : '0 4px 16px var(--primary-glow)',
-                  flexShrink: 0,
-                }}
-              >
-                <ChevronRight size={20} strokeWidth={2.5} />
-              </motion.button>
-            </div>
-          </>
-        )}
-      </div>
+          <div className="flash-grade">
+            {flipped ? (
+              <>
+                <button type="button" className="btn btn-lg btn-danger" onClick={() => grade(false)}>Still learning</button>
+                <button type="button" className="btn btn-lg btn-success" onClick={() => grade(true)}>I knew it</button>
+              </>
+            ) : (
+              <button type="button" className="btn btn-lg btn-primary" style={{ gridColumn: '1 / -1' }} onClick={flip}>Show answer</button>
+            )}
+          </div>
+          <p className="lesson-hint-line">Swipe right if you knew it, left if not · keys: space, ← →</p>
+        </>
+      ) : (
+        <div className="celebrate-main" style={{ paddingBlock: 20 }}>
+          <Mascot who="nori" mood={learningIds.length === 0 ? 'cheer' : 'happy'} size={120} className="mascot-bounce" />
+          <div>
+            <div className="celebrate-title">Deck complete!</div>
+            <div className="celebrate-sub">{totalLearned}/{allWords.length} words learned in this group</div>
+          </div>
+          <div className="stat-trio" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+            <div className="stat-tile" style={{ '--k': 'var(--success)' }}><small>Knew it</small><span>{knewCount}</span></div>
+            <div className="stat-tile" style={{ '--k': 'var(--error)' }}><small>Still learning</small><span>{learningIds.length}</span></div>
+          </div>
+          {learningIds.length > 0 && <p className="celebrate-sub">The ones you&apos;re still learning were added to your reviews.</p>}
+          <div className="celebrate-actions" style={{ width: '100%' }}>
+            {learningIds.length > 0 && (
+              <button type="button" className="btn btn-lg btn-accent" onClick={() => startDeck(allWords.filter((w) => learningIds.includes(w.id)))}>
+                Go again with {learningIds.length} missed
+              </button>
+            )}
+            <button type="button" className="btn btn-lg btn-primary" onClick={() => startDeck(wordsForMode(mode))}>Restart deck</button>
+            <button type="button" className="btn btn-lg btn-ghost" onClick={onBack}>Done</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

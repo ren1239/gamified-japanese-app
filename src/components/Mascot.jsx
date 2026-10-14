@@ -1,5 +1,3 @@
-import { useId } from 'react'
-
 // Two onigiri friends:
 //   Nori   — classic triangle onigiri. Guides vocabulary and celebrations.
 //   Mentai — round onigiri with spicy mentaiko filling and a chili. Guides grammar (the spicy part).
@@ -74,12 +72,9 @@ function NoriBody() {
   )
 }
 
-function MentaiBody({ clipId }) {
+function MentaiBody() {
   return (
     <g>
-      <defs>
-        <clipPath id={clipId}><circle cx="60" cy="60" r="44" /></clipPath>
-      </defs>
       {/* chili tucked behind, top right */}
       <path d="M86 12c8-3 14 2 12 9-2 9-12 17-22 19 6-8 9-16 10-28Z" fill="var(--chili)" stroke="var(--nori)" strokeWidth="3" strokeLinejoin="round" />
       <path d="M86 12c0-4 3-7 7-7" fill="none" stroke="#3E9B42" strokeWidth="4" strokeLinecap="round" />
@@ -89,10 +84,9 @@ function MentaiBody({ clipId }) {
       <circle cx="54" cy="21" r="1.6" fill="#fff" opacity=".8" />
       <circle cx="62" cy="19" r="1.6" fill="#fff" opacity=".8" />
       <circle cx="68" cy="22" r="1.4" fill="#fff" opacity=".8" />
-      <g clipPath={`url(#${clipId})`}>
-        <rect x="10" y="76" width="100" height="40" fill="var(--nori)" />
-      </g>
-      <circle cx="60" cy="60" r="44" fill="none" stroke="var(--nori)" strokeWidth="4" />
+      {/* nori: a rectangular band wrapped over the bottom, so rice shows on both sides */}
+      <rect x="41" y="76" width="38" height="34" rx="5" fill="var(--nori)" stroke="var(--nori)" strokeWidth="2" />
+      <path d="M45 82h30" stroke="rgba(255,255,255,0.12)" strokeWidth="2" strokeLinecap="round" />
       <ellipse cx="34" cy="63" rx="7" ry="4" fill="var(--chili)" opacity=".55" />
       <ellipse cx="86" cy="63" rx="7" ry="4" fill="var(--chili)" opacity=".55" />
     </g>
@@ -100,7 +94,6 @@ function MentaiBody({ clipId }) {
 }
 
 export default function Mascot({ who = 'nori', mood = 'happy', size = 96, style, className, title }) {
-  const clipId = useId().replace(/:/g, '')
   const isMentai = who === 'mentai'
   return (
     <svg
@@ -113,7 +106,7 @@ export default function Mascot({ who = 'nori', mood = 'happy', size = 96, style,
       aria-label={title}
       aria-hidden={title ? undefined : true}
     >
-      {isMentai ? <MentaiBody clipId={clipId} /> : <NoriBody />}
+      {isMentai ? <MentaiBody /> : <NoriBody />}
       <Face mood={mood} eyeY={isMentai ? 54 : 50} spicy={isMentai} />
     </svg>
   )

@@ -1,21 +1,29 @@
 {
-  "name": "日本語ToGo",
+  "name": "日本語ToGo — Nihongo ToGo",
   "short_name": "日本語ToGo",
   "description": "Gamified Japanese learning — Genki vocabulary and grammar",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#07070F",
-  "theme_color": "#7C3AED",
+  "background_color": "#F3F4FA",
+  "theme_color": "#3C5BD8",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

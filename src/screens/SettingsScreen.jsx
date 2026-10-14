@@ -1,7 +1,13 @@
-import { motion } from 'framer-motion'
-import { Trash2, AlertTriangle, Download, User, Volume2, VolumeX, Palette, Smartphone, Mic, Timer, Target } from 'lucide-react'
-import ToggleRow from '../components/ToggleRow'
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useStatsStore } from '../store/statsStore'
+import { useQuizStore } from '../store/quizStore'
+import { usePWAInstall } from '../hooks/usePWAInstall'
+import Mascot from '../components/Mascot'
+import Icon from '../components/Icon'
 import ChipGroup from '../components/ChipGroup'
+import { pushSupport, enableReminders, disableReminders, sendTestReminder, syncReminders } from '../utils/push'
 
 const THEME_OPTIONS = [
   { id: 'system', label: 'Match device' },
@@ -10,235 +16,215 @@ const THEME_OPTIONS = [
 ]
 
 const GOAL_OPTIONS = [
-  { id: 30,  label: 'Casual · 30' },
-  { id: 50,  label: 'Regular · 50' },
+  { id: 30, label: 'Casual · 30' },
+  { id: 50, label: 'Regular · 50' },
   { id: 100, label: 'Serious · 100' },
   { id: 200, label: 'Intense · 200' },
 ]
-import { useStatsStore } from '../store/statsStore'
-import { useQuizStore } from '../store/quizStore'
-import { usePWAInstall } from '../hooks/usePWAInstall'
+
+const EVENING_OPTIONS = [18, 19, 20, 21, 22].map((h) => ({ id: h, label: `${h - 12}pm` }))
+const MORNING_OPTIONS = [7, 8, 9, 10].map((h) => ({ id: h, label: `${h}am` }))
+const PUSH_HELP = {
+  'ios-home-screen': 'On iPhone, add the app to your Home Screen first (Share → Add to Home Screen), then turn reminders on from there.',
+  unsupported: "This browser can't show notifications. Try Chrome, Edge or Safari on a recent device.",
+  denied: 'Notifications are blocked for this site. Allow them in your browser or system settings, then try again.',
+}
+
+function Switch({ on }) {
+  return <span className={`switch${on ? ' on' : ''}`} aria-hidden="true"><i /></span>
+}
+
+function ToggleItem({ icon, tone = 'primary', title, sub, on, onToggle }) {
+  return (
+    <button type="button" className="settings-item" role="switch" aria-checked={on} onClick={onToggle}>
+      <span className={`icon-chip ${tone}`}>{icon}</span>
+      <span className="settings-item-text"><b>{title}</b><small>{sub}</small></span>
+      <Switch on={on} />
+    </button>
+  )
+}
 
 export default function SettingsScreen() {
   const { canInstall, isIOS, install, installed } = usePWAInstall()
-  const resetStats = useStatsStore((s) => s.resetStats)
-  const resetQuizzesProgress = useQuizStore((s) => s.resetQuizzesProgress)
-  const soundEnabled = useStatsStore((s) => s.soundEnabled)
-  const toggleSound = useStatsStore((s) => s.toggleSound)
-  const theme = useStatsStore((s) => s.theme)
-  const setTheme = useStatsStore((s) => s.setTheme)
-  const username = useStatsStore((s) => s.username)
-  const setUsername = useStatsStore((s) => s.setUsername)
-  const autoSpeak = useStatsStore((s) => s.autoSpeak)
-  const toggleAutoSpeak = useStatsStore((s) => s.toggleAutoSpeak)
-  const speedMode = useStatsStore((s) => s.speedMode)
-  const toggleSpeedMode = useStatsStore((s) => s.toggleSpeedMode)
-  const dailyGoal = useStatsStore((s) => s.dailyGoal)
-  const setDailyGoal = useStatsStore((s) => s.setDailyGoal)
+  const s = useStatsStore()
+  const resetQuizzesProgress = useQuizStore((st) => st.resetQuizzesProgress)
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [resetDone, setResetDone] = useState(false)
 
-  const showRomaji = useStatsStore((s) => s.showRomaji)
-  const toggleRomaji = useStatsStore((s) => s.toggleRomaji)
+  const [pushBusy, setPushBusy] = useState(false)
+  const [pushMsg, setPushMsg] = useState(null)
+  const support = pushSupport()
 
-  const handleReset = () => {
-    if (window.confirm("Are you sure you want to reset ALL your progress? This cannot be undone.")) {
-      resetStats()
-      resetQuizzesProgress()
-      alert('Progress has been reset.')
+  const toggleReminders = async () => {
+    setPushBusy(true)
+    setPushMsg(null)
+    try {
+      if (s.remindersOn) { await disableReminders(); setPushMsg('Reminders are off.') }
+      else { await enableReminders(); setPushMsg("Reminders are on. You'll get at most two a day.") }
+    } catch (e) {
+      setPushMsg(PUSH_HELP[e.reason] ?? `Couldn't turn on reminders: ${e.message}`)
+    } finally {
+      setPushBusy(false)
     }
   }
+  const setPref = (patch) => { s.setReminders(patch); syncReminders() }
+  const test = async () => {
+    setPushBusy(true)
+    setPushMsg(null)
+    try { await sendTestReminder(); setPushMsg('Test sent. It should appear in a few seconds.') }
+    catch (e) { setPushMsg(`Test failed: ${e.message}`) }
+    finally { setPushBusy(false) }
+  }
 
-  const exportData = () => {
-    const stats = useStatsStore.getState()
-    const quiz = useQuizStore.getState()
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ stats, quiz }))
-    const dlAnchorElem = document.createElement('a')
-    dlAnchorElem.setAttribute("href", dataStr)
-    dlAnchorElem.setAttribute("download", "japanese_app_backup.json")
-    dlAnchorElem.click()
+  const doReset = () => {
+    s.resetStats()
+    resetQuizzesProgress()
+    setConfirmReset(false)
+    setResetDone(true)
   }
 
   return (
-    <div className="page" style={{ paddingTop: 24, paddingBottom: 100 }}>
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: 32 }}
-      >
-        <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
-          Settings
+    <div className="page settings-page">
+      <header>
+        <h1 className="tab-title">Settings</h1>
+        <p className="tab-sub">Your profile, daily goal and how lessons behave.</p>
+      </header>
+
+      {/* ── Profile ── */}
+      <section className="stats-card settings-profile">
+        <div className="stats-avatar"><Mascot who="nori" mood="happy" size={52} className="mascot-idle" /></div>
+        <label className="settings-name" htmlFor="settings-name">
+          <span className="field-label">Your name</span>
+          <input id="settings-name" type="text" value={s.username} onChange={(e) => s.setUsername(e.target.value)} placeholder="Student" maxLength={24} autoComplete="nickname" />
+        </label>
+      </section>
+
+      {/* ── Daily goal ── */}
+      <h2 className="stats-h">Daily goal</h2>
+      <section className="stats-card settings-block">
+        <div className="settings-block-head">
+          <span className="icon-chip accent"><Icon name="target" size={22} /></span>
+          <span className="settings-item-text"><b>XP per day</b><small>Hitting it keeps your streak alive. One lesson is roughly 100 XP.</small></span>
         </div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, marginTop: 4 }}>
-          Manage your app data and preferences
+        <ChipGroup options={GOAL_OPTIONS} value={s.dailyGoal} onChange={s.setDailyGoal} />
+      </section>
+
+      {/* ── Lessons ── */}
+      <h2 className="stats-h">Lessons</h2>
+      <section className="stats-card settings-list">
+        <ToggleItem icon={<span className="jp" style={{ fontWeight: 800, fontSize: 18 }}>あ</span>} title="Show romaji" sub="Readings under Japanese everywhere. Also one tap from any header." on={s.showRomaji} onToggle={s.toggleRomaji} />
+        <ToggleItem icon={<Icon name="speaker" size={22} />} title="Auto-play pronunciation" sub="Read Japanese aloud on flashcards and vocab answers." on={s.autoSpeak} onToggle={s.toggleAutoSpeak} />
+        <ToggleItem icon={<Icon name="bolt" size={22} />} tone="accent" title="Speed mode" sub="Timed questions: +3 XP when fast, a timeout counts as wrong." on={s.speedMode} onToggle={s.toggleSpeedMode} />
+        <ToggleItem icon={<Icon name="bell" size={22} />} tone="gold" title="Sound effects" sub="Chimes for right and wrong answers." on={s.soundEnabled} onToggle={s.toggleSound} />
+      </section>
+
+      {/* ── Reminders ── */}
+      <h2 className="stats-h">Reminders</h2>
+      <section className="stats-card settings-list">
+        <button type="button" className="settings-item" role="switch" aria-checked={s.remindersOn} onClick={toggleReminders} disabled={pushBusy || (!support.ok && !s.remindersOn)}>
+          <span className="icon-chip accent"><Icon name="bell" size={22} /></span>
+          <span className="settings-item-text">
+            <b>Daily reminders</b>
+            <small>{!support.ok && !s.remindersOn ? PUSH_HELP[support.reason] : 'A nudge before your streak ends, and when reviews are due.'}</small>
+          </span>
+          <Switch on={s.remindersOn} />
+        </button>
+        {s.remindersOn && (
+          <>
+            <div className="settings-sub">
+              <div className="settings-sub-head">
+                <span className="settings-item-text"><b>Keep my streak</b><small>Only if you haven&apos;t hit today&apos;s goal yet.</small></span>
+                <button type="button" role="switch" aria-checked={s.reminderEvening} aria-label="Evening reminder" className="switch-btn" onClick={() => setPref({ reminderEvening: !s.reminderEvening })}><Switch on={s.reminderEvening} /></button>
+              </div>
+              {s.reminderEvening && <ChipGroup options={EVENING_OPTIONS} value={s.reminderEveningHour} onChange={(h) => setPref({ reminderEveningHour: h })} />}
+            </div>
+            <div className="settings-sub">
+              <div className="settings-sub-head">
+                <span className="settings-item-text"><b>Reviews due</b><small>Only on days when reviews are waiting.</small></span>
+                <button type="button" role="switch" aria-checked={s.reminderMorning} aria-label="Morning reminder" className="switch-btn" onClick={() => setPref({ reminderMorning: !s.reminderMorning })}><Switch on={s.reminderMorning} /></button>
+              </div>
+              {s.reminderMorning && <ChipGroup options={MORNING_OPTIONS} value={s.reminderMorningHour} onChange={(h) => setPref({ reminderMorningHour: h })} />}
+            </div>
+            <div className="settings-sub">
+              <button type="button" className="btn btn-ghost" onClick={test} disabled={pushBusy}>Send a test notification</button>
+            </div>
+          </>
+        )}
+        {pushMsg && <p className="settings-note" role="status">{pushMsg}</p>}
+      </section>
+
+      {/* ── Appearance ── */}
+      <h2 className="stats-h">Appearance</h2>
+      <section className="stats-card settings-block">
+        <div className="settings-block-head">
+          <span className="icon-chip"><Mascot who="mentai" mood="happy" size={30} /></span>
+          <span className="settings-item-text"><b>Theme</b><small>Light, dark, or follow your device.</small></span>
         </div>
-      </motion.div>
+        <ChipGroup options={THEME_OPTIONS} value={s.theme} onChange={s.setTheme} />
+      </section>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        
-        {/* Profile Section */}
-        <section>
-          <div className="section-label">Profile</div>
-          <div className="glass-card" style={{ padding: '16px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-glow)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <User size={20} />
+      {/* ── App install ── */}
+      {(canInstall || installed) && (
+        <>
+          <h2 className="stats-h">App</h2>
+          <section className="stats-card settings-block">
+            {installed ? (
+              <div className="settings-block-head">
+                <span className="icon-chip"><Icon name="check" size={22} color="var(--success)" /></span>
+                <span className="settings-item-text"><b>Installed</b><small>Nihongo ToGo is on this device.</small></span>
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 6 }}>Your Name</div>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Student"
-                  maxLength={24}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 10,
-                    border: '1.5px solid var(--border-md)',
-                    background: 'var(--bg)',
-                    color: 'var(--text)',
-                    fontFamily: "'Nunito'",
-                    fontWeight: 700,
-                    fontSize: 14,
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--border-md)'}
-                />
+            ) : isIOS ? (
+              <div className="settings-block-head">
+                <span className="icon-chip"><Icon name="home" size={22} /></span>
+                <span className="settings-item-text"><b>Add to Home Screen</b><small>Tap Share, then Add to Home Screen.</small></span>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Daily Goal Section */}
-        <section>
-          <div className="section-label">Daily Goal</div>
-          <div className="glass-card" style={{ padding: '16px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(249,115,22,0.15)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Target size={20} />
-              </div>
-              <div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2 }}>XP per day</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Hitting it keeps your streak alive (~1 quiz ≈ 100 XP)</div>
-              </div>
-            </div>
-            <ChipGroup options={GOAL_OPTIONS} value={dailyGoal} onChange={setDailyGoal} />
-          </div>
-        </section>
-
-        {/* Preferences Section */}
-        <section>
-          <div className="section-label">Preferences</div>
-          <div className="glass-card" style={{ overflow: 'hidden' }}>
-            <ToggleRow icon={soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />} title="Sound Effects" subtitle="Play sound on answers" on={soundEnabled} onToggle={toggleSound} />
-            <ToggleRow icon={<Mic size={20} />} title="Auto-play Pronunciation" subtitle="Read Japanese aloud on flashcards and vocab answers" on={autoSpeak} onToggle={toggleAutoSpeak} />
-            <ToggleRow icon={<Timer size={20} />} title="Speed Mode" subtitle="Timed questions · +3 XP for fast answers, timeouts count as wrong" on={speedMode} onToggle={toggleSpeedMode} color="var(--accent)" dimColor="rgba(249,115,22,0.15)" />
-            <ToggleRow icon={<span className="jp" style={{ fontWeight: 800, fontSize: 17 }}>あ</span>} title="Show Romaji" subtitle="Readings under Japanese everywhere. Also one tap from any lesson header." on={showRomaji} onToggle={toggleRomaji} color="var(--primary)" dimColor="var(--primary-tint)" />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-tint)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Palette size={20} />
-              </div>
-              <div style={{ flex: 1, display: 'grid', gap: 8 }}>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)' }}>Appearance</div>
-                <ChipGroup options={THEME_OPTIONS} value={theme} onChange={setTheme} />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Data Section */}
-        <section>
-          <div className="section-label">Data Management</div>
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            
-            <button onClick={exportData} style={{
-              display: 'flex', alignItems: 'center', gap: 14,
-              padding: '16px 20px', background: 'transparent', border: 'none',
-              borderBottom: '1px solid var(--border)', cursor: 'pointer', textAlign: 'left'
-            }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-glow)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Download size={20} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2 }}>Export Backup</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Download your progress as JSON</div>
-              </div>
-            </button>
-
-            <button onClick={handleReset} style={{
-              display: 'flex', alignItems: 'center', gap: 14,
-              padding: '16px 20px', background: 'transparent', border: 'none',
-              cursor: 'pointer', textAlign: 'left'
-            }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--error-dim)', color: 'var(--error)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AlertTriangle size={20} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--error)', marginBottom: 2 }}>Reset Progress</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Permanently delete all XP and scores</div>
-              </div>
-            </button>
-
-          </div>
-        </section>
-
-        {/* Info Section */}
-        <section>
-          <div className="section-label">About</div>
-          <div className="glass-card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: 24, paddingBottom: 2 }}>🇯🇵</span>
-              </div>
-              <div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16, color: 'var(--text)' }}>日本語ToGo</div>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>Version 1.0.0</div>
-              </div>
-            </div>
-
-            {canInstall && (
-              <div style={{ borderTop: '1px solid var(--border)', padding: '14px 20px' }}>
-                {isIOS ? (
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <Smartphone size={15} color="var(--primary)" style={{ marginTop: 2, flexShrink: 0 }} />
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.6 }}>
-                      Tap <strong style={{ color: 'var(--text)' }}>Share</strong> then{' '}
-                      <strong style={{ color: 'var(--text)' }}>Add to Home Screen</strong> to install.
-                    </div>
-                  </div>
-                ) : (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={install}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                      padding: '12px 0', borderRadius: 12,
-                      background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-                      border: 'none', cursor: 'pointer',
-                      color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14,
-                      boxShadow: '0 4px 16px var(--primary-glow)',
-                    }}
-                  >
-                    <Smartphone size={16} />
-                    Install App
-                  </motion.button>
-                )}
-              </div>
+            ) : (
+              <button type="button" className="btn btn-lg btn-primary" onClick={install}>Install the app</button>
             )}
+          </section>
+        </>
+      )}
 
-            {installed && (
-              <div style={{ borderTop: '1px solid var(--border)', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Smartphone size={14} color="var(--success)" />
-                <span style={{ fontSize: 12, color: 'var(--success)', fontWeight: 700 }}>Installed on this device</span>
-              </div>
-            )}
-          </div>
-        </section>
+      {/* ── Progress ── */}
+      <h2 className="stats-h">Progress</h2>
+      <section className="stats-card settings-list">
+        <button type="button" className="settings-item danger" onClick={() => setConfirmReset(true)}>
+          <span className="icon-chip error"><Icon name="cross" size={22} /></span>
+          <span className="settings-item-text"><b>Reset progress</b><small>{resetDone ? 'Progress was reset.' : 'Delete all XP, streaks, learned words and scores.'}</small></span>
+          <Icon name="next" size={18} color="var(--text-muted)" />
+        </button>
+      </section>
 
-      </div>
+      <footer className="settings-about">
+        <div className="mascot-pair">
+          <Mascot who="nori" mood="happy" size={40} className="mascot-idle" />
+          <Mascot who="mentai" mood="happy" size={34} className="mascot-idle" style={{ animationDelay: '-1.2s' }} />
+        </div>
+        <div><b className="jp">日本語ToGo</b><small>Version 2.0 · Genki I &amp; II</small></div>
+      </footer>
+
+      {createPortal(
+        <AnimatePresence>
+          {confirmReset && (
+            <>
+              <motion.div key="reset-bg" className="sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setConfirmReset(false)} />
+              <motion.div key="reset" className="sheet" role="dialog" aria-label="Reset all progress?" style={{ textAlign: 'center', justifyItems: 'center' }}
+                initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} transition={{ type: 'spring', stiffness: 360, damping: 28 }}>
+                <Mascot who="mentai" mood="oops" size={90} />
+                <div>
+                  <div className="sheet-title" style={{ fontFamily: 'var(--font-ui)', fontWeight: 900 }}>Reset all progress?</div>
+                  <p className="sheet-body">This deletes your XP, streak, learned words, reviews and best scores. It can&apos;t be undone.</p>
+                </div>
+                <div style={{ display: 'grid', gap: 12, width: '100%' }}>
+                  <button type="button" className="btn btn-lg btn-primary" onClick={() => setConfirmReset(false)}>Keep my progress</button>
+                  <button type="button" className="btn btn-lg btn-danger" onClick={doReset}>Reset everything</button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   )
 }

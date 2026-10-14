@@ -75,6 +75,13 @@ export const useStatsStore = create(
       theme: 'system', // 'system' | 'light' | 'dark'
       showRomaji: false, // one global toggle, used everywhere Japanese is shown
       learnTrack: 'vocab', // Learn tab: 'vocab' (単語) | 'grammar' (文法)
+      // Push reminders (see utils/push.js)
+      remindersOn: false,
+      pushEndpoint: null,
+      reminderEvening: true,
+      reminderEveningHour: 20,
+      reminderMorning: true,
+      reminderMorningHour: 8,
       username: '',
       history: [], // [{ date, quizId, score, total, xpEarned }]
       lastPlayedDate: null,
@@ -185,21 +192,30 @@ export const useStatsStore = create(
 
       clearWrongBank: () => set({ wrongBank: [] }),
 
+      // Flagging puts a question straight into the review schedule (box 1, due today).
+      // flaggedBank only remembers which questions show a filled flag.
       flagQuestion: (quizId, quizTitle, question) => {
         set((state) => {
           const key = bankKeyFor(quizId, question)
-          if (state.flaggedBank.some((e) => e.key === key)) return {} // already flagged
+          if (state.flaggedBank.some((e) => e.key === key)) return {}
+          const today = todayStr()
+          const { _bankKey, _sourceQuizId, _sourceQuizTitle, ...clean } = question
+          const inBank = state.wrongBank.some((e) => e.key === key)
           return {
-            flaggedBank: [
-              ...state.flaggedBank,
-              { key, quizId, quizTitle, question, flaggedDate: todayStr() },
-            ].slice(0, 200),
+            flaggedBank: [...state.flaggedBank, { key, quizId, quizTitle, question, flaggedDate: today }].slice(-300),
+            wrongBank: inBank
+              ? state.wrongBank.map((e) => (e.key === key ? { ...e, box: 1, due: today, flagged: true } : e))
+              : [...state.wrongBank, { key, quizId, quizTitle, question: { ...clean, _bankKey: key }, wrongCount: 0, lastWrong: null, box: 1, due: today, flagged: true }].slice(-300),
           }
         })
       },
 
       unflagQuestion: (key) => set((state) => ({
         flaggedBank: state.flaggedBank.filter((e) => e.key !== key),
+        // Drop it from reviews only if it was there because of the flag (never answered wrong)
+        wrongBank: state.wrongBank
+          .filter((e) => !(e.key === key && e.flagged && !e.wrongCount))
+          .map((e) => (e.key === key ? { ...e, flagged: false } : e)),
       })),
 
       /** A word counts as learned after 2 correct quiz answers in a row */
@@ -227,11 +243,12 @@ export const useStatsStore = create(
       setTheme: (theme) => set({ theme }),
       toggleRomaji: () => set((state) => ({ showRomaji: !state.showRomaji })),
       setLearnTrack: (learnTrack) => set({ learnTrack }),
+      setReminders: (patch) => set(patch),
       setUsername: (username) => set({ username }),
     }),
     {
       name: 'nihongo-stats-store',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       migrate: (persisted, version) => {
         if (version < 1 && persisted) {
@@ -244,6 +261,17 @@ export const useStatsStore = create(
           // The neon theme was retired; follow the system light/dark setting instead
           if (!['system', 'light', 'dark'].includes(persisted.theme)) persisted.theme = 'system'
         }
+        if (version < 3 && persisted) {
+          // Flagged questions now live in the review schedule
+          const today = todayStr()
+          const bank = persisted.wrongBank ?? []
+          const keys = new Set(bank.map((e) => e.key))
+          for (const f of persisted.flaggedBank ?? []) {
+            if (keys.has(f.key)) continue
+            bank.push({ key: f.key, quizId: f.quizId, quizTitle: f.quizTitle, question: { ...f.question, _bankKey: f.key }, wrongCount: 0, lastWrong: null, box: 1, due: today, flagged: true })
+          }
+          persisted.wrongBank = bank.slice(-300)
+        }
         return persisted
       },
       partialize: (state) => ({
@@ -255,6 +283,12 @@ export const useStatsStore = create(
         theme: state.theme,
         showRomaji: state.showRomaji,
         learnTrack: state.learnTrack,
+        remindersOn: state.remindersOn,
+        pushEndpoint: state.pushEndpoint,
+        reminderEvening: state.reminderEvening,
+        reminderEveningHour: state.reminderEveningHour,
+        reminderMorning: state.reminderMorning,
+        reminderMorningHour: state.reminderMorningHour,
         username: state.username,
         history: state.history,
         lastPlayedDate: state.lastPlayedDate,

@@ -71,7 +71,6 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
     const fast = speedMode && idx >= 0 && timeLeft > 0
     const correct = submitAnswer(idx, { ...opts, fast })
     setLastCorrect(correct)
-    if (autoSpeak && q?._speak) speakJapanese(q._speak)
     if (correct) {
       if (soundEnabled) playSuccessChime()
       burst(window.innerWidth / 2, window.innerHeight * 0.75, 'correct', 45)
@@ -80,7 +79,24 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
     } else if (soundEnabled) {
       playErrorBuzzer()
     }
-  }, [phase, speedMode, timeLeft, submitAnswer, autoSpeak, q, soundEnabled, burst, currentIndex, advance])
+  }, [phase, speedMode, timeLeft, submitAnswer, soundEnabled, burst, currentIndex, advance])
+
+  // Pick an answer; Japanese answers are read aloud on selection (before Check)
+  const pick = useCallback((idx) => {
+    setSelected(idx)
+    const text = q?.choices?.[idx]
+    if (autoSpeak && text && HAS_JP.test(text)) speakJapanese(text.replace(/〜/g, '').replace(/（[^）]*）/g, ''))
+  }, [q, autoSpeak])
+
+  // Read the Japanese prompt as soon as the question appears (not for fill-in-the-blank sentences)
+  useEffect(() => {
+    if (!autoSpeak || !q) return
+    const blank = /_{2,}|＿+/
+    const text = q.jp ? (q._speak ?? (blank.test(q.jp) ? null : q.jp)) : null
+    if (!text) return
+    const t = setTimeout(() => speakJapanese(text), 250)
+    return () => clearTimeout(t)
+  }, [currentIndex, autoSpeak]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const check = useCallback(() => {
     if (phase !== 'playing' || !q) return
@@ -119,11 +135,11 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
       if (e.key === 'Enter') { check(); return }
       const map = { '1': 0, '2': 1, '3': 2, '4': 3, a: 0, b: 1, c: 2, d: 3 }
       const idx = map[e.key.toLowerCase()]
-      if (idx !== undefined && idx < q.choices.length) setSelected(idx)
+      if (idx !== undefined && idx < q.choices.length) pick(idx)
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [phase, q, answered, advance, check, hintOpen])
+  }, [phase, q, answered, advance, check, hintOpen, pick])
 
   useEffect(() => { if (phase === 'finished') onFinish() }, [phase, onFinish])
   useEffect(() => { answeredRef.current = phase === 'answered' }, [phase])
@@ -216,7 +232,7 @@ export default function QuizScreen({ onFinish, onQuit, burst }) {
                       key={idx}
                       type="button"
                       className={`lesson-choice ${state}`}
-                      onClick={() => !answered && setSelected(idx)}
+                      onClick={() => !answered && pick(idx)}
                       disabled={answered}
                       animate={state === 'wrong' ? { x: [0, -7, 7, -4, 4, 0] } : {}}
                       transition={{ duration: 0.35 }}

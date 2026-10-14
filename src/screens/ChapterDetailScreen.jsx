@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, BookText, PenLine, ChevronRight, Star, Lock, RefreshCw, Layers } from 'lucide-react'
 import { useQuizStore } from '../store/quizStore'
@@ -79,7 +79,6 @@ function VocabSection({ chapter, onStart, onFlashcard }) {
       </div>
 
       <div className="glass-card" style={{ padding: '20px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, var(--primary), var(--primary-light))' }} />
 
         {/* Header */}
         <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>
@@ -126,7 +125,7 @@ function VocabSection({ chapter, onStart, onFlashcard }) {
                 {hasDynamic ? 'Quick (10)' : 'Play'}
               </motion.button>
               <motion.button
-                className="btn btn-accent"
+                className="btn btn-ghost"
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                 onClick={handleAll}
                 style={{ flex: 1, padding: '11px 0', fontSize: 14 }}
@@ -201,7 +200,7 @@ export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashc
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 14px', borderRadius: 999, marginBottom: 10 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--primary)', color: '#fff', fontFamily: "'Nunito'", fontWeight: 900, fontSize: 12, letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 14px', borderRadius: 999, marginBottom: 10 }}>
           Chapter {chapter.number}
         </div>
         <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 'clamp(24px,6vw,34px)', color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>{chapter.title}</div>
@@ -245,7 +244,6 @@ export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashc
 
               return (
                 <motion.div key={gp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.06 }} className="glass-card" style={{ padding: '18px 20px', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: played ? 'linear-gradient(90deg, var(--accent), var(--primary))' : 'var(--border)' }} />
 
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ flex: 1 }}>
@@ -262,9 +260,9 @@ export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashc
                   {gp.available && quiz ? (
                     <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
                       <motion.button className="btn btn-accent" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(quiz, false)} style={{ flex: 1, padding: '10px 0', fontSize: 14 }}>Drill</motion.button>
-                      <motion.button className="btn btn-ghost" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(quiz, true)} style={{ padding: '10px 16px', fontSize: 14 }}>Shuffle</motion.button>
+                      <motion.button className="btn btn-ghost" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(quiz, true)} data-tone="accent" style={{ padding: '10px 16px', fontSize: 14 }}>Shuffle</motion.button>
                       {chapter.number === 0 && (
-                        <motion.button className="btn btn-ghost" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(toTypedQuiz(quiz), true)} style={{ padding: '10px 16px', fontSize: 14 }}>Type</motion.button>
+                        <motion.button className="btn btn-ghost" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(toTypedQuiz(quiz), true)} data-tone="accent" style={{ padding: '10px 16px', fontSize: 14 }}>Type</motion.button>
                       )}
                     </div>
                   ) : (

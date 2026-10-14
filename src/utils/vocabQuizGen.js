@@ -157,3 +157,12 @@ export function generateVocabQuiz(category, direction, chapterNum = 11, limit = 
     questions,
   }
 }
+
+/**
+ * A single review-ready question for one word (used when a flashcard is marked "Still learning",
+ * so it lands in the review schedule with the same per-word bank key a quiz would use).
+ */
+export function buildWordQuestion(word, chapterNum, direction = 'jp-en') {
+  const pool = getVocabForChapter(chapterNum)
+  return buildQuestion(word, direction === 'en-jp' ? 'en-jp' : 'jp-en', pool.length >= 4 ? pool : [word, ...pool], 0, chapterNum, 'choice')
+}

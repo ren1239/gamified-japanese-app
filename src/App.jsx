@@ -4,6 +4,7 @@ import { useParticles } from './hooks/useParticles'
 import { useGameStore, useQuizStore } from './store/quizStore'
 import { useStatsStore, computeLevel } from './store/statsStore'
 import { getVocabForChapter } from './utils/vocabQuizGen'
+import { syncReminders } from './utils/push'
 import DashboardScreen from './screens/DashboardScreen'
 import PathScreen from './screens/PathScreen'
 import ChapterDetailScreen from './screens/ChapterDetailScreen'
@@ -42,8 +43,13 @@ function wordLabel(wordId) {
 
 export default function App() {
   // Navigation state
-  const [screen, setScreen] = useState(SCREENS.learn)
-  const [activeTab, setActiveTab] = useState('learn')
+  // A reminder notification can deep-link to a tab (/?tab=review)
+  const initialTab = (() => {
+    const t = new URLSearchParams(window.location.search).get('tab')
+    return t === 'review' ? 'custom' : 'learn'
+  })()
+  const [screen, setScreen] = useState(initialTab)
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [selectedChapter, setSelectedChapter] = useState(null)
   const [scoreBackTo, setScoreBackTo] = useState('learn') // where score → back goes
   const [reviewQuizId, setReviewQuizId] = useState(null)
@@ -58,6 +64,15 @@ export default function App() {
 
   const { canvasRef, burst, perfectBurst } = useParticles()
   const theme = useStatsStore((s) => s.theme)
+
+  // Keep the reminder server's progress snapshot fresh: on open and whenever the app is backgrounded
+  useEffect(() => {
+    if (window.location.search) window.history.replaceState(null, '', window.location.pathname)
+    syncReminders()
+    const onHide = () => { if (document.visibilityState === 'hidden') syncReminders() }
+    document.addEventListener('visibilitychange', onHide)
+    return () => document.removeEventListener('visibilitychange', onHide)
+  }, [])
 
   // 'system' follows prefers-color-scheme; 'light'/'dark' pin the palette (see index.css tokens)
   useEffect(() => {
@@ -98,6 +113,7 @@ export default function App() {
       setTimeout(() => setLevelUp({ show: true, from: prevLevel, to: newLevel }), 1800)
     }
     setScreen(SCREENS.score)
+    syncReminders()
   }, [quizId, score, totalXp, updateStats])
 
   const handleQuit = useCallback(() => {
@@ -173,7 +189,7 @@ export default function App() {
 
         {screen === SCREENS.dashboard && (
           <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-            <DashboardScreen onNavigate={handleTabChange} onStart={(quiz, shuffle) => handleStart(quiz, shuffle, 'dashboard')} />
+            <DashboardScreen onNavigate={handleTabChange} />
           </motion.div>
         )}
 

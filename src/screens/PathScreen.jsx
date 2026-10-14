@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { chapters } from '../data/chapterData'
 import { useQuizStore } from '../store/quizStore'
@@ -141,7 +141,16 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
   const { totalXp, learnedBank, wrongBank, history, learnTrack, setLearnTrack } = stats
   const quizzes = useQuizStore((s) => s.quizzes)
   const [selected, setSelected] = useState(null)
+  const [compact, setCompact] = useState(false)
   const currentRef = useRef(null)
+
+  // Shrink the sticky header (status + track switch) once the user scrolls into the path
+  useEffect(() => {
+    const onScroll = () => setCompact(window.scrollY > 90)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const streak = getStreakInfo(stats).current
   const due = getDueEntries(wrongBank).length
@@ -164,13 +173,60 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
     return null
   }, [units, history, isGrammar])
 
+  // First visit: open at the recommended node
   useEffect(() => {
     currentRef.current?.scrollIntoView({ block: 'center', behavior: 'auto' })
+  }, [])
+
+  // Switching tracks keeps you on the chapter you were looking at
+  const stickyRef = useRef(null)
+  const pendingChapter = useRef(null)
+  const visibleChapter = () => {
+    const headerBottom = stickyRef.current?.getBoundingClientRect().bottom ?? 0
+    let ch = null
+    for (const el of document.querySelectorAll('.path-unit')) {
+      if (el.getBoundingClientRect().top <= headerBottom + 60) ch = Number(el.dataset.ch)
+      else break
+    }
+    return ch
+  }
+  const switchTrack = (track) => {
+    if (track === learnTrack) return
+    pendingChapter.current = window.scrollY > 100 ? visibleChapter() : null
+    setSelected(null)
+    setLearnTrack(track)
+  }
+  useLayoutEffect(() => {
+    const ch = pendingChapter.current
+    pendingChapter.current = null
+    if (ch == null) return
+    const unitsEls = [...document.querySelectorAll('.path-unit')]
+    const target = unitsEls.find((el) => Number(el.dataset.ch) >= ch) ?? unitsEls[unitsEls.length - 1]
+    if (!target) return
+    const headerH = stickyRef.current?.offsetHeight ?? 0
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - headerH - 8, behavior: 'auto' })
   }, [learnTrack])
+
+  // Floating "jump to where you left off" button when the recommended node is off screen
+  const [jump, setJump] = useState(null) // null | 'up' | 'down'
+  useEffect(() => {
+    const el = currentRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') { setJump(null); return }
+    const io = new IntersectionObserver(([entry]) => {
+      setJump(entry.isIntersecting ? null : entry.boundingClientRect.top < 0 ? 'up' : 'down')
+    }, { rootMargin: '-120px 0px -90px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [currentKey, learnTrack])
+  const currentChapterNum = useMemo(() => {
+    for (const u of units) if (u.nodes.some((n) => n.key === currentKey)) return u.chapter.number
+    return null
+  }, [units, currentKey])
 
   let zig = 0
   return (
     <div className="path-screen">
+      <div ref={stickyRef} className={`path-sticky glass${compact ? ' compact' : ''}`}>
       <header className="path-status">
         <span className="path-stat streak" title="Day streak"><Icon name="flame" size={24} />{streak}</span>
         <span className="path-stat xp" title="Total XP"><Icon name="bolt" size={24} />{totalXp.toLocaleString()}</span>
@@ -179,21 +235,22 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
       </header>
 
       <div className="track-switch" role="tablist" aria-label="Study track">
-        <button type="button" role="tab" aria-selected={!isGrammar} className={!isGrammar ? 'active' : ''} onClick={() => { setLearnTrack('vocab'); setSelected(null) }}>
-          <Mascot who="nori" mood={!isGrammar ? 'happy' : 'sleep'} size={30} />
+        <button type="button" role="tab" aria-selected={!isGrammar} className={!isGrammar ? 'active' : ''} onClick={() => switchTrack('vocab')}>
+          <Mascot who="nori" mood={!isGrammar ? 'happy' : 'sleep'} size={compact ? 22 : 30} />
           <span><b className="jp">単語</b> Vocabulary</span>
         </button>
-        <button type="button" role="tab" aria-selected={isGrammar} className={isGrammar ? 'active accent' : ''} onClick={() => { setLearnTrack('grammar'); setSelected(null) }}>
-          <Mascot who="mentai" mood={isGrammar ? 'happy' : 'sleep'} size={30} />
+        <button type="button" role="tab" aria-selected={isGrammar} className={isGrammar ? 'active accent' : ''} onClick={() => switchTrack('grammar')}>
+          <Mascot who="mentai" mood={isGrammar ? 'happy' : 'sleep'} size={compact ? 22 : 30} />
           <span><b className="jp">文法</b> Grammar</span>
         </button>
+      </div>
       </div>
 
       <div className="path-units">
         {units.map((unit, ui) => {
           const ch = unit.chapter
           return (
-            <section key={`${learnTrack}-${ch.number}`} className="path-unit">
+            <section key={`${learnTrack}-${ch.number}`} className="path-unit" data-ch={ch.number}>
               <button type="button" className={`path-unit-banner ${isGrammar ? 'accent' : ''}`} onClick={() => onOpenChapter(ch)}>
                 <div>
                   <small>{bookLabel(ch.number)} · {ch.number === 0 ? 'Conjugation drills' : `Chapter ${ch.number}`}</small>
@@ -220,13 +277,28 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
                     </div>
                   )
                 })}
-                <Mascot who={isGrammar ? 'mentai' : 'nori'} mood={['happy', 'think', 'cheer'][ui % 3]} size={72}
-                  className="path-buddy" style={{ [ui % 2 ? 'left' : 'right']: 8 }} />
+                <span className="path-buddy" style={{ [ui % 2 ? 'left' : 'right']: 8, animationDelay: `${(ui % 5) * -0.7}s` }}>
+                  <Mascot who={isGrammar ? 'mentai' : 'nori'} mood={['happy', 'think', 'cheer'][ui % 3]} size={72} className="mascot-idle" style={{ animationDelay: `${(ui % 4) * -0.9}s` }} />
+                </span>
               </div>
             </section>
           )
         })}
       </div>
+      <AnimatePresence>
+        {jump && currentChapterNum != null && (
+          <motion.button
+            key="jump"
+            type="button"
+            className={`path-jump ${isGrammar ? 'accent' : ''}`}
+            initial={{ opacity: 0, y: 16, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 16, x: '-50%' }}
+            onClick={() => currentRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}
+          >
+            <Icon name={jump === 'down' ? 'next' : 'back'} size={16} style={{ transform: 'rotate(90deg)' }} />
+            {currentChapterNum === 0 ? 'Basics' : `Ch.${currentChapterNum}`} · next lesson
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
