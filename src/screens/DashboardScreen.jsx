@@ -1,26 +1,41 @@
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Flame, Star, Target, FileText, Zap, Award, BookOpen, Lock, BarChart2, PlayCircle } from 'lucide-react'
-import { useStatsStore, computeLevel, xpInCurrentLevel, xpForLevel } from '../store/statsStore'
+import { Flame, Star, Target, FileText, Zap, Award, BookOpen, Lock, BarChart2, PlayCircle, Snowflake, Repeat, Trophy, Brain, Sparkles, Crown, ChevronRight } from 'lucide-react'
+import { useStatsStore, computeLevel, xpInCurrentLevel, xpForLevel, getStreakInfo, xpOnDate } from '../store/statsStore'
+import { localDateStr, todayStr } from '../utils/dates'
+import { getChapterMastery } from '../utils/mastery'
+import { getNextStep } from '../utils/nextStep'
 import { useQuizStore } from '../store/quizStore'
 import { chapters } from '../data/chapterData'
 
 const LEVEL_NAMES = ['', '入門者', '初心者', '基礎', '学習者', '中級者', '上級者', '達人', '師匠', '先生', '博士']
 function getLevelName(l) { return LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length - 1)] || `Lv.${l}` }
 
+// check(ctx) — ctx: { history, bestStreak, totalXp, bestCombo, reviewCount, bankCleared, learnedCount, masteredChapters }
 const ACHIEVEMENTS = [
-  { id: 'first_play',   icon: Target,   color: '#3B82F6', label: 'First Quiz',    desc: 'Complete your first quiz',     check: (h) => h.length >= 1 },
-  { id: 'streak3',      icon: Flame,    color: '#F97316', label: '3-Day Streak',  desc: 'Play 3 days in a row',          check: (_, s) => s >= 3 },
-  { id: 'streak7',      icon: Zap,      color: '#EAB308', label: 'Week Warrior',  desc: '7 days in a row',               check: (_, s) => s >= 7 },
-  { id: 'perfect',      icon: Award,    color: '#10B981', label: 'Perfect Score', desc: 'Get 100% on any quiz',          check: (h) => h.some((e) => e.score === e.total) },
-  { id: 'ten_quizzes',  icon: BookOpen, color: '#8B5CF6', label: '10 Quizzes',    desc: 'Complete 10 quizzes',           check: (h) => h.length >= 10 },
-  { id: 'xp500',        icon: Star,     color: '#F59E0B', label: 'XP Hoard',      desc: 'Earn 500 total XP',             check: (_, __, xp) => xp >= 500 },
+  { id: 'first_play',   icon: Target,   color: '#3B82F6', label: 'First Quiz',     desc: 'Complete your first quiz',      check: (c) => c.history.length >= 1 },
+  { id: 'streak3',      icon: Flame,    color: '#F97316', label: '3-Day Streak',   desc: 'Hit your goal 3 days in a row', check: (c) => c.bestStreak >= 3 },
+  { id: 'streak7',      icon: Zap,      color: '#EAB308', label: 'Week Warrior',   desc: '7 days in a row',               check: (c) => c.bestStreak >= 7 },
+  { id: 'streak30',     icon: Crown,    color: '#DC2626', label: '30-Day Streak',  desc: '30 days in a row',              check: (c) => c.bestStreak >= 30 },
+  { id: 'perfect',      icon: Award,    color: '#10B981', label: 'Perfect Score',  desc: 'Get 100% on any quiz',          check: (c) => c.history.some((e) => e.score === e.total) },
+  { id: 'ten_quizzes',  icon: BookOpen, color: '#8B5CF6', label: '10 Quizzes',     desc: 'Complete 10 quizzes',           check: (c) => c.history.length >= 10 },
+  { id: 'xp500',        icon: Star,     color: '#F59E0B', label: 'XP Hoard',       desc: 'Earn 500 total XP',             check: (c) => c.totalXp >= 500 },
+  { id: 'combo10',      icon: Sparkles, color: '#EC4899', label: 'On Fire',        desc: '10 correct in a row',           check: (c) => c.bestCombo >= 10 },
+  { id: 'reviews100',   icon: Repeat,   color: '#06B6D4', label: '100 Reviews',    desc: 'Complete 100 SRS reviews',      check: (c) => c.reviewCount >= 100 },
+  { id: 'bank_clear',   icon: Snowflake, color: '#0EA5E9', label: 'Clean Slate',   desc: 'Empty the wrong-answer bank',   check: (c) => c.bankCleared },
+  { id: 'words100',     icon: Brain,    color: '#14B8A6', label: '100 Words',      desc: 'Learn 100 vocab words',         check: (c) => c.learnedCount >= 100 },
+  { id: 'chapter_master', icon: Trophy, color: '#D97706', label: 'Chapter Master', desc: 'Reach 100% mastery in a chapter', check: (c) => c.masteredChapters > 0 },
 ]
 
 function stagger(i) { return { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.06 + 0.1, duration: 0.35 } } }
 
-export default function DashboardScreen({ onNavigate }) {
-  const { totalXp, history, streak, username, learnedBank } = useStatsStore()
+export default function DashboardScreen({ onNavigate, onStart }) {
+  const stats = useStatsStore()
+  const { totalXp, history, username, learnedBank, wrongBank, dailyGoal, streakFreezes } = stats
+  const streakInfo = getStreakInfo(stats)
+  const streak = streakInfo.current
+  const todayXp = xpOnDate(history, todayStr())
+  const goalPct = Math.min(100, Math.round((todayXp / dailyGoal) * 100))
   const quizzes = useQuizStore((s) => s.quizzes)
 
   const level = computeLevel(totalXp)
@@ -40,7 +55,7 @@ export default function DashboardScreen({ onNavigate }) {
     for (let i = activityWindow - 1; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
-      const key = d.toISOString().slice(0, 10)
+      const key = localDateStr(d)
       const entries = history.filter((e) => e.date === key)
       const correct = entries.reduce((s, e) => s + e.score, 0)
       const wrong = entries.reduce((s, e) => s + (e.total - e.score), 0)
@@ -59,21 +74,33 @@ export default function DashboardScreen({ onNavigate }) {
     return days
   }, [history, learnedBank, activityWindow])
 
-  // Chapter completion status
-  const quizMap = useMemo(() => {
-    const m = {}
-    quizzes.forEach((q) => { m[q.id] = q })
-    return m
-  }, [quizzes])
 
-  const achievements = ACHIEVEMENTS.map((a) => ({
-    ...a,
-    unlocked: a.check(history, streak, totalXp),
-  }))
+  const masteryByChapter = useMemo(() => {
+    const m = {}
+    chapters.forEach((ch) => { m[ch.number] = getChapterMastery(ch, quizzes, learnedBank) })
+    return m
+  }, [quizzes, learnedBank])
+
+  const nextStep = useMemo(
+    () => getNextStep({ wrongBank, history, quizzes, learnedBank }),
+    [wrongBank, history, quizzes, learnedBank]
+  )
+
+  const achievementCtx = {
+    history,
+    bestStreak: stats.bestStreak || 0,
+    totalXp,
+    bestCombo: stats.bestCombo || 0,
+    reviewCount: stats.reviewCount || 0,
+    bankCleared: !!stats.bankCleared,
+    learnedCount: learnedBank.length,
+    masteredChapters: Object.values(masteryByChapter).filter((m) => m?.pct === 100).length,
+  }
+  const achievements = ACHIEVEMENTS.map((a) => ({ ...a, unlocked: a.check(achievementCtx) }))
 
   const statCards = [
     { Icon: Flame,    val: streak,          label: 'Day Streak', color: '#F97316' },
-    { Icon: Star,     val: totalXp,         label: 'Total XP',   color: '#7C3AED' },
+    { Icon: Star,     val: totalXp,         label: 'Total XP',   color: 'var(--gold-deep)' },
     { Icon: Target,   val: `${accuracy}%`,  label: 'Accuracy',   color: '#10B981' },
     { Icon: FileText, val: history.length,  label: 'Quizzes',    color: '#3B82F6' },
   ]
@@ -118,8 +145,8 @@ export default function DashboardScreen({ onNavigate }) {
           <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 13, color: 'rgba(255,255,255,0.6)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: 4 }}>
             Your Progress
           </div>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(38px,9vw,58px)', color: '#fff', lineHeight: 1.1, letterSpacing: '1px', marginBottom: 20, display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: '#FCD34D', fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900, fontSize: '0.9em', letterSpacing: '-1px' }}>日本語</span> 
+          <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 'clamp(38px,9vw,58px)', color: '#fff', lineHeight: 1.1, letterSpacing: '1px', marginBottom: 20, display: 'flex', flexDirection: 'column' }}>
+            <span style={{ color: '#FCD34D', fontFamily: "'M PLUS Rounded 1c', sans-serif", fontWeight: 900, fontSize: '0.9em', letterSpacing: '-1px' }}>日本語</span> 
             <span>JOURNEY</span>
           </div>
 
@@ -144,6 +171,68 @@ export default function DashboardScreen({ onNavigate }) {
         </div>
       </motion.div>
 
+      {/* ─── Today: daily goal + continue ─── */}
+      <motion.div {...stagger(0)} className="glass-card" style={{ padding: 18, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ position: 'relative', width: 64, height: 64, flexShrink: 0 }}>
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            background: `conic-gradient(${goalPct >= 100 ? 'var(--success)' : 'var(--accent)'} ${goalPct * 3.6}deg, var(--border) 0)`,
+          }} />
+          <div style={{ position: 'absolute', inset: 6, borderRadius: '50%', background: 'var(--surface-solid)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {goalPct >= 100
+              ? <span style={{ fontSize: 22 }}>✓</span>
+              : <span style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 14, color: 'var(--text)' }}>{goalPct}%</span>}
+          </div>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 15, color: 'var(--text)' }}>
+            Today · {todayXp} / {dailyGoal} XP
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginTop: 3, lineHeight: 1.4 }}>
+            {streakInfo.doneToday
+              ? `Goal met · 🔥 ${streak}-day streak`
+              : streakInfo.atRisk
+                ? streakInfo.freezesNeeded > 0
+                  ? `🔥 ${streak}-day streak · ${streakInfo.freezesNeeded} freeze${streakInfo.freezesNeeded > 1 ? 's' : ''} will be used`
+                  : `🔥 ${streak}-day streak · hit your goal to keep it`
+                : 'Hit your goal to start a streak'}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 5, fontSize: 11, fontWeight: 800, color: '#0EA5E9' }}>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Snowflake key={i} size={13} strokeWidth={2.5} style={{ opacity: i < (streakFreezes || 0) ? 1 : 0.2 }} />
+            ))}
+            <span style={{ marginLeft: 2 }}>Streak freezes · earn 1 every 7 days</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {nextStep ? (
+        <motion.button
+          {...stagger(1)}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onStart(nextStep.makeQuiz(), nextStep.kind !== 'grammar')}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left',
+            padding: '18px 18px', marginBottom: 28, borderRadius: 'var(--radius-md)', cursor: 'pointer',
+            background: nextStep.kind === 'review'
+              ? 'linear-gradient(135deg, #F97316, #EF4444)'
+              : 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+            border: 'none', boxShadow: '0 8px 28px var(--primary-glow)', color: '#fff',
+          }}
+        >
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {nextStep.kind === 'review' ? <Repeat size={22} strokeWidth={2.5} /> : <PlayCircle size={22} strokeWidth={2.5} />}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', opacity: 0.8 }}>Continue</div>
+            <div style={{ fontFamily: "'M PLUS Rounded 1c', 'Nunito', sans-serif", fontWeight: 900, fontSize: 17, lineHeight: 1.3 }}>{nextStep.title}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.85 }}>{nextStep.subtitle}</div>
+          </div>
+          <ChevronRight size={22} strokeWidth={2.5} />
+        </motion.button>
+      ) : <div style={{ marginBottom: 14 }} />}
+
       {/* ─── Stat Cards ─── */}
       <div className="section-label">Overview</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 28 }}>
@@ -163,16 +252,12 @@ export default function DashboardScreen({ onNavigate }) {
       <motion.div {...stagger(4)} style={{ marginBottom: 28 }}>
         <div className="section-label">Chapter Progress</div>
         <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }}>
-          {chapters.slice(0, 23).map((ch, i) => {
+          {chapters.map((ch, i) => {
             const isLocked = !ch.vocab?.available && ch.grammar.length === 0
-            const quiz = ch.vocab?.quizId ? quizMap[ch.vocab.quizId] : null
-            const played = quiz?.playCount > 0
-            const perfect = quiz && quiz.bestScore === quiz.questions?.length
-            const grammarTotal = ch.grammar?.length || 0
-            const grammarDone = ch.grammar?.filter(g => quizMap[g.quizId]?.playCount > 0).length || 0
-            const fillPct = perfect ? 100 : played
-              ? Math.round(50 + (grammarTotal > 0 ? (grammarDone / grammarTotal) * 50 : 0))
-              : grammarDone > 0 ? Math.round((grammarDone / grammarTotal) * 45) : 0
+            const mastery = masteryByChapter[ch.number]
+            const fillPct = mastery?.pct ?? 0
+            const perfect = fillPct === 100
+            const played = fillPct > 0
 
             const deg = fillPct * 3.6
             const borderFill = perfect ? 'var(--gold)' : 'var(--primary)'
@@ -197,7 +282,7 @@ export default function DashboardScreen({ onNavigate }) {
                   boxShadow: perfect
                     ? '0 0 14px rgba(245,158,11,0.45)'
                     : played && deg > 0
-                    ? '0 0 8px rgba(124,58,237,0.25)'
+                    ? '0 0 8px var(--primary-glow)'
                     : 'none',
                   transition: 'box-shadow 0.3s',
                 }}>
@@ -285,7 +370,7 @@ export default function DashboardScreen({ onNavigate }) {
                           {/* Ghost track */}
                           <div style={{
                             position: 'absolute', bottom: 0, width: '100%', height: '100%',
-                            background: isActive ? 'rgba(124,58,237,0.07)' : 'var(--border)',
+                            background: isActive ? 'var(--primary-glow)' : 'var(--border)',
                             borderRadius: '3px 3px 0 0', transition: 'background 0.15s',
                           }} />
                           {/* Stacked bar: wrong (top) → correct (middle) → learned (bottom) */}

@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, BookText, PenLine, ChevronRight, Star, Lock, RefreshCw, Layers } from 'lucide-react'
 import { useQuizStore } from '../store/quizStore'
-import { generateVocabQuiz, getVocabForChapter, getWordsForChapterAndCategory } from '../utils/vocabQuizGen'
+import { useStatsStore } from '../store/statsStore'
+import { generateVocabQuiz, getVocabForChapter, getWordsForChapterAndCategory, DYNAMIC_VOCAB_CHAPTERS } from '../utils/vocabQuizGen'
+import { toTypedQuiz } from '../utils/answerMatch'
+import { getChapterMastery } from '../utils/mastery'
+import ChipGroup from '../components/ChipGroup'
+import Jp from '../components/Jp'
+import RomajiToggle from '../components/RomajiToggle'
 
 // ── Vocab categories & directions ────────────────────────────────────────────
 const DIRECTIONS = [
@@ -11,38 +17,14 @@ const DIRECTIONS = [
   { id: 'mix',   label: 'Mix' },
 ]
 
-function ChipGroup({ options, value, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-      {options.map(opt => {
-        const active = value === opt.id
-        return (
-          <motion.button
-            key={opt.id}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onChange(opt.id)}
-            style={{
-              padding: '5px 12px',
-              borderRadius: 999,
-              border: `1.5px solid ${active ? 'var(--primary)' : 'var(--border-md)'}`,
-              background: active ? 'var(--primary)' : 'transparent',
-              color: active ? '#fff' : 'var(--text-muted)',
-              fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12,
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            {opt.label}{opt.count != null ? ` (${opt.count})` : ''}
-          </motion.button>
-        )
-      })}
-    </div>
-  )
-}
+const ANSWER_MODES = [
+  { id: 'choice', label: 'Choose' },
+  { id: 'type',   label: 'Type (kana)' },
+]
 
 // ── Vocab Section ─────────────────────────────────────────────────────────────
 function VocabSection({ chapter, onStart, onFlashcard }) {
-  const hasDynamic = [0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(chapter.number)
+  const hasDynamic = DYNAMIC_VOCAB_CHAPTERS.includes(chapter.number)
   const getQuiz = useQuizStore(s => s.getQuiz)
   const staticQuiz = chapter.vocab?.quizId ? getQuiz(chapter.vocab.quizId) : null
 
@@ -57,13 +39,16 @@ function VocabSection({ chapter, onStart, onFlashcard }) {
   const [cat,  setCat]  = useState('all')
   const [dir,  setDir]  = useState('jp-en')
   const [err,  setErr]  = useState(null)
+  const [answerMode, setAnswerMode] = useState('choice')
+  const learnedBank = useStatsStore(s => s.learnedBank)
+  const learnedCount = learnedBank.filter(e => e.chapterNum === chapter.number).length
 
   const wordCount = hasDynamic ? getWordsForChapterAndCategory(chapter.number, cat).length : (staticQuiz?.questions?.length ?? 0)
 
   const handleQuick = () => {
     if (hasDynamic) {
       try {
-        const quiz = generateVocabQuiz(cat, dir, chapter.number, 10)
+        const quiz = generateVocabQuiz(cat, dir, chapter.number, 10, answerMode)
         onStart(quiz, true)
       } catch (e) {
         setErr(e.message)
@@ -76,7 +61,7 @@ function VocabSection({ chapter, onStart, onFlashcard }) {
   const handleAll = () => {
     if (hasDynamic) {
       try {
-        const quiz = generateVocabQuiz(cat, dir, chapter.number, wordCount)
+        const quiz = generateVocabQuiz(cat, dir, chapter.number, wordCount, answerMode)
         onStart(quiz, true)
       } catch (e) {
         setErr(e.message)
@@ -101,7 +86,7 @@ function VocabSection({ chapter, onStart, onFlashcard }) {
           Chapter {chapter.number} Vocabulary
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, marginBottom: hasDynamic ? 16 : 0 }}>
-          {wordCount} words · {hasDynamic ? 'generates 10 random questions' : 'English ↔ Japanese'}
+          {wordCount} words · {hasDynamic ? `${learnedCount}/${chapterVocab.length} learned` : 'English ↔ Japanese'}
         </div>
 
         {/* Dynamic pickers — only for chapters with structured data */}
@@ -115,6 +100,12 @@ function VocabSection({ chapter, onStart, onFlashcard }) {
               <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 7 }}>Direction</div>
               <ChipGroup options={DIRECTIONS} value={dir} onChange={d => setDir(d)} />
             </div>
+            {dir !== 'jp-en' && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 7 }}>Answer (EN → JP)</div>
+                <ChipGroup options={ANSWER_MODES} value={answerMode} onChange={setAnswerMode} />
+              </div>
+            )}
           </div>
         )}
 
@@ -192,15 +183,21 @@ function ProgressBar({ quiz }) {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashcard }) {
   const getQuiz = useQuizStore(s => s.getQuiz)
+  const quizzes = useQuizStore(s => s.quizzes)
+  const learnedBank = useStatsStore(s => s.learnedBank)
+  const mastery = getChapterMastery(chapter, quizzes, learnedBank)
 
   return (
     <div className="page" style={{ paddingTop: 16, paddingBottom: 100 }}>
 
       {/* Back */}
-      <motion.button initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} onClick={onBack}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, padding: '4px 0', marginBottom: 20 }}>
-        <ChevronLeft size={18} strokeWidth={2.5} /> All Chapters
-      </motion.button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <motion.button initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} onClick={onBack}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, padding: '4px 0' }}>
+          <ChevronLeft size={18} strokeWidth={2.5} /> Learn
+        </motion.button>
+        <RomajiToggle />
+      </div>
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
@@ -208,7 +205,18 @@ export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashc
           Chapter {chapter.number}
         </div>
         <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 'clamp(24px,6vw,34px)', color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>{chapter.title}</div>
-        <div style={{ fontFamily: "'Noto Sans JP'", fontSize: 15, color: 'var(--text-muted)', fontWeight: 600 }}>{chapter.subtitle}</div>
+        <Jp style={{ fontSize: 16, color: 'var(--text-muted)', fontWeight: 700 }}>{chapter.subtitle}</Jp>
+        {mastery && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 6 }}>
+              <span>Mastery</span>
+              <span style={{ color: mastery.pct === 100 ? 'var(--gold)' : 'var(--primary)' }}>{mastery.pct}%</span>
+            </div>
+            <div className="progress-track">
+              <motion.div className="progress-fill" initial={{ width: 0 }} animate={{ width: `${mastery.pct}%` }} transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }} />
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Vocab */}
@@ -241,7 +249,7 @@ export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashc
 
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Noto Sans JP'", fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 2 }}>{gp.label}</div>
+                      <Jp style={{ fontWeight: 800, fontSize: 17, color: 'var(--text)', marginBottom: 2 }}>{gp.label}</Jp>
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
                         {gp.desc}{played && <span style={{ marginLeft: 8, color: 'var(--primary)' }}>· {quiz.playCount} play{quiz.playCount > 1 ? 's' : ''}</span>}
                       </div>
@@ -255,6 +263,9 @@ export default function ChapterDetailScreen({ chapter, onStart, onBack, onFlashc
                     <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
                       <motion.button className="btn btn-accent" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(quiz, false)} style={{ flex: 1, padding: '10px 0', fontSize: 14 }}>Drill</motion.button>
                       <motion.button className="btn btn-ghost" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(quiz, true)} style={{ padding: '10px 16px', fontSize: 14 }}>Shuffle</motion.button>
+                      {chapter.number === 0 && (
+                        <motion.button className="btn btn-ghost" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onStart(toTypedQuiz(quiz), true)} style={{ padding: '10px 16px', fontSize: 14 }}>Type</motion.button>
+                      )}
                     </div>
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, color: 'var(--text-muted)', fontSize: 12, fontWeight: 700 }}>

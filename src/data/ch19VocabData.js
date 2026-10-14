@@ -1,0 +1,62 @@
+// Chapter 19 Vocabulary — Genki II (3rd ed.)
+// category: 'noun' | 'u-verb' | 'ru-verb' | 'irregular' | 'other'
+export const ch19Vocab = [
+  { id: 'n01', kana: 'おくさま', kanji: '奥様', english: '(your/someone\'s) wife (polite)', category: 'noun' },
+  { id: 'n02', kana: 'おこさん', kanji: 'お子さん', english: '(your/someone\'s) child (polite)', category: 'noun' },
+  { id: 'n03', kana: 'ちゅうがくせい', kanji: '中学生', english: 'junior high school student', category: 'noun' },
+  { id: 'n04', kana: 'ぶちょう', kanji: '部長', english: 'department manager', category: 'noun' },
+  { id: 'n05', kana: 'しゅっちょう', kanji: '出張', english: 'business trip', category: 'noun' },
+  { id: 'n06', kana: 'けいご', kanji: '敬語', english: 'honorific language', category: 'noun' },
+  { id: 'n07', kana: 'こちら', kanji: '', english: 'this way (polite)', category: 'noun' },
+  { id: 'n08', kana: 'どちら', kanji: '', english: 'where (polite)', category: 'noun' },
+  { id: 'n09', kana: 'おれい', kanji: 'お礼', english: 'expression of gratitude', category: 'noun' },
+  { id: 'n10', kana: 'しゅるい', kanji: '種類', english: 'a kind; a sort', category: 'noun' },
+  { id: 'n11', kana: 'はなし', kanji: '話', english: 'talk; story', category: 'noun' },
+  { id: 'n12', kana: 'なやみ', kanji: '悩み', english: 'worry', category: 'noun' },
+  { id: 'n13', kana: 'まちがい', kanji: '間違い', english: 'mistake', category: 'noun' },
+  { id: 'n14', kana: 'せいかく', kanji: '性格', english: 'personality', category: 'noun' },
+  { id: 'n15', kana: 'なまけもの', kanji: '怠け者', english: 'lazy person', category: 'noun' },
+  { id: 'n16', kana: 'はずかしがりや', kanji: '恥ずかしがり屋', english: 'shy person', category: 'noun' },
+  { id: 'o01', kana: 'なかがいい', kanji: '仲がいい', english: 'be on good/close terms; to get along well', category: 'other' },
+  { id: 'o02', kana: 'まじめ', kanji: '', english: 'serious; sober; diligent', category: 'other' },
+  { id: 'u01', kana: 'いらっしゃる', kanji: '', english: 'honorific expression for いく, くる, and いる', category: 'u-verb' },
+  { id: 'u02', kana: 'めしあがる', kanji: '召し上がる', english: 'honorific expression for たべる and のむ', category: 'u-verb' },
+  { id: 'u03', kana: 'くださる', kanji: '下さる', english: 'honorific expression for くれる', category: 'u-verb' },
+  { id: 'u04', kana: 'なさる', kanji: '', english: 'honorific expression for する', category: 'u-verb' },
+  { id: 'u05', kana: 'おやすみになる', kanji: 'お休みになる', english: 'honorific expression for ねる', category: 'u-verb' },
+  { id: 'u06', kana: 'ごらんになる', kanji: 'ご覧になる', english: 'honorific expression for みる', category: 'u-verb' },
+  { id: 'u07', kana: 'おっしゃる', kanji: '', english: 'honorific expression for いう', category: 'u-verb' },
+  { id: 'u08', kana: '〜ていらっしゃる', kanji: '', english: 'honorific expression for 〜ている', category: 'u-verb' },
+  { id: 'u09', kana: 'おくる', kanji: '送る', english: 'to walk/drive (someone) (person を place まで)', category: 'u-verb' },
+  { id: 'u10', kana: 'おこる', kanji: '怒る', english: 'to get angry', category: 'u-verb' },
+  { id: 'u11', kana: 'きまる', kanji: '決まる', english: 'to be decided (〜が)', category: 'u-verb' },
+  { id: 'u12', kana: 'しりあう', kanji: '知り合う', english: 'to get acquainted with (〜と)', category: 'u-verb' },
+  { id: 'u13', kana: 'よぶ', kanji: '呼ぶ', english: 'to call (one\'s name) (〜を); to invite (person を event に)', category: 'u-verb' },
+  { id: 'u14', kana: 'ひっこす', kanji: '引っ越す', english: 'to move (to another place to live) (〜に)', category: 'u-verb' },
+  { id: 'u15', kana: 'よる', kanji: '寄る', english: 'to stop by (place に)', category: 'u-verb' },
+  { id: 'r01', kana: 'おくれる', kanji: '遅れる', english: 'to become late (〜に)', category: 'ru-verb' },
+  { id: 'r02', kana: 'かける', kanji: '', english: 'to sit down (seat に)', category: 'ru-verb' },
+  { id: 'r03', kana: 'もてる', kanji: '', english: 'to be popular (in terms of romantic interest) (people に)', category: 'ru-verb' },
+  { id: 'r04', kana: 'はれる', kanji: '晴れる', english: 'to become sunny', category: 'ru-verb' },
+  { id: 'i01', kana: 'ごちそうする', kanji: '', english: 'to treat/invite (someone) to a meal (person に meal を)', category: 'irregular' },
+  { id: 'i02', kana: 'えんりょする', kanji: '遠慮する', english: 'to hold back for the time being; to refrain from', category: 'irregular' },
+  { id: 'i03', kana: 'しょうたいする', kanji: '招待する', english: 'to invite someone (to an event/a place) (person を event/place に)', category: 'irregular' },
+  { id: 'i04', kana: 'はなしをする', kanji: '話をする', english: 'to have a talk', category: 'irregular' },
+  { id: 'o03', kana: 'おととい', kanji: '', english: 'the day before yesterday', category: 'other' },
+  { id: 'o04', kana: 'まいあさ', kanji: '毎朝', english: 'every morning', category: 'other' },
+  { id: 'o05', kana: 'それで', kanji: '', english: 'then; therefore', category: 'other' },
+  { id: 'o06', kana: 'なぜ', kanji: '', english: 'why (= どうして)', category: 'other' },
+  { id: 'o07', kana: 'ほんとうは', kanji: '本当は', english: 'in fact; originally', category: 'other' },
+  { id: 'o08', kana: 'まだ', kanji: '', english: 'still', category: 'other' },
+  { id: 'o09', kana: 'しょうしょう', kanji: '少々', english: 'a few seconds', category: 'other' },
+  { id: 'o10', kana: '〜めいさま', kanji: '〜名様', english: 'party of ... people', category: 'other' },
+  { id: 'o11', kana: 'ようこそ', kanji: '', english: 'welcome.', category: 'other' },
+  { id: 'o12', kana: 'よろしくおつたえください', kanji: 'よろしくお伝えください', english: 'please give my best regards (to ...). (〜に)', category: 'other' },
+]
+
+export function getWordsForCategory(cat) {
+  if (cat === 'noun')  return ch19Vocab.filter(w => w.category === 'noun')
+  if (cat === 'verb')  return ch19Vocab.filter(w => ['u-verb','ru-verb','irregular'].includes(w.category))
+  if (cat === 'other') return ch19Vocab.filter(w => w.category === 'other')
+  return ch19Vocab // 'all'
+}

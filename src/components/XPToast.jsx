@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useStatsStore } from '../store/statsStore'
 import { playXPCoin } from '../utils/audio'
 
-export default function XPToast({ xp, show, onDone }) {
+export default function XPToast({ xp, show, onDone, note }) {
   const timerRef = useRef(null)
   const soundEnabled = useStatsStore((s) => s.soundEnabled)
 
@@ -42,9 +42,11 @@ export default function XPToast({ xp, show, onDone }) {
             borderRadius: 999,
             boxShadow: 'var(--shadow-lg)',
             whiteSpace: 'nowrap',
+            textAlign: 'center',
             letterSpacing: '0.5px',
           }}>
             ⚡ +{xp} XP
+            {note && <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.9, textAlign: 'center', marginTop: 2 }}>{note}</div>}
           </div>
         </motion.div>
       )}

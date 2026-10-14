@@ -1,0 +1,63 @@
+// Chapter 16 Vocabulary — Genki II (3rd ed.)
+// category: 'noun' | 'u-verb' | 'ru-verb' | 'irregular' | 'other'
+export const ch16Vocab = [
+  { id: 'n01', kana: 'えきいん', kanji: '駅員', english: 'station attendant', category: 'noun' },
+  { id: 'n02', kana: 'おや', kanji: '親', english: 'parent', category: 'noun' },
+  { id: 'n03', kana: 'しんせき', kanji: '親せき', english: 'relatives', category: 'noun' },
+  { id: 'n04', kana: 'ごみ', kanji: '', english: 'garbage', category: 'noun' },
+  { id: 'n05', kana: 'さとう', kanji: '砂糖', english: 'sugar', category: 'noun' },
+  { id: 'n06', kana: 'ファイル', kanji: '', english: '(file) folder; portfolio; file', category: 'noun' },
+  { id: 'n07', kana: 'おおきさ', kanji: '大きさ', english: 'size', category: 'noun' },
+  { id: 'n08', kana: 'みち', kanji: '道', english: 'way; road; directions', category: 'noun' },
+  { id: 'n09', kana: 'きまつしけん', kanji: '期末試験', english: 'final examination', category: 'noun' },
+  { id: 'n10', kana: 'けんきゅう', kanji: '研究', english: 'research', category: 'noun' },
+  { id: 'n11', kana: 'だいがくいん', kanji: '大学院', english: 'graduate school', category: 'noun' },
+  { id: 'n12', kana: 'しょうがくきん', kanji: '奨学金', english: 'scholarship', category: 'noun' },
+  { id: 'n13', kana: 'すいせんじょう', kanji: '推薦状', english: 'letter of recommendation', category: 'noun' },
+  { id: 'n14', kana: 'たいふう', kanji: '台風', english: 'typhoon', category: 'noun' },
+  { id: 'n15', kana: 'ぶんか', kanji: '文化', english: 'culture', category: 'noun' },
+  { id: 'n16', kana: 'へんじ', kanji: '返事', english: 'reply', category: 'noun' },
+  { id: 'n17', kana: 'ひ', kanji: '日', english: 'day', category: 'noun' },
+  { id: 'o01', kana: 'きたない', kanji: '汚い', english: 'dirty', category: 'other' },
+  { id: 'u01', kana: 'おこす', kanji: '起こす', english: 'to wake (someone) up (〜を)', category: 'u-verb' },
+  { id: 'u02', kana: 'おごる', kanji: '', english: 'to treat (someone) to a meal (person に meal を)', category: 'u-verb' },
+  { id: 'u03', kana: 'わらう', kanji: '笑う', english: 'to laugh', category: 'u-verb' },
+  { id: 'u04', kana: 'おちこむ', kanji: '落ち込む', english: 'to get depressed', category: 'u-verb' },
+  { id: 'u05', kana: 'こまる', kanji: '困る', english: 'to have difficulty', category: 'u-verb' },
+  { id: 'u06', kana: 'だす', kanji: '出す', english: 'to take (something) out; to hand in (something) (〜を)', category: 'u-verb' },
+  { id: 'u07', kana: 'なおす', kanji: '直す', english: 'to correct; to fix (〜を)', category: 'u-verb' },
+  { id: 'u08', kana: 'みつかる', kanji: '見つかる', english: 'to be found (〜が)', category: 'u-verb' },
+  { id: 'u09', kana: 'やくす', kanji: '訳す', english: 'to translate (source を target に)', category: 'u-verb' },
+  { id: 'u10', kana: 'かす', kanji: '貸す', english: 'to lend (person に thing を)', category: 'u-verb' },
+  { id: 'u11', kana: 'つれていく', kanji: '連れていく', english: 'to take (someone) to (a place) (person を place に)', category: 'u-verb' },
+  { id: 'u12', kana: 'みちにまよう', kanji: '道に迷う', english: 'to become lost; to lose one\'s way', category: 'u-verb' },
+  { id: 'u13', kana: 'むかえにいく', kanji: '迎えに行く', english: 'to go to pick up (place まで/に person を)', category: 'u-verb' },
+  { id: 'r01', kana: 'あつめる', kanji: '集める', english: 'to collect (〜を)', category: 'ru-verb' },
+  { id: 'r02', kana: 'いれる', kanji: '入れる', english: 'to put (something) in (thing を place に)', category: 'ru-verb' },
+  { id: 'r03', kana: 'みせる', kanji: '見せる', english: 'to show (person に thing を)', category: 'ru-verb' },
+  { id: 'r04', kana: 'のりおくれる', kanji: '乗り遅れる', english: 'to miss (a train, bus, etc.) (〜に)', category: 'ru-verb' },
+  { id: 'r05', kana: 'アイロンをかける', kanji: '', english: 'to iron (clothes) (〜に)', category: 'ru-verb' },
+  { id: 'i01', kana: 'あさねぼうする', kanji: '朝寝坊する', english: 'to oversleep', category: 'irregular' },
+  { id: 'i02', kana: 'あんないする', kanji: '案内する', english: 'to show (someone) around (place を)', category: 'irregular' },
+  { id: 'i03', kana: 'せつめいする', kanji: '説明する', english: 'to explain', category: 'irregular' },
+  { id: 'i04', kana: 'むかえにくる', kanji: '迎えに来る', english: 'to come to pick up (place まで/に person を)', category: 'irregular' },
+  { id: 'o02', kana: 'きょうじゅうに', kanji: '今日中に', english: 'by the end of today', category: 'other' },
+  { id: 'o03', kana: 'じゅぎょうちゅうに', kanji: '授業中に', english: 'in class; during the class', category: 'other' },
+  { id: 'o04', kana: 'このあいだ', kanji: 'この間', english: 'the other day', category: 'other' },
+  { id: 'o05', kana: 'これから', kanji: '', english: 'from now on', category: 'other' },
+  { id: 'o06', kana: 'このぐらい', kanji: '', english: 'about this much', category: 'other' },
+  { id: 'o07', kana: 'じぶんで', kanji: '自分で', english: '(do something) by oneself', category: 'other' },
+  { id: 'o08', kana: 'ほかの', kanji: '', english: 'other', category: 'other' },
+  { id: 'o09', kana: 'ええと', kanji: '', english: 'well ...; let me see ...', category: 'other' },
+  { id: 'o10', kana: 'じつは', kanji: '実は', english: 'actually; in fact', category: 'other' },
+  { id: 'o11', kana: '〜いがい', kanji: '〜以外', english: 'other than ...', category: 'other' },
+  { id: 'o12', kana: 'ごめん', kanji: '', english: 'i\'m sorry. (casual)', category: 'other' },
+  { id: 'o13', kana: 'しつれいします', kanji: '失礼します', english: 'excuse me.; sorry to interrupt you.', category: 'other' },
+]
+
+export function getWordsForCategory(cat) {
+  if (cat === 'noun')  return ch16Vocab.filter(w => w.category === 'noun')
+  if (cat === 'verb')  return ch16Vocab.filter(w => ['u-verb','ru-verb','irregular'].includes(w.category))
+  if (cat === 'other') return ch16Vocab.filter(w => w.category === 'other')
+  return ch16Vocab // 'all'
+}

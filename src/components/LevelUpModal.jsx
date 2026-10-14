@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import Mascot from './Mascot'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStatsStore } from '../store/statsStore'
 import { playLevelUpFanfare } from '../utils/audio'
@@ -41,24 +42,25 @@ export default function LevelUpModal({ fromLevel, toLevel, show, onClose }) {
             transition={{ type: 'spring', stiffness: 260, damping: 18 }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'linear-gradient(160deg, var(--primary-dark), var(--primary))',
+              background: 'var(--primary)',
               borderRadius: 28,
               padding: '48px 32px',
               textAlign: 'center',
               width: '100%',
               maxWidth: 340,
-              boxShadow: '0 24px 80px var(--primary-glow)',
+              boxShadow: '0 8px 0 var(--primary-deep)',
               border: '1px solid rgba(255,255,255,0.2)',
             }}
           >
             {/* Spinning badge */}
             <motion.div
-              initial={{ rotate: -180, scale: 0 }}
-              animate={{ rotate: 0, scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
-              style={{ fontSize: 80, marginBottom: 16 }}
+              initial={{ y: 30, scale: 0.4 }}
+              animate={{ y: 0, scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 220, damping: 13 }}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4, marginBottom: 16 }}
             >
-              🎖️
+              <Mascot who="nori" mood="cheer" size={86} />
+              <Mascot who="mentai" mood="cheer" size={70} />
             </motion.div>
 
             <div style={{
@@ -78,7 +80,7 @@ export default function LevelUpModal({ fromLevel, toLevel, show, onClose }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
               style={{
-                fontFamily: "'Noto Sans JP', sans-serif",
+                fontFamily: "'M PLUS Rounded 1c', sans-serif",
                 fontWeight: 900,
                 fontSize: 40,
                 color: '#fff',

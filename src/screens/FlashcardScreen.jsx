@@ -1,6 +1,9 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2, Flag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2, Flag, Volume2 } from 'lucide-react'
+import { canSpeak, speakJapanese } from '../utils/speech'
+import RomajiToggle from '../components/RomajiToggle'
+import Mascot from '../components/Mascot'
 import { getWordsForChapterAndCategory } from '../utils/vocabQuizGen'
 import { useStatsStore } from '../store/statsStore'
 import { toRomajiSafe } from '../utils/romaji'
@@ -24,8 +27,8 @@ function SummaryView({ newLearnedCount, totalLearned, chapter, flaggedCount, onR
       transition={{ duration: 0.35, type: 'spring', stiffness: 260, damping: 26 }}
       style={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}
     >
-      <div style={{ fontSize: 52 }}>🎴</div>
-      <div style={{ fontFamily: "'Bebas Neue'", fontSize: 36, color: 'var(--text)', letterSpacing: '2px', lineHeight: 1 }}>
+      <Mascot who="nori" mood="cheer" size={110} className="mascot-bounce" />
+      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 36, color: 'var(--text)', letterSpacing: '2px', lineHeight: 1 }}>
         DECK COMPLETE
       </div>
       <div className="glass-card" style={{ width: '100%', padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
@@ -34,7 +37,7 @@ function SummaryView({ newLearnedCount, totalLearned, chapter, flaggedCount, onR
             {newLearnedCount}
           </div>
           <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', marginTop: 5, fontFamily: "'Nunito'", letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            New Today
+            Cards Seen
           </div>
         </div>
         <div style={{ textAlign: 'center', paddingLeft: 12 }}>
@@ -42,9 +45,12 @@ function SummaryView({ newLearnedCount, totalLearned, chapter, flaggedCount, onR
             {totalLearned}
           </div>
           <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', marginTop: 5, fontFamily: "'Nunito'", letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            Ch.{chapter.number} Total
+            Ch.{chapter.number} Learned
           </div>
         </div>
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textAlign: 'center', lineHeight: 1.5, marginTop: -8 }}>
+        Words count as learned after 2 correct quiz answers in a row.
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
         <motion.button
@@ -91,7 +97,8 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
   const flaggedCards = useRef(new Set())
   const [flaggedVersion, setFlaggedVersion] = useState(0)
 
-  const recordLearned = useStatsStore((s) => s.recordLearned)
+  const autoSpeak = useStatsStore((s) => s.autoSpeak)
+  const showRomaji = useStatsStore((s) => s.showRomaji)
   const learnedBank = useStatsStore((s) => s.learnedBank)
 
   const card = deck[currentIndex]
@@ -102,18 +109,19 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
 
   const handleFlip = useCallback(() => {
     if (!isFlipped && card) {
-      const wid = `ch${chapter.number}-${card.id}`
       if (!flippedThisSession.current.has(card.id)) {
         flippedThisSession.current.add(card.id)
-        const alreadyInBank = learnedBank.some((e) => e.wordId === wid)
-        if (!alreadyInBank) {
-          newLearnedCount.current += 1
-          recordLearned(wid, chapter.number)
-        }
+        newLearnedCount.current += 1 // cards seen this session
       }
+      if (!card.frontJp && autoSpeak) speakJapanese(card.kana.replace(/〜/g, ''))
     }
     setIsFlipped((f) => !f)
-  }, [isFlipped, card, chapter.number, learnedBank, recordLearned])
+  }, [isFlipped, card, autoSpeak])
+
+  // Read the word aloud when a Japanese-front card comes up
+  useEffect(() => {
+    if (autoSpeak && card?.frontJp && !showSummary) speakJapanese(card.kana.replace(/〜/g, ''))
+  }, [card, autoSpeak, showSummary])
 
   const handleNext = useCallback(() => {
     if (currentIndex < deck.length - 1) {
@@ -197,8 +205,11 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
           </div>
         </div>
 
-        <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13, color: 'var(--text-muted)', minWidth: 48, textAlign: 'right' }}>
-          {showSummary ? '✓' : `${currentIndex + 1} / ${deck.length}`}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13, color: 'var(--text-muted)' }}>
+            {showSummary ? '✓' : `${currentIndex + 1}/${deck.length}`}
+          </span>
+          <RomajiToggle />
         </div>
       </div>
 
@@ -272,12 +283,10 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
                       position: 'absolute', inset: 0,
                       backfaceVisibility: 'hidden',
                       borderRadius: 24,
-                      background: card.frontJp
-                        ? 'linear-gradient(145deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%)'
-                        : 'linear-gradient(145deg, #1a1040 0%, #2a1860 55%, #3a2275 100%)',
+                      background: card.frontJp ? 'var(--primary)' : 'var(--accent)',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                       padding: '28px 24px',
-                      boxShadow: '0 20px 56px rgba(124,58,237,0.3), 0 4px 20px rgba(0,0,0,0.35)',
+                      boxShadow: card.frontJp ? '0 8px 0 var(--primary-deep)' : '0 8px 0 var(--accent-deep)',
                       border: '1px solid rgba(255,255,255,0.07)',
                     }}>
                       <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '2.5px', textTransform: 'uppercase', fontFamily: "'Nunito'", marginBottom: 22 }}>
@@ -286,10 +295,13 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
 
                       {card.frontJp ? (
                         <>
-                          <div style={{ fontFamily: "'Noto Sans JP'", fontWeight: 900, fontSize: 'clamp(26px,7vw,40px)', color: '#fff', textAlign: 'center', lineHeight: 1.35, marginBottom: 10 }}>
+                          <div style={{ fontFamily: "'M PLUS Rounded 1c'", fontWeight: 900, fontSize: 'clamp(26px,7vw,40px)', color: '#fff', textAlign: 'center', lineHeight: 1.35, marginBottom: 10 }}>
                             {jpText}
                           </div>
-                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: "'Nunito'", fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          {showRomaji && romaji && (
+                            <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 15, color: 'rgba(255,255,255,0.8)', marginTop: -4, marginBottom: 8 }}>{romaji}</div>
+                          )}
+                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: "'Nunito'", fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
                             {card.category}
                           </div>
                         </>
@@ -310,14 +322,10 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)',
                       borderRadius: 24,
-                      background: card.frontJp
-                        ? 'linear-gradient(145deg, #0a2218 0%, #123a28 55%, #1a5236 100%)'
-                        : 'linear-gradient(145deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%)',
+                      background: card.frontJp ? 'var(--success)' : 'var(--primary)',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                       padding: '28px 24px',
-                      boxShadow: card.frontJp
-                        ? '0 20px 56px rgba(16,185,129,0.2), 0 4px 20px rgba(0,0,0,0.35)'
-                        : '0 20px 56px rgba(124,58,237,0.3), 0 4px 20px rgba(0,0,0,0.35)',
+                      boxShadow: card.frontJp ? '0 8px 0 var(--success-deep)' : '0 8px 0 var(--primary-deep)',
                       border: '1px solid rgba(255,255,255,0.07)',
                     }}>
                       <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '2.5px', textTransform: 'uppercase', fontFamily: "'Nunito'", marginBottom: 22 }}>
@@ -337,7 +345,7 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
                         </>
                       ) : (
                         <>
-                          <div style={{ fontFamily: "'Noto Sans JP'", fontWeight: 900, fontSize: 'clamp(26px,7vw,40px)', color: '#fff', textAlign: 'center', lineHeight: 1.35, marginBottom: 10 }}>
+                          <div style={{ fontFamily: "'M PLUS Rounded 1c'", fontWeight: 900, fontSize: 'clamp(26px,7vw,40px)', color: '#fff', textAlign: 'center', lineHeight: 1.35, marginBottom: 10 }}>
                             {jpText}
                           </div>
                           {romaji && (
@@ -357,8 +365,22 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
               </motion.div>
             </AnimatePresence>
 
-            {/* ── Flag button ── */}
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', maxWidth: 380, marginTop: 14 }}>
+            {/* ── Audio + Flag buttons ── */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, width: '100%', maxWidth: 380, marginTop: 14 }}>
+              {canSpeak && (
+                <motion.button
+                  onClick={() => speakJapanese(card.kana.replace(/〜/g, ''))}
+                  whileTap={{ scale: 0.93 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 16px', borderRadius: 20,
+                    border: '2px solid var(--border-md)', background: 'transparent',
+                    color: 'var(--text-muted)', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer',
+                  }}
+                >
+                  <Volume2 size={13} strokeWidth={2.5} /> Listen
+                </motion.button>
+              )}
               <motion.button
                 onClick={handleToggleFlag}
                 whileTap={{ scale: 0.93 }}

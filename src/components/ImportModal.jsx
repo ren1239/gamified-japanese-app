@@ -73,7 +73,7 @@ export default function ImportModal({ onClose }) {
       >
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, var(--pink), var(--yellow))' }} />
 
-        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 1, marginBottom: 4 }}>
+        <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 28, letterSpacing: 1, marginBottom: 4 }}>
           Import New Quiz
         </div>
         <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>

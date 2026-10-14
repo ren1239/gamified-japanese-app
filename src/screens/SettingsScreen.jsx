@@ -1,5 +1,20 @@
 import { motion } from 'framer-motion'
-import { Trash2, AlertTriangle, Download, User, Volume2, VolumeX, Palette, Smartphone } from 'lucide-react'
+import { Trash2, AlertTriangle, Download, User, Volume2, VolumeX, Palette, Smartphone, Mic, Timer, Target } from 'lucide-react'
+import ToggleRow from '../components/ToggleRow'
+import ChipGroup from '../components/ChipGroup'
+
+const THEME_OPTIONS = [
+  { id: 'system', label: 'Match device' },
+  { id: 'light', label: 'Light' },
+  { id: 'dark', label: 'Dark' },
+]
+
+const GOAL_OPTIONS = [
+  { id: 30,  label: 'Casual · 30' },
+  { id: 50,  label: 'Regular · 50' },
+  { id: 100, label: 'Serious · 100' },
+  { id: 200, label: 'Intense · 200' },
+]
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import { usePWAInstall } from '../hooks/usePWAInstall'
@@ -14,8 +29,15 @@ export default function SettingsScreen() {
   const setTheme = useStatsStore((s) => s.setTheme)
   const username = useStatsStore((s) => s.username)
   const setUsername = useStatsStore((s) => s.setUsername)
+  const autoSpeak = useStatsStore((s) => s.autoSpeak)
+  const toggleAutoSpeak = useStatsStore((s) => s.toggleAutoSpeak)
+  const speedMode = useStatsStore((s) => s.speedMode)
+  const toggleSpeedMode = useStatsStore((s) => s.toggleSpeedMode)
+  const dailyGoal = useStatsStore((s) => s.dailyGoal)
+  const setDailyGoal = useStatsStore((s) => s.setDailyGoal)
 
-  const toggleTheme = () => setTheme(theme === 'neon' ? 'default' : 'neon')
+  const showRomaji = useStatsStore((s) => s.showRomaji)
+  const toggleRomaji = useStatsStore((s) => s.toggleRomaji)
 
   const handleReset = () => {
     if (window.confirm("Are you sure you want to reset ALL your progress? This cannot be undone.")) {
@@ -42,8 +64,8 @@ export default function SettingsScreen() {
         animate={{ opacity: 1, y: 0 }}
         style={{ marginBottom: 32 }}
       >
-        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
-          SETTINGS
+        <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
+          Settings
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, marginTop: 4 }}>
           Manage your app data and preferences
@@ -89,48 +111,40 @@ export default function SettingsScreen() {
           </div>
         </section>
 
+        {/* Daily Goal Section */}
+        <section>
+          <div className="section-label">Daily Goal</div>
+          <div className="glass-card" style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(249,115,22,0.15)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Target size={20} />
+              </div>
+              <div>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2 }}>XP per day</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Hitting it keeps your streak alive (~1 quiz ≈ 100 XP)</div>
+              </div>
+            </div>
+            <ChipGroup options={GOAL_OPTIONS} value={dailyGoal} onChange={setDailyGoal} />
+          </div>
+        </section>
+
         {/* Preferences Section */}
         <section>
           <div className="section-label">Preferences</div>
           <div className="glass-card" style={{ overflow: 'hidden' }}>
-            <button onClick={toggleSound} style={{
-              display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-              padding: '16px 20px', background: 'transparent', border: 'none',
-              borderBottom: '1px solid var(--border)',
-              cursor: 'pointer', textAlign: 'left'
-            }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: soundEnabled ? 'var(--success-dim)' : 'var(--border)', color: soundEnabled ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                 {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            <ToggleRow icon={soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />} title="Sound Effects" subtitle="Play sound on answers" on={soundEnabled} onToggle={toggleSound} />
+            <ToggleRow icon={<Mic size={20} />} title="Auto-play Pronunciation" subtitle="Read Japanese aloud on flashcards and vocab answers" on={autoSpeak} onToggle={toggleAutoSpeak} />
+            <ToggleRow icon={<Timer size={20} />} title="Speed Mode" subtitle="Timed questions · +3 XP for fast answers, timeouts count as wrong" on={speedMode} onToggle={toggleSpeedMode} color="var(--accent)" dimColor="rgba(249,115,22,0.15)" />
+            <ToggleRow icon={<span className="jp" style={{ fontWeight: 800, fontSize: 17 }}>あ</span>} title="Show Romaji" subtitle="Readings under Japanese everywhere. Also one tap from any lesson header." on={showRomaji} onToggle={toggleRomaji} color="var(--primary)" dimColor="var(--primary-tint)" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-tint)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Palette size={20} />
               </div>
-              <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2 }}>Sound Effects</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Play sound on answers</div>
-                </div>
-                <div style={{ width: 46, height: 26, background: soundEnabled ? 'var(--success)' : 'var(--border)', borderRadius: 13, position: 'relative', transition: 'background 0.3s' }}>
-                   <div style={{ width: 22, height: 22, background: '#fff', borderRadius: 11, position: 'absolute', top: 2, left: soundEnabled ? 22 : 2, transition: 'left 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
-                </div>
+              <div style={{ flex: 1, display: 'grid', gap: 8 }}>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)' }}>Appearance</div>
+                <ChipGroup options={THEME_OPTIONS} value={theme} onChange={setTheme} />
               </div>
-            </button>
-
-            <button onClick={toggleTheme} style={{
-              display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-              padding: '16px 20px', background: 'transparent', border: 'none',
-              cursor: 'pointer', textAlign: 'left'
-            }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-glow)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                 <Palette size={20} />
-              </div>
-              <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2 }}>Neon Dark Mode</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Hot pink alternative theme</div>
-                </div>
-                <div style={{ width: 46, height: 26, background: theme === 'neon' ? 'var(--primary)' : 'var(--border)', borderRadius: 13, position: 'relative', transition: 'background 0.3s' }}>
-                   <div style={{ width: 22, height: 22, background: '#fff', borderRadius: 11, position: 'absolute', top: 2, left: theme === 'neon' ? 22 : 2, transition: 'left 0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
-                </div>
-              </div>
-            </button>
+            </div>
           </div>
         </section>
 

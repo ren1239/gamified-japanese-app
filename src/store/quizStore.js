@@ -5,7 +5,19 @@ import { ch00MasuQuiz, ch00TeformQuiz, ch00ShortPastQuiz, ch00ShortNegQuiz, ch00
 import { ch1DesuQuiz, ch1KaQuiz, ch1NoQuiz } from '../data/ch1Grammar'
 import { ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz } from '../data/ch11Grammar'
 import { ch12NdesuQuiz, ch12SugiruQuiz, ch12HougaiiQuiz, ch12NodeQuiz } from '../data/ch12Grammar'
+import { ch13PotentialQuiz, ch13ShiQuiz, ch13SoudesuQuiz, ch13TemiruQuiz, ch13NaraQuiz, ch13FrequencyQuiz, ch13ReviewQuiz } from '../data/ch13Grammar'
+import { ch14HoshiiQuiz, ch14KamoshirenaiQuiz, ch14GivingQuiz, ch14TaradoudesuQuiz, ch14NumberMoShikaQuiz, ch14ReviewQuiz } from '../data/ch14Grammar'
+import { ch15VolitionalQuiz, ch15VolitionalOmouQuiz, ch15TeokuQuiz, ch15RelativeQuiz, ch15ReviewQuiz } from '../data/ch15Grammar'
+import { ch16TeageruQuiz, ch16RequestQuiz, ch16ToiiQuiz, ch16TokiQuiz, ch16SumimasenQuiz, ch16ReviewQuiz } from '../data/ch16Grammar'
+import { ch17HearsayQuiz, ch17TteQuiz, ch17TaraQuiz, ch17NakutemoiiQuiz, ch17MitaiQuiz, ch17MaeniKaraQuiz, ch17ReviewQuiz } from '../data/ch17Grammar'
+import { ch18TransitivityQuiz, ch18TeiruQuiz, ch18TeshimauQuiz, ch18ToQuiz, ch18NagaraQuiz, ch18BayokattaQuiz, ch18ReviewQuiz } from '../data/ch18Grammar'
+import { ch19HonorificQuiz, ch19AdviceQuiz, ch19TekuretearigatouQuiz, ch19TeyokattaQuiz, ch19HazuQuiz, ch19ReviewQuiz } from '../data/ch19Grammar'
+import { ch20ExtraModestQuiz, ch20HumbleQuiz, ch20NaideQuiz, ch20EmbeddedQuiz, ch20ToiuQuiz, ch20YasuiNikuiQuiz, ch20ReviewQuiz } from '../data/ch20Grammar'
+import { ch21PassiveQuiz, ch21TearuQuiz, ch21AidaniQuiz, ch21AdjSuruQuiz, ch21TehoshiiQuiz, ch21ReviewQuiz } from '../data/ch21Grammar'
+import { ch22CausativeQuiz, ch22CausativeGivingQuiz, ch22NasaiQuiz, ch22BaQuiz, ch22NoniQuiz, ch22NoyouniQuiz, ch22ReviewQuiz } from '../data/ch22Grammar'
+import { ch23CausativePassiveQuiz, ch23TemoQuiz, ch23KotonisuruQuiz, ch23KotonishiteiruQuiz, ch23MadeQuiz, ch23KataQuiz, ch23ReviewQuiz } from '../data/ch23Grammar'
 import { useStatsStore } from './statsStore'
+import { todayStr } from '../utils/dates'
 
 const builtinQuizzes = [
   ...genkiQuizzes,
@@ -17,6 +29,28 @@ const builtinQuizzes = [
   ch11TaiQuiz, ch11TariQuiz, ch11KotoQuiz, ch11YaQuiz,
   // Ch.12
   ch12NdesuQuiz, ch12SugiruQuiz, ch12HougaiiQuiz, ch12NodeQuiz,
+  // Ch.13
+  ch13PotentialQuiz, ch13ShiQuiz, ch13SoudesuQuiz, ch13TemiruQuiz, ch13NaraQuiz, ch13FrequencyQuiz, ch13ReviewQuiz,
+  // Ch.14
+  ch14HoshiiQuiz, ch14KamoshirenaiQuiz, ch14GivingQuiz, ch14TaradoudesuQuiz, ch14NumberMoShikaQuiz, ch14ReviewQuiz,
+  // Ch.15
+  ch15VolitionalQuiz, ch15VolitionalOmouQuiz, ch15TeokuQuiz, ch15RelativeQuiz, ch15ReviewQuiz,
+  // Ch.16
+  ch16TeageruQuiz, ch16RequestQuiz, ch16ToiiQuiz, ch16TokiQuiz, ch16SumimasenQuiz, ch16ReviewQuiz,
+  // Ch.17
+  ch17HearsayQuiz, ch17TteQuiz, ch17TaraQuiz, ch17NakutemoiiQuiz, ch17MitaiQuiz, ch17MaeniKaraQuiz, ch17ReviewQuiz,
+  // Ch.18
+  ch18TransitivityQuiz, ch18TeiruQuiz, ch18TeshimauQuiz, ch18ToQuiz, ch18NagaraQuiz, ch18BayokattaQuiz, ch18ReviewQuiz,
+  // Ch.19
+  ch19HonorificQuiz, ch19AdviceQuiz, ch19TekuretearigatouQuiz, ch19TeyokattaQuiz, ch19HazuQuiz, ch19ReviewQuiz,
+  // Ch.20
+  ch20ExtraModestQuiz, ch20HumbleQuiz, ch20NaideQuiz, ch20EmbeddedQuiz, ch20ToiuQuiz, ch20YasuiNikuiQuiz, ch20ReviewQuiz,
+  // Ch.21
+  ch21PassiveQuiz, ch21TearuQuiz, ch21AidaniQuiz, ch21AdjSuruQuiz, ch21TehoshiiQuiz, ch21ReviewQuiz,
+  // Ch.22
+  ch22CausativeQuiz, ch22CausativeGivingQuiz, ch22NasaiQuiz, ch22BaQuiz, ch22NoniQuiz, ch22NoyouniQuiz, ch22ReviewQuiz,
+  // Ch.23
+  ch23CausativePassiveQuiz, ch23TemoQuiz, ch23KotonisuruQuiz, ch23KotonishiteiruQuiz, ch23MadeQuiz, ch23KataQuiz, ch23ReviewQuiz,
 ]
 
 
@@ -30,7 +64,7 @@ export const useQuizStore = create(
         const newQuiz = {
           ...quiz,
           id: `quiz_${Date.now()}`,
-          created: new Date().toISOString().slice(0, 10),
+          created: todayStr(),
           playCount: 0,
           bestScore: null,
         }
@@ -53,34 +87,27 @@ export const useQuizStore = create(
         const activeQuiz = gameState.activeQuiz
         const quiz = get().quizzes.find((q) => q.id === id) || activeQuiz
         const total = quiz?.questions?.length || 0
+        const stats = useStatsStore.getState()
 
-        const isPractice = id.startsWith('practice_')
-
-        // Correctly answered questions → remove from bank (mastered)
-        const correctQuestions = gameState.answers
-          .filter((a) => a.correct)
-          .map((a) => gameState.questions[a.questionIdx])
+        // Every answered question feeds the spaced-repetition bank and vocab progress
+        const results = gameState.answers
+          .map((a) => {
+            const question = gameState.questions[a.questionIdx]
+            if (!question) return null
+            if (question._wordId) stats.recordVocabAnswer(question._wordId, question._chapterNum, a.correct)
+            return {
+              quizId: question._sourceQuizId ?? id,
+              quizTitle: question._sourceQuizTitle ?? quiz?.title ?? 'Quiz',
+              question,
+              correct: a.correct,
+            }
+          })
           .filter(Boolean)
-        if (correctQuestions.length > 0) {
-          const correctKeys = correctQuestions.map((q) =>
-            q._bankKey ?? `${id}-${q.id ?? q.question.slice(0, 30)}`
-          )
-          useStatsStore.getState().removeFromBank(correctKeys)
-        }
-
-        // Wrong answers → add to bank, but NOT for practice quizzes (already in bank)
-        if (!isPractice) {
-          const wrongQuestions = gameState.answers
-            .filter((a) => !a.correct)
-            .map((a) => gameState.questions[a.questionIdx])
-            .filter(Boolean)
-          if (wrongQuestions.length > 0) {
-            useStatsStore.getState().addWrongAnswers(id, quiz?.title || 'Quiz', wrongQuestions)
-          }
-        }
+        stats.applyAnswersToBank(results)
+        stats.recordCombo(gameState.maxCombo)
 
         // Fire XP / streak via statsStore
-        const xpEarned = useStatsStore.getState().recordResult(id, score, total)
+        const xpEarned = stats.recordResult(id, score, total, gameState.bonusXp)
         set((state) => ({
           quizzes: state.quizzes.map((q) =>
             q.id === id
@@ -121,6 +148,14 @@ export const useQuizStore = create(
   )
 )
 
+// Combo: 3+ in a row = +5 XP per answer (1.5×), 5+ in a row = +10 XP (2×)
+export function comboBonus(combo) {
+  if (combo >= 5) return 10
+  if (combo >= 3) return 5
+  return 0
+}
+const SPEED_BONUS = 3
+
 // Game state (not persisted)
 export const useGameStore = create((set) => ({
   quizId: null,
@@ -129,6 +164,9 @@ export const useGameStore = create((set) => ({
   currentIndex: 0,
   score: 0,
   answers: [],
+  combo: 0,
+  maxCombo: 0,
+  bonusXp: 0, // combo + speed bonuses earned this run
   shuffled: false,
   phase: 'idle', // idle | playing | answered | finished
 
@@ -147,18 +185,28 @@ export const useGameStore = create((set) => ({
       currentIndex: 0,
       score: 0,
       answers: [],
+      combo: 0,
+      maxCombo: 0,
+      bonusXp: 0,
       shuffled: shuffle,
       phase: 'playing',
     })
   },
 
-  submitAnswer: (choiceIdx) => {
+  // choiceIdx: index into choices, or -1 for a timeout / wrong typed answer.
+  // opts.correct overrides the check (typed answers); opts.fast adds a speed bonus.
+  submitAnswer: (choiceIdx, opts = {}) => {
     const state = useGameStore.getState()
     const q = state.questions[state.currentIndex]
-    const correct = choiceIdx === q.correct
+    const correct = opts.correct ?? choiceIdx === q.correct
+    const combo = correct ? state.combo + 1 : 0
+    const bonus = correct ? comboBonus(combo) + (opts.fast ? SPEED_BONUS : 0) : 0
     set((s) => ({
       score: correct ? s.score + 1 : s.score,
-      answers: [...s.answers, { questionIdx: s.currentIndex, chosen: choiceIdx, correct }],
+      answers: [...s.answers, { questionIdx: s.currentIndex, chosen: correct ? q.correct : choiceIdx, typed: opts.typed, correct }],
+      combo,
+      maxCombo: Math.max(s.maxCombo, combo),
+      bonusXp: s.bonusXp + bonus,
       phase: 'answered',
     }))
     return correct
@@ -174,5 +222,5 @@ export const useGameStore = create((set) => ({
     }
   },
 
-  resetGame: () => set({ quizId: null, activeQuiz: null, questions: [], currentIndex: 0, score: 0, answers: [], phase: 'idle' }),
+  resetGame: () => set({ quizId: null, activeQuiz: null, questions: [], currentIndex: 0, score: 0, answers: [], combo: 0, maxCombo: 0, bonusXp: 0, phase: 'idle' }),
 }))

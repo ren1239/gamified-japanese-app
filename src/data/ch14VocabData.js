@@ -1,0 +1,63 @@
+// Chapter 14 Vocabulary — Genki II (3rd ed.)
+// category: 'noun' | 'u-verb' | 'ru-verb' | 'irregular' | 'other'
+export const ch14Vocab = [
+  { id: 'n01', kana: 'おくさん', kanji: '奥さん', english: '(your/someone\'s) wife', category: 'noun' },
+  { id: 'n02', kana: 'ごしゅじん', kanji: 'ご主人', english: '(your/someone\'s) husband', category: 'noun' },
+  { id: 'n03', kana: 'パートナー', kanji: '', english: 'partner', category: 'noun' },
+  { id: 'n04', kana: 'おじさん', kanji: '', english: 'uncle; middle-aged man', category: 'noun' },
+  { id: 'n05', kana: 'おばさん', kanji: '', english: 'aunt; middle-aged woman', category: 'noun' },
+  { id: 'n06', kana: 'りょうしん', kanji: '両親', english: 'parents', category: 'noun' },
+  { id: 'n07', kana: 'おおやさん', kanji: '大家さん', english: 'landlord; landlady', category: 'noun' },
+  { id: 'n08', kana: 'みなさん', kanji: '皆さん', english: 'everyone; all of you', category: 'noun' },
+  { id: 'n09', kana: 'チョコレート', kanji: '', english: 'chocolate', category: 'noun' },
+  { id: 'n10', kana: 'みかん', kanji: '', english: 'mandarin orange', category: 'noun' },
+  { id: 'n11', kana: 'トレーナー', kanji: '', english: 'sweatshirt', category: 'noun' },
+  { id: 'n12', kana: 'シャツ', kanji: '', english: 'shirt', category: 'noun' },
+  { id: 'n13', kana: 'ネクタイ', kanji: '', english: 'necktie', category: 'noun' },
+  { id: 'n14', kana: 'マフラー', kanji: '', english: 'winter scarf', category: 'noun' },
+  { id: 'n15', kana: 'ゆびわ', kanji: '指輪', english: 'ring', category: 'noun' },
+  { id: 'n16', kana: 'えんぴつ', kanji: '鉛筆', english: 'pencil', category: 'noun' },
+  { id: 'n17', kana: 'ぬいぐるみ', kanji: '', english: 'stuffed animal (e.g., teddy bear)', category: 'noun' },
+  { id: 'n18', kana: 'まんが', kanji: '漫画', english: 'comic book', category: 'noun' },
+  { id: 'n19', kana: 'けしょうひん', kanji: '化粧品', english: 'cosmetics', category: 'noun' },
+  { id: 'n20', kana: 'ラジオ', kanji: '', english: 'radio', category: 'noun' },
+  { id: 'n21', kana: 'おさら', kanji: 'お皿', english: 'plate; dish', category: 'noun' },
+  { id: 'n22', kana: 'おかえし', kanji: 'お返し', english: 'return (as a token of gratitude)', category: 'noun' },
+  { id: 'n23', kana: 'りれきしょ', kanji: '履歴書', english: 'résumé', category: 'noun' },
+  { id: 'n24', kana: 'クリスマス', kanji: '', english: 'christmas', category: 'noun' },
+  { id: 'n25', kana: 'バレンタインデー', kanji: '', english: 'valentine\'s day', category: 'noun' },
+  { id: 'n26', kana: 'ホワイトデー', kanji: '', english: '"white day" (yet another gift-giving day)', category: 'noun' },
+  { id: 'o01', kana: 'ほしい', kanji: '欲しい', english: 'to want (thing が)', category: 'other' },
+  { id: 'o02', kana: 'おしゃれ', kanji: '', english: 'fashionable; stylish', category: 'other' },
+  { id: 'o03', kana: 'けち', kanji: '', english: 'stingy; cheap', category: 'other' },
+  { id: 'u01', kana: 'おくる', kanji: '送る', english: 'to send (person に thing を)', category: 'u-verb' },
+  { id: 'u02', kana: 'にあう', kanji: '似合う', english: 'to look good (on somebody) (thing が)', category: 'u-verb' },
+  { id: 'r01', kana: 'あきらめる', kanji: '', english: 'to give up (〜を)', category: 'ru-verb' },
+  { id: 'r02', kana: 'あげる', kanji: '', english: 'to give (to others) (person に thing を)', category: 'ru-verb' },
+  { id: 'r03', kana: 'くれる', kanji: '', english: 'to give (me) (person に thing を)', category: 'ru-verb' },
+  { id: 'r04', kana: 'できる', kanji: '', english: 'to come into existence; to be made (〜が)', category: 'ru-verb' },
+  { id: 'i01', kana: 'そうだんする', kanji: '相談する', english: 'to consult (person に)', category: 'irregular' },
+  { id: 'i02', kana: 'ちゅういする', kanji: '注意する', english: 'to give warning (person に); to watch out (〜に)', category: 'irregular' },
+  { id: 'i03', kana: 'プロポーズする', kanji: '', english: 'to propose marriage (person に)', category: 'irregular' },
+  { id: 'o04', kana: '〜くん', kanji: '〜君', english: 'mr./ms. ... (casual)', category: 'other' },
+  { id: 'o05', kana: '〜たち', kanji: '', english: '[makes a noun plural]', category: 'other' },
+  { id: 'o06', kana: 'わたしたち', kanji: '私たち', english: 'we', category: 'other' },
+  { id: 'o07', kana: 'こんな〜', kanji: '', english: '... like this; this kind of ...', category: 'other' },
+  { id: 'o08', kana: 'きゅうに', kanji: '急に', english: 'suddenly', category: 'other' },
+  { id: 'o09', kana: 'ちょうど', kanji: '', english: 'exactly', category: 'other' },
+  { id: 'o10', kana: 'よく', kanji: '', english: 'well', category: 'other' },
+  { id: 'o11', kana: 'さあ', kanji: '', english: 'i am not sure ...', category: 'other' },
+  { id: 'o12', kana: 'どうしたらいい', kanji: '', english: 'what should one do', category: 'other' },
+  { id: 'o13', kana: '〜こ', kanji: '〜個', english: '[generic counter for smaller items]', category: 'other' },
+  { id: 'o14', kana: '〜さつ', kanji: '〜冊', english: '[counter for bound volumes]', category: 'other' },
+  { id: 'o15', kana: '〜だい', kanji: '〜台', english: '[counter for equipment]', category: 'other' },
+  { id: 'o16', kana: '〜ひき', kanji: '〜匹', english: '[counter for smaller animals]', category: 'other' },
+  { id: 'o17', kana: '〜ほん', kanji: '〜本', english: '[counter for long objects]', category: 'other' },
+]
+
+export function getWordsForCategory(cat) {
+  if (cat === 'noun')  return ch14Vocab.filter(w => w.category === 'noun')
+  if (cat === 'verb')  return ch14Vocab.filter(w => ['u-verb','ru-verb','irregular'].includes(w.category))
+  if (cat === 'other') return ch14Vocab.filter(w => w.category === 'other')
+  return ch14Vocab // 'all'
+}

@@ -170,29 +170,17 @@ The chapter entry in `src/data/chapterData.js` controls what is shown and what i
 To enable the **Category / Direction / Generate & Play** vocab UI for a new chapter:
 
 1. Create `src/data/chNNVocabData.js` (see §1)
-2. In `src/utils/vocabQuizGen.js`, add two cases for the new chapter:
+2. In `src/utils/vocabQuizGen.js`, import the file and add one entry to `VOCAB_BY_CHAPTER`:
    ```js
    import { chNNVocab, getWordsForCategory as chNNGetWords } from '../data/chNNVocabData'
 
-   export function getWordsForChapterAndCategory(chapterNum, category) {
-     if (chapterNum === 11) return ch11GetWords(category)
-     if (chapterNum === 12) return ch12GetWords(category)
-     if (chapterNum === NN) return chNNGetWords(category)   // ← add this
-     return []
-   }
-
-   export function getVocabForChapter(chapterNum) {
-     if (chapterNum === 11) return ch11Vocab
-     if (chapterNum === 12) return ch12Vocab
-     if (chapterNum === NN) return chNNVocab                // ← add this
-     return []
+   const VOCAB_BY_CHAPTER = {
+     // ...
+     NN: [chNNVocab, chNNGetWords],   // ← add this
    }
    ```
-3. In `src/screens/ChapterDetailScreen.jsx`, add the chapter number to `hasDynamic`:
-   ```js
-   const hasDynamic = [11, 12, NN].includes(chapter.number)
-   ```
-4. Set `vocab: { available: true }` in `chapterData.js` for the chapter (no `quizId` needed for dynamic chapters).
+   `ChapterDetailScreen.jsx`, flashcards, mastery and the Continue card all read `DYNAMIC_VOCAB_CHAPTERS` from this map — nothing else to wire.
+3. Set `vocab: { available: true }` in `chapterData.js` for the chapter (no `quizId` needed for dynamic chapters).
 
 ---
 
@@ -203,10 +191,10 @@ When a chapter already has vocab but no grammar (e.g. Ch.12 after its initial vo
 1. **Create** `src/data/chNNGrammar.js` with one named export per grammar point (see §2).
 2. **Import** the quiz objects in `src/store/quizStore.js` and add them to `builtinQuizzes` (see §3).
 3. **Update** the chapter entry in `chapterData.js`: populate the `grammar` array with entries for each quiz (see §4). Set `available: true` for each quiz that exists.
-4. **Do NOT** touch `vocabQuizGen.js` or `ChapterDetailScreen.jsx` — those are already wired.
+4. **Do NOT** touch `vocabQuizGen.js` — vocab is already wired.
 5. **Do NOT** change `vocab.available` — it is already `true`.
 
-**Current chapters with vocab but no grammar yet:** Ch.12
+**Current chapters with vocab but no grammar yet:** Ch.2–10
 
 ---
 
@@ -268,13 +256,11 @@ Not every dimension applies to every grammar point (e.g., ほうがいいです 
 ## 9 — Checklist for Adding a New Chapter
 
 ### After writing grammar questions
-- [ ] Check every kanji in every `jp` field against `src/utils/romaji.js` KANJI_MAP
-- [ ] Add any missing kanji/words (longest forms first) so romaji toggle works correctly
+- [ ] Romaji readings are derived automatically from every `chNNVocabData.js` (see `src/utils/kanjiReadings.js`). For kanji that appear in sentences but not in any vocab list, add them to `EXTRA_WORDS` there (whole words) or `ADJ_STEMS` (い-adjective stems)
 
 ### Vocab only (first pass)
 - [ ] `src/data/chNNVocabData.js` created with all words, correct categories, lowercase english
-- [ ] `vocabQuizGen.js` updated with new chapter cases in both functions
-- [ ] `ChapterDetailScreen.jsx` `hasDynamic` array updated to include new chapter number
+- [ ] `vocabQuizGen.js` `VOCAB_BY_CHAPTER` entry added
 - [ ] `chapterData.js` chapter entry set to `vocab: { available: true }`, `grammar: []`
 
 ### Grammar (second pass — can be done separately)
@@ -283,3 +269,49 @@ Not every dimension applies to every grammar point (e.g., ほうがいいです 
 - [ ] All quiz `id`s are globally unique (format: `chNN-keyword`)
 - [ ] Quizzes imported and added to `builtinQuizzes` in `quizStore.js`
 - [ ] `chapterData.js` grammar array populated with all quiz entries
+
+---
+
+## 10 — Progress & Gamification Model
+
+- **Dates** are local (`src/utils/dates.js`), never `toISOString()` — that's UTC and shifts evening sessions to the wrong day.
+- **Wrong-answer bank = spaced repetition** (`applyAnswersToBank` in `statsStore.js`). Leitner boxes 1–5; correct on a *due* item moves it up (next review in 1/3/7/14 days), correct in box 5 = mastered. Wrong → box 1, due today. Every quiz feeds it, including practice runs.
+- **Bank keys** come from `question._bankKey` when set. Generated vocab questions use per-word keys (`chNN-vocab-<wordId>-<dir>`) so repeat misses accumulate; never key by a timestamped quiz id.
+- **Learned words** = 2 correct quiz answers in a row (`recordVocabAnswer`). Flashcards don't mark words learned.
+- **Streak** advances the first time a day's XP reaches `dailyGoal`. Freezes (max 2, earned every 7 streak days) cover missed days.
+- **XP** = 10/correct + 50 perfect + combo bonus (+5 at 3 in a row, +10 at 5+) + speed bonus (+3, speed mode only).
+- If you add persisted fields to `statsStore`, add them to `partialize`; bump `version` + `migrate` when changing the shape of existing data.
+
+---
+
+## 11 — Compact Grammar Authoring (Ch.13+)
+
+Genki II grammar files (`ch13Grammar.js` … `ch23Grammar.js`) use `makeQuiz` from `src/data/grammarHelpers.js`:
+
+```js
+import { makeQuiz } from './grammarHelpers.js'   // keep the .js — lets Node scripts import the file
+
+export const ch13NaraQuiz = makeQuiz({ id: 'ch13-nara', title, topic, grammarPoint, description }, [
+  // [question, jp | null, [correctAnswer, ...distractors], explanation]
+  ['"If it\'s karate, I can do it."', '空手___、できます。', ['なら', 'ので', 'けど', 'し'], 'Noun + なら = "if it\'s X".'],
+])
+```
+
+- `choices[0]` is always the answer; `makeQuiz` shuffles with a seeded shuffle so positions vary but never change between reloads (the wrong-answer bank stores question objects).
+- Every chapter ends with a `chNN-review` quiz (label `まとめ`) mixing all its grammar points.
+- Distractors must be *wrong*, not just different — avoid casual forms that are actually correct (〜っていう, bare 〜か in yes/no embedded questions, ら-less potentials, 〜ちゃう, etc.).
+- Questions are written in our own words, modelled on the textbook's practice types — don't copy the book's sentences or exercises (the app is deployed publicly).
+
+
+---
+
+## 12 — UI System (Nihongo ToGo)
+
+- **Theme tokens** live at the top of `src/index.css`: 藍 indigo (`--primary`) = brand/vocab track, 朱 vermilion (`--accent`) = streak/grammar track, 金 gold (`--gold`) = XP/mastered. Every pressable color has a `-deep` shade used as the 3D bottom edge. Light on `:root`; dark via `prefers-color-scheme` (theme = `system`) or `[data-theme="dark"]`, set by App from `statsStore.theme`. Use tokens, never hex literals, in components.
+- **Buttons**: `.btn` + `.btn-primary | -accent | -success | -gold | -danger | -ghost | -white`. They collapse their `--depth` edge on press.
+- **Mascots** (`src/components/Mascot.jsx`): **Nori** (triangle onigiri) for vocab and celebrations; **Mentai** (round, spicy mentaiko + chili) for grammar. Moods: `happy | think | cheer | oops | sleep`. `mascotForQuiz()` in `src/utils/mascot.js` picks one per quiz.
+- **Icons**: `<Icon name="flame" />` from `src/components/Icon.jsx` (inline SVG, tinted via `color`).
+- **Romaji**: one global persisted setting (`statsStore.showRomaji`). Put `<RomajiToggle />` in any screen header and render Japanese with `<Jp>` so it gets a romaji line automatically.
+- **Learn tab** (`PathScreen.jsx`) has two tracks (`statsStore.learnTrack`): 単語 vocab (per chapter: Nouns · Verbs · Other · All words) and 文法 grammar (per chapter: each grammar point · まとめ). Nothing is locked; the first unfinished node in the most recently studied chapter gets START. Vocab node = mastered at 100% words learned; grammar node = mastered at best ≥ 80%.
+- **Lesson flow** (`QuizScreen.jsx`): select → Check → green/red check bar with correction + rule → Continue (correct answers also auto-advance). Lesson complete (`ScoreScreen.jsx`) shows XP / accuracy / best combo, then a streak screen when the daily goal was just met.
+- Keep `html, body, #root` and the App root on `overflow-x: clip` (not `hidden`) or sticky headers and the check bar stop sticking.

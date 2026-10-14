@@ -2,6 +2,8 @@ import { motion } from 'framer-motion'
 import { ChevronRight, BookOpen, CheckCircle, Circle, Lock } from 'lucide-react'
 import { useQuizStore } from '../store/quizStore'
 import { chapters } from '../data/chapterData'
+import { useStatsStore } from '../store/statsStore'
+import { getChapterMastery } from '../utils/mastery'
 
 function getChapterStatus(chapter, quizMap) {
   const vocab = chapter.vocab?.quizId ? quizMap[chapter.vocab.quizId] : null
@@ -22,6 +24,7 @@ function getChapterStatus(chapter, quizMap) {
 export default function ChapterListScreen({ onSelect }) {
   const quizzes = useQuizStore((s) => s.quizzes)
   const quizMap = Object.fromEntries(quizzes.map((q) => [q.id, q]))
+  const learnedBank = useStatsStore((s) => s.learnedBank)
 
   return (
     <div className="page" style={{ paddingTop: 24 }}>
@@ -37,7 +40,7 @@ export default function ChapterListScreen({ onSelect }) {
             Genki I &amp; II
           </div>
         </div>
-        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
+        <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
           CHAPTERS
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, marginTop: 4 }}>
@@ -49,7 +52,8 @@ export default function ChapterListScreen({ onSelect }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {chapters.map((ch, i) => {
           const isLocked = !ch.vocab?.available && ch.grammar.length === 0
-          const status = isLocked ? 'locked' : getChapterStatus(ch, quizMap)
+          const mastery = isLocked ? null : getChapterMastery(ch, quizzes, learnedBank)
+          const status = isLocked ? 'locked' : mastery?.pct === 100 ? 'gold' : mastery?.pct > 0 ? 'active' : getChapterStatus(ch, quizMap)
           const vocab = ch.vocab?.quizId ? quizMap[ch.vocab.quizId] : null
           const grammarCount = ch.grammar.length
           const grammarPlayed = ch.grammar.filter((g) => quizMap[g.quizId]?.playCount > 0).length
@@ -88,7 +92,7 @@ export default function ChapterListScreen({ onSelect }) {
               <div style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: "'Bebas Neue', sans-serif", fontSize: 20,
+                fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 20,
                 background: status === 'gold'
                   ? 'linear-gradient(135deg, #F59E0B, #F97316)'
                   : status === 'active'
@@ -111,6 +115,14 @@ export default function ChapterListScreen({ onSelect }) {
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {ch.subtitle}
                 </div>
+                {mastery && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                    <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--border)', overflow: 'hidden' }}>
+                      <div style={{ width: `${mastery.pct}%`, height: '100%', borderRadius: 2, background: mastery.pct === 100 ? 'var(--gold)' : 'linear-gradient(90deg, var(--primary), var(--primary-light))', transition: 'width 0.4s' }} />
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 900, color: mastery.pct === 100 ? 'var(--gold)' : 'var(--text-muted)', minWidth: 28, textAlign: 'right' }}>{mastery.pct}%</span>
+                  </div>
+                )}
               </div>
 
               {/* Right: progress indicators */}

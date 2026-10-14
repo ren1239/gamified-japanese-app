@@ -57,7 +57,7 @@ export const ch00MasuQuiz = {
       id: 6,
       question: 'What is the masu form of とる (u-verb, ends in る)?',
       jp: 'とる → ___',
-      choices: ['とます', 'とれます', 'とります', 'とります'],
+      choices: ['とます', 'とれます', 'とります', 'とるます'],
       correct: 2,
       explanation: 'Careful! とる ends in る but it\'s a u-verb, not a ru-verb. U-verb pattern: る→り + ます → とります. If it were a ru-verb (like たべる), you\'d just drop る → とます. Context clue: とる has no meaning as a short stem.',
     },

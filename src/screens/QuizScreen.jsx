@@ -1,591 +1,278 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Lightbulb, ArrowRight, ChevronRight, Check, X, Flag } from 'lucide-react'
-import { useGameStore, useQuizStore } from '../store/quizStore'
+import { bind as bindWanakana, unbind as unbindWanakana } from 'wanakana'
+import { useGameStore, useQuizStore, comboBonus } from '../store/quizStore'
 import { useStatsStore } from '../store/statsStore'
 import { playSuccessChime, playErrorBuzzer } from '../utils/audio'
-import { toRomajiSafe } from '../utils/romaji'
+import { isTypedCorrect } from '../utils/answerMatch'
+import { canSpeak, speakJapanese, speechTextFor } from '../utils/speech'
+import Icon from '../components/Icon'
+import Mascot from '../components/Mascot'
+import { mascotForQuiz } from '../utils/mascot'
+import Jp from '../components/Jp'
+import RomajiToggle from '../components/RomajiToggle'
 
-const LABELS = ['A', 'B', 'C', 'D']
-const BADGE_COLORS = [
-  { bg: '#F97316', text: '#fff' }, // A — orange
-  { bg: '#7C3AED', text: '#fff' }, // B — purple
-  { bg: '#3B82F6', text: '#fff' }, // C — blue
-  { bg: '#10B981', text: '#fff' }, // D — teal
-]
+const HAS_JP = /[぀-ヿ一-鿿]/
+const AUTO_ADVANCE_MS = 1500
 
+// Lesson flow: pick an answer (or type it) → Check → the bottom bar turns green/red and shows
+// the correction + rule → Continue. Correct answers also auto-advance after a moment.
 export default function QuizScreen({ onFinish, onQuit, burst }) {
-  const { questions, currentIndex, score, phase, quizId, activeQuiz, submitAnswer, nextQuestion } = useGameStore()
+  const { questions, currentIndex, combo, phase, quizId, activeQuiz, submitAnswer, nextQuestion } = useGameStore()
   const getQuiz = useQuizStore((s) => s.getQuiz)
   const soundEnabled = useStatsStore((s) => s.soundEnabled)
+  const autoSpeak = useStatsStore((s) => s.autoSpeak)
+  const speedMode = useStatsStore((s) => s.speedMode)
   const flaggedBank = useStatsStore((s) => s.flaggedBank)
   const flagQuestion = useStatsStore((s) => s.flagQuestion)
   const unflagQuestion = useStatsStore((s) => s.unflagQuestion)
 
+  const [selected, setSelected] = useState(null) // choice picked but not checked yet
+  const [chosenIdx, setChosenIdx] = useState(null) // choice that was checked
   const [lastCorrect, setLastCorrect] = useState(null)
-  const [chosenIdx, setChosenIdx] = useState(null)
   const [hintOpen, setHintOpen] = useState(false)
-  const [showRomaji, setShowRomaji] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(5)
+  const [typedAnswer, setTypedAnswer] = useState('')
+  const [typedDraft, setTypedDraft] = useState('')
+  const inputRef = useRef(null)
   const answeredRef = useRef(false)
-
-  const TIMER_DURATION = 5
-  const TIMER_RADIUS = 14
-  const TIMER_CIRC = 2 * Math.PI * TIMER_RADIUS
-  const timerProgress = timeLeft / TIMER_DURATION
-  const timerOffset = TIMER_CIRC * (1 - timerProgress)
-  const timerColor = timeLeft > 3 ? 'rgba(255,255,255,0.9)' : timeLeft > 1.5 ? '#FCD34D' : '#EF4444'
+  const advancedFor = useRef(-1)
 
   const q = questions[currentIndex]
+  const TIMER_DURATION = q?.inputMode ? 12 : 6
+  const [timeLeft, setTimeLeft] = useState(TIMER_DURATION)
+
   const total = questions.length
   const answered = phase === 'answered'
-
-  // Get grammar metadata for hint (only exists on grammar drills)
-  const quizMeta = quizId ? getQuiz(quizId) : null
+  const quizMeta = (q?._sourceQuizId && getQuiz(q._sourceQuizId)) || (quizId ? getQuiz(quizId) : null)
   const hasHint = !!(quizMeta?.grammarPoint || quizMeta?.description)
+  const who = mascotForQuiz(activeQuiz, q)
 
-  // Flag state for current question
   const flagKey = q ? (q._bankKey ?? `${quizId}-${q.id ?? q.question.slice(0, 30)}`) : null
   const isFlagged = flagKey ? flaggedBank.some((e) => e.key === flagKey) : false
-  const effectiveFlagQuizId = q?._sourceQuizId ?? quizId
-  const effectiveFlagTitle = q?._sourceQuizTitle ?? quizMeta?.title ?? activeQuiz?.title ?? 'Quiz'
-
-  const handleToggleFlag = () => {
+  const toggleFlag = () => {
     if (!flagKey || !q) return
-    if (isFlagged) {
-      unflagQuestion(flagKey)
-    } else {
-      flagQuestion(effectiveFlagQuizId, effectiveFlagTitle, q)
-    }
+    if (isFlagged) unflagQuestion(flagKey)
+    else flagQuestion(q._sourceQuizId ?? quizId, q._sourceQuizTitle ?? quizMeta?.title ?? activeQuiz?.title ?? 'Quiz', q)
   }
 
   const advance = useCallback(() => {
+    if (advancedFor.current === currentIndex) return
+    advancedFor.current = currentIndex
     nextQuestion()
+    setSelected(null)
     setChosenIdx(null)
     setLastCorrect(null)
-  }, [nextQuestion])
+    setTypedDraft('')
+  }, [nextQuestion, currentIndex])
 
-  const handleAnswer = useCallback(
-    (idx) => {
-      if (phase !== 'playing') return
-      setChosenIdx(idx)
-      const correct = submitAnswer(idx)
-      setLastCorrect(correct)
+  const grade = useCallback((idx, opts = {}) => {
+    if (phase !== 'playing') return
+    setChosenIdx(idx)
+    const fast = speedMode && idx >= 0 && timeLeft > 0
+    const correct = submitAnswer(idx, { ...opts, fast })
+    setLastCorrect(correct)
+    if (autoSpeak && q?._speak) speakJapanese(q._speak)
+    if (correct) {
+      if (soundEnabled) playSuccessChime()
+      burst(window.innerWidth / 2, window.innerHeight * 0.75, 'correct', 45)
+      const idxAtGrade = currentIndex
+      setTimeout(() => { if (useGameStore.getState().currentIndex === idxAtGrade) advance() }, AUTO_ADVANCE_MS)
+    } else if (soundEnabled) {
+      playErrorBuzzer()
+    }
+  }, [phase, speedMode, timeLeft, submitAnswer, autoSpeak, q, soundEnabled, burst, currentIndex, advance])
 
-      if (correct) {
-        if (soundEnabled) playSuccessChime()
-        burst(window.innerWidth / 2, window.innerHeight * 0.5, 'correct', 55)
-        // Auto-advance only on correct — satisfying flow
-        setTimeout(advance, 1000)
-      } else {
-        if (soundEnabled) playErrorBuzzer()
-      }
-      // On wrong: user must tap "Got it →" to advance (no auto-skip)
-    },
-    [phase, submitAnswer, burst, advance, soundEnabled]
-  )
+  const check = useCallback(() => {
+    if (phase !== 'playing' || !q) return
+    if (q.inputMode) {
+      const typed = (inputRef.current?.value ?? typedDraft).trim()
+      if (!typed) return
+      const correct = isTypedCorrect(typed, q.accept ?? [q.choices[q.correct]])
+      setTypedAnswer(typed)
+      grade(correct ? q.correct : -1, { correct, typed })
+    } else if (selected != null) {
+      grade(selected)
+    }
+  }, [phase, q, typedDraft, selected, grade])
 
-  // Keyboard shortcuts A/B/C or 1/2/3
+  // Romaji → kana while typing (callback ref: the card animates out before the next input mounts)
+  const inputCallbackRef = useCallback((el) => {
+    inputRef.current = el
+    if (!el) return
+    bindWanakana(el, { IMEMode: true })
+    el.focus()
+    requestAnimationFrame(() => { if (el.isConnected && !el.disabled) el.focus() })
+    return () => { try { unbindWanakana(el) } catch { /* already unbound */ } }
+  }, [])
+
+  useEffect(() => {
+    if (speedMode && timeLeft === 0 && phase === 'playing') grade(-1)
+  }, [speedMode, timeLeft, phase, grade])
+
+  // Keys: 1–4 / A–D pick, Enter checks, Enter/Space continues
   useEffect(() => {
     const handler = (e) => {
-      // Space or Enter to advance when wrong
-      if ((e.key === ' ' || e.key === 'Enter') && answered && !lastCorrect) {
-        advance()
-        return
-      }
-      
-      if (phase !== 'playing') return
+      if (hintOpen) return
+      if (answered && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); advance(); return }
+      if (phase !== 'playing' || !q) return
+      if (q.inputMode) return // input handles its own Enter
+      if (e.key === 'Enter') { check(); return }
       const map = { '1': 0, '2': 1, '3': 2, '4': 3, a: 0, b: 1, c: 2, d: 3 }
       const idx = map[e.key.toLowerCase()]
-      if (idx !== undefined && idx < q?.choices?.length) handleAnswer(idx)
+      if (idx !== undefined && idx < q.choices.length) setSelected(idx)
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [phase, q, handleAnswer, answered, lastCorrect, advance])
+  }, [phase, q, answered, advance, check, hintOpen])
 
-  useEffect(() => {
-    if (phase === 'finished') onFinish()
-  }, [phase, onFinish])
-
-  // Keep answeredRef in sync so the timer interval can read it without stale closure
+  useEffect(() => { if (phase === 'finished') onFinish() }, [phase, onFinish])
   useEffect(() => { answeredRef.current = phase === 'answered' }, [phase])
 
-  // Reset and run timer on each new question
   useEffect(() => {
     answeredRef.current = false
+    setTypedAnswer('')
     setTimeLeft(TIMER_DURATION)
+    if (!speedMode) return
     const interval = setInterval(() => {
       if (answeredRef.current) { clearInterval(interval); return }
-      setTimeLeft(prev => {
-        if (prev <= 0.05) { clearInterval(interval); return 0 }
-        return Math.max(0, +(prev - 0.1).toFixed(2))
-      })
+      setTimeLeft((prev) => (prev <= 0.05 ? (clearInterval(interval), 0) : Math.max(0, +(prev - 0.1).toFixed(2))))
     }, 100)
     return () => clearInterval(interval)
-  }, [currentIndex])
+  }, [currentIndex, speedMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!q) return null
 
+  const speech = speechTextFor(q, answered)
+  const nextBonus = comboBonus(combo + 1)
+  const progress = ((currentIndex + (answered ? 1 : 0)) / total) * 100
+  const canCheck = q.inputMode ? typedDraft.trim().length > 0 : selected != null
+  const mood = !answered ? 'think' : lastCorrect ? 'cheer' : 'oops'
+  const correctText = q.choices[q.correct]
+
   return (
-    <div style={{
-      position: 'relative', zIndex: 1,
-      minHeight: '100dvh',
-      display: 'flex', flexDirection: 'column',
-      maxWidth: 448, margin: '0 auto',
-    }}>
-
-      {/* ── Purple Header Card ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        style={{
-          background: 'linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%)',
-          borderRadius: '0 0 32px 32px',
-          padding: '52px 20px 24px',
-          marginBottom: 20,
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,200,255,0.12)', filter: 'blur(30px)', pointerEvents: 'none' }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, position: 'relative', zIndex: 1 }}>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={onQuit}
-            style={{
-              width: 38, height: 38, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.35)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-            }}
-          >
-            <ArrowLeft size={18} color="#fff" strokeWidth={2.5} />
-          </motion.button>
-
-          <div style={{
-            background: 'rgba(255,255,255,0.18)', border: '1.5px solid rgba(255,255,255,0.3)',
-            borderRadius: 14, padding: '8px 20px', textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Score</div>
-            <motion.div
-              key={score}
-              initial={{ scale: 1.4 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-              style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, lineHeight: 1, color: '#fff' }}
-            >
-              {score}
-            </motion.div>
-          </div>
-
-          {/* Timer circle — right, symmetrical with quit button */}
-          <div style={{ width: 38, height: 38, position: 'relative', flexShrink: 0 }}>
-            {/* SVG ring */}
-            <svg width="38" height="38" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
-              <circle cx="19" cy="19" r={TIMER_RADIUS} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2.5" />
-              <circle
-                cx="19" cy="19" r={TIMER_RADIUS}
-                fill="none"
-                stroke={timerColor}
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeDasharray={TIMER_CIRC}
-                strokeDashoffset={timerOffset}
-                style={{ transition: 'stroke-dashoffset 0.1s linear, stroke 0.3s ease' }}
-              />
-            </svg>
-            {/* Background + number */}
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.35)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 13, color: '#fff', lineHeight: 1 }}>
-                {Math.ceil(timeLeft)}
-              </span>
-            </div>
-          </div>
+    <div className="lesson">
+      {/* ── Top bar ── */}
+      <header className="lesson-top">
+        <button type="button" className="lesson-icon-btn" onClick={onQuit} aria-label="Quit lesson"><Icon name="x" size={22} /></button>
+        <div className="lesson-bar" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
+          <i style={{ width: `${Math.max(progress, 3)}%` }} />
         </div>
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: 700, marginBottom: 8 }}>
-            <span>Question {currentIndex + 1} / {total}</span>
-            <span>{Math.round(((currentIndex + 1) / total) * 100)}%</span>
-          </div>
-          <div style={{ height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' }}>
-            <motion.div
-              animate={{ width: `${((currentIndex + 1) / total) * 100}%` }}
-              transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ height: '100%', borderRadius: 4, background: 'linear-gradient(90deg, #F97316, #FCD34D)' }}
-            />
-          </div>
-        </div>
-      </motion.div>
-
-      {/* ── Question + Choices ── */}
-      <div style={{ flex: 1, padding: '0 16px 120px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, x: 32 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -32 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-          >
-            {/* Question card */}
-            <div style={{
-              background: 'var(--surface-solid)', borderRadius: 20,
-              padding: '22px 20px 20px', marginBottom: 14,
-              boxShadow: 'var(--shadow-md)',
-              border: '1px solid var(--border-md)',
-            }}>
-              {q.topic && (
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  background: 'var(--border-md)', color: 'var(--primary)',
-                  fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, letterSpacing: '1px',
-                  padding: '4px 12px', borderRadius: 999, marginBottom: 12,
-                }}>
-                  {q.topic}
-                </div>
-              )}
-              <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 'clamp(16px, 3.5vw, 19px)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.5, marginBottom: q.jp ? 10 : 0 }}>
-                {q.question}
-              </div>
-              {q.jp && (
-                <div>
-                  <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900, color: 'var(--primary)', lineHeight: 1.3 }}>
-                    {q.jp}
-                  </div>
-                  {showRomaji && toRomajiSafe(q.jpRomaji ?? q.jp) && (
-                    <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.3px' }}>
-                      {toRomajiSafe(q.jpRomaji ?? q.jp)}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Answer options */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-              {q.choices.map((choice, idx) => {
-                const isChosen = chosenIdx === idx
-                const isCorrect = idx === q.correct
-                const isWrong = isChosen && !isCorrect
-
-                let cardBg = 'var(--surface-solid)'
-                let cardBorder = 'var(--border-md)'
-                let cardShadow = 'var(--shadow-sm)'
-                let badgeBg = BADGE_COLORS[idx].bg
-                let badgeText = BADGE_COLORS[idx].text
-                let textColor = 'var(--text)'
-                let showIcon = null
-
-                if (answered && isCorrect) {
-                  cardBg = 'var(--success-dim)'; cardBorder = 'var(--success)'
-                  cardShadow = '0 4px 20px rgba(16,185,129,0.25)'
-                  badgeBg = 'var(--success)'; textColor = 'var(--success)'; showIcon = <Check size={20} strokeWidth={3.5} />
-                } else if (answered && isWrong) {
-                  cardBg = 'var(--error-dim)'; cardBorder = 'var(--error)'
-                  cardShadow = '0 4px 20px rgba(239,68,68,0.2)'
-                  badgeBg = 'var(--error)'; textColor = 'var(--error)'; showIcon = <X size={20} strokeWidth={3.5} />
-                } else if (answered) {
-                  cardBorder = 'var(--border)'; cardShadow = 'none'
-                  badgeBg = 'var(--border-md)'; badgeText = 'var(--text-muted)'; textColor = 'var(--text-muted)'
-                }
-
-                return (
-                  <motion.button
-                    key={idx}
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={answered && isWrong ? { x: [0, -8, 8, -5, 5, 0], opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-                    transition={answered && isWrong ? { duration: 0.4 } : { delay: idx * 0.055, duration: 0.25 }}
-                    onClick={() => handleAnswer(idx)}
-                    disabled={answered}
-                    whileHover={!answered ? { y: -2, boxShadow: '0 6px 28px rgba(124,58,237,0.18)' } : {}}
-                    whileTap={!answered ? { scale: 0.97 } : {}}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 14,
-                      background: cardBg, border: `2px solid ${cardBorder}`,
-                      borderRadius: 16, padding: '16px 18px',
-                      cursor: answered ? 'default' : 'pointer',
-                      textAlign: 'left', width: '100%',
-                      boxShadow: cardShadow, minHeight: 60,
-                      transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s',
-                    }}
-                  >
-                    <motion.div
-                      animate={{ scale: answered && (isCorrect || isWrong) ? [1, 1.3, 1] : 1 }}
-                      transition={{ duration: 0.35 }}
-                      style={{
-                        width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
-                        background: badgeBg, color: badgeText,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: "'Nunito'", fontWeight: 900, fontSize: showIcon ? 18 : 15,
-                        boxShadow: `0 2px 8px ${badgeBg}55`, transition: 'background 0.2s',
-                      }}
-                    >
-                      {showIcon ?? LABELS[idx]}
-                    </motion.div>
-                    <span style={{ flex: 1 }}>
-                      <span style={{
-                        fontFamily: choice.match(/[\u3040-\u30FF\u4E00-\u9FAF]/) ? "'Noto Sans JP', sans-serif" : "'Nunito', sans-serif",
-                        fontWeight: 700, fontSize: 15, color: textColor, lineHeight: 1.35,
-                        display: 'block', transition: 'color 0.2s',
-                      }}>
-                        {choice}
-                      </span>
-                      {showRomaji && toRomajiSafe(choice) && (
-                        <span style={{
-                          fontFamily: "'Nunito', sans-serif",
-                          fontWeight: 600, fontSize: 11,
-                          color: textColor, opacity: 0.55,
-                          display: 'block', marginTop: 2, lineHeight: 1.2,
-                        }}>
-                          {toRomajiSafe(choice)}
-                        </span>
-                      )}
-                    </span>
-                  </motion.button>
-                )
-              })}
-            </div>
-
-            <div style={{ textAlign: 'center', marginTop: 14, fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.5px' }}>
-              Press A · B · C or 1 · 2 · 3
-            </div>
-          </motion.div>
+        {speedMode && !answered && (
+          <span className="lesson-timer" style={{ '--t': `${(timeLeft / TIMER_DURATION) * 360}deg` }}><span>{Math.ceil(timeLeft)}</span></span>
+        )}
+        <AnimatePresence mode="popLayout">
+          {combo >= 2 && (
+            <motion.span key={combo} className="lesson-combo" initial={{ scale: 1.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 420, damping: 16 }}>
+              <Icon name="flame" size={20} />{combo}
+            </motion.span>
+          )}
         </AnimatePresence>
-      </div>
+        <RomajiToggle />
+      </header>
 
-      {/* ── Floating Action Buttons (romaji left, hint center) ── */}
-      <div style={{
-        position: 'fixed', bottom: 28, left: 0, right: 0,
-        zIndex: 150, pointerEvents: 'none',
-      }}>
-        <div style={{ maxWidth: 448, margin: '0 auto', position: 'relative', height: 46, paddingLeft: 20, paddingRight: 20 }}>
+      {/* ── Question ── */}
+      <main className="lesson-body">
+        <AnimatePresence mode="wait">
+          <motion.div key={currentIndex} className="lesson-card" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -28 }} transition={{ duration: 0.2, ease: 'easeOut' }}>
+            <div className="lesson-meta">
+              {(q.topic || activeQuiz?.topic) && <span className={`lesson-topic ${who === 'mentai' ? 'accent' : ''}`}>{q.topic ?? activeQuiz?.topic}</span>}
+              <div className="lesson-tools">
+                {canSpeak && speech && <button type="button" className="lesson-icon-btn" onClick={() => speakJapanese(speech)} aria-label="Play audio"><Icon name="speaker" size={20} color="var(--primary)" /></button>}
+                {hasHint && !answered && <button type="button" className="lesson-icon-btn" onClick={() => setHintOpen(true)} aria-label="Grammar hint"><Icon name="bulb" size={20} color="var(--gold-deep)" /></button>}
+                <button type="button" className={`lesson-icon-btn ${isFlagged ? 'flagged' : ''}`} onClick={toggleFlag} aria-label={isFlagged ? 'Unflag question' : 'Flag for re-test'}><Icon name="flag" size={18} /></button>
+              </div>
+            </div>
 
-          {/* Romaji toggle — left */}
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowRomaji((v) => !v)}
-            style={{
-              position: 'absolute', left: 20, top: 0,
-              width: 46, height: 46, borderRadius: '50%',
-              background: showRomaji
-                ? 'linear-gradient(135deg, var(--accent), #f97316)'
-                : 'var(--surface-solid)',
-              border: showRomaji ? 'none' : '2px solid var(--border-md)',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: showRomaji ? '0 4px 16px rgba(249,115,22,0.4)' : 'var(--shadow-md)',
-              pointerEvents: 'all',
-              transition: 'background 0.2s, box-shadow 0.2s',
-            }}
-          >
-            <span style={{
-              fontFamily: "'Nunito', sans-serif",
-              fontWeight: 900, fontSize: 16,
-              color: showRomaji ? '#fff' : 'var(--text-muted)',
-              lineHeight: 1,
-              userSelect: 'none',
-            }}>A</span>
-          </motion.button>
+            <div className="lesson-prompt">
+              <Mascot who={who} mood={mood} size={74} />
+              <div className="lesson-bubble">
+                <p className="lesson-question">{q.question}</p>
+                {q.jp && <Jp className="lesson-jp" reading={q.jpRomaji}>{q.jp}</Jp>}
+              </div>
+            </div>
 
-          {/* Grammar hint — center */}
-          <AnimatePresence>
-            {hasHint && !answered && (
-              <div key="hint-wrap" style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)', pointerEvents: 'all' }}>
-                <motion.button
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.4 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setHintOpen(true)}
-                  style={{
-                    width: 46, height: 46, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-                    border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 4px 16px var(--primary-glow)',
-                  }}
-                >
-                  <Lightbulb size={20} color="#fff" strokeWidth={2.5} />
-                </motion.button>
+            {q.inputMode ? (
+              <div className="lesson-typed">
+                <input
+                  ref={inputCallbackRef}
+                  type="text" lang="ja" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+                  disabled={answered}
+                  placeholder="Type in romaji → かな"
+                  onInput={(e) => setTypedDraft(e.currentTarget.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); if (answered) advance(); else check() } }}
+                  className={answered ? (lastCorrect ? 'ok' : 'bad') : ''}
+                />
+                <p className="lesson-hint-line">Type romaji: it turns into kana as you go. Enter to check.</p>
+              </div>
+            ) : (
+              <div className="lesson-choices">
+                {q.choices.map((choice, idx) => {
+                  const isCorrect = idx === q.correct
+                  const state = !answered
+                    ? (selected === idx ? 'selected' : '')
+                    : isCorrect ? 'correct' : chosenIdx === idx ? 'wrong' : 'dim'
+                  return (
+                    <motion.button
+                      key={idx}
+                      type="button"
+                      className={`lesson-choice ${state}`}
+                      onClick={() => !answered && setSelected(idx)}
+                      disabled={answered}
+                      animate={state === 'wrong' ? { x: [0, -7, 7, -4, 4, 0] } : {}}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <span className="lesson-choice-key">{idx + 1}</span>
+                      {HAS_JP.test(choice) ? <Jp className="lesson-choice-text">{choice}</Jp> : <span className="lesson-choice-text">{choice}</span>}
+                    </motion.button>
+                  )
+                })}
               </div>
             )}
-          </AnimatePresence>
-
-          {/* Flag button — right */}
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.35 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleToggleFlag}
-            style={{
-              position: 'absolute', right: 20, top: 0,
-              width: 46, height: 46, borderRadius: '50%',
-              background: isFlagged
-                ? 'linear-gradient(135deg, #DC2626, #EF4444)'
-                : 'var(--surface-solid)',
-              border: isFlagged ? 'none' : '2px solid var(--border-md)',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: isFlagged ? '0 4px 16px rgba(239,68,68,0.4)' : 'var(--shadow-md)',
-              pointerEvents: 'all',
-              transition: 'background 0.2s, box-shadow 0.2s',
-            }}
-          >
-            <Flag size={18} color={isFlagged ? '#fff' : 'var(--text-muted)'} strokeWidth={2.5} fill={isFlagged ? '#fff' : 'none'} />
-          </motion.button>
-
-        </div>
-      </div>
-
-      {/* ── Wrong Answer Feedback + "Got it" button ── */}
-      <AnimatePresence>
-        {answered && lastCorrect !== null && (
-          <motion.div
-            key="feedback-bar"
-            initial={{ y: 120, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 120, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-            style={{
-              position: 'fixed', bottom: 0, left: 0, right: 0, margin: '0 auto',
-              width: '100%', maxWidth: 448,
-              padding: '24px 20px 32px',
-              background: lastCorrect ? 'linear-gradient(135deg, #059669, #10B981)' : 'linear-gradient(135deg, #DC2626, #EF4444)',
-              zIndex: 200, borderRadius: '24px 24px 0 0',
-              boxShadow: lastCorrect ? '0 -8px 32px rgba(16,185,129,0.35)' : '0 -8px 32px rgba(239,68,68,0.35)',
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {/* Text Area */}
-              <div>
-                <motion.div
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 280, damping: 16, delay: 0.05 }}
-                  style={{ fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900, fontSize: 'clamp(20px, 6vw, 26px)', color: '#fff', lineHeight: 1, marginBottom: 6 }}
-                >
-                  {lastCorrect ? '正解！ 🎉' : '不正解 😤'}
-                </motion.div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.9)', lineHeight: 1.4 }}>
-                  {lastCorrect
-                    ? 'Great job! Keep it up!'
-                    : q.explanation
-                      ? q.explanation
-                      : `Correct answer: ${q.choices[q.correct]}`
-                  }
-                </div>
-              </div>
-
-              {/* Only show Got it button on WRONG — correct auto-advances */}
-              {!lastCorrect && (
-                <motion.button
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={advance}
-                  style={{
-                    width: '100%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    background: 'rgba(255,255,255,0.25)',
-                    border: '2px solid rgba(255,255,255,0.5)',
-                    borderRadius: 14, padding: '14px 0',
-                    fontFamily: "'Nunito'", fontWeight: 900, fontSize: 16,
-                    color: '#fff', cursor: 'pointer',
-                  }}
-                >
-                  Got it <ChevronRight size={18} strokeWidth={3} />
-                </motion.button>
-              )}
-            </div>
+            {!answered && nextBonus > 0 && <p className="lesson-hint-line accent">Next correct answer: +{nextBonus} XP combo bonus</p>}
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </main>
 
-      {/* ── Grammar Hint Modal ── */}
+      {/* ── Check bar ── */}
+      <footer className={`lesson-check ${answered ? (lastCorrect ? 'ok' : 'bad') : ''}`}>
+        {answered && (
+            <motion.div className="lesson-verdict" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 26 }}>
+              <strong><Icon name={lastCorrect ? 'check' : 'cross'} size={28} />{lastCorrect ? (combo >= 3 ? `正解！ ${combo} in a row` : '正解！') : chosenIdx === -1 && !typedAnswer ? "Time's up" : 'Not quite'}</strong>
+              {lastCorrect
+                ? combo >= 3 && <p>+{comboBonus(combo)} XP combo bonus</p>
+                : (
+                  <>
+                    {typedAnswer && <p>You typed: <span className="jp">{typedAnswer}</span></p>}
+                    <div className="lesson-answer">Correct answer: {HAS_JP.test(correctText) ? <Jp block={false} className="lesson-answer-jp">{correctText}</Jp> : <b>{correctText}</b>}</div>
+                    {(q.explanation || quizMeta?.description) && (
+                      <p className="lesson-rule"><b>{q.explanation ? 'Why: ' : `Rule · ${quizMeta?.grammarPoint ?? ''}: `}</b>{q.explanation ?? quizMeta.description}</p>
+                    )}
+                  </>
+                )}
+            </motion.div>
+        )}
+        {answered ? (
+          <button type="button" className={`btn btn-lg ${lastCorrect ? 'btn-success' : 'btn-danger'}`} onClick={advance}>{lastCorrect ? 'Continue' : 'Got it'}</button>
+        ) : (
+          <button type="button" className="btn btn-lg btn-success" onClick={check} disabled={!canCheck}>Check</button>
+        )}
+      </footer>
+
+      {/* ── Grammar hint sheet ── */}
       <AnimatePresence>
         {hintOpen && (
           <>
-            <motion.div
-              key="hint-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setHintOpen(false)}
-              style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(15,10,40,0.5)', backdropFilter: 'blur(5px)' }}
-            />
-            <motion.div
-              key="hint-sheet"
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 360, damping: 28 }}
-              style={{
-                position: 'fixed', bottom: 0, left: 0, right: 0, margin: '0 auto',
-                width: '100%', maxWidth: 448, zIndex: 401,
-                background: 'linear-gradient(160deg, var(--primary-dark), var(--primary))',
-                borderRadius: '24px 24px 0 0',
-                padding: '24px 24px 44px',
-              }}
-            >
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.3)', margin: '0 auto 20px' }} />
-
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Lightbulb size={20} color="#FCD34D" strokeWidth={2.5} />
-                </div>
+            <motion.div key="hint-bg" className="sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setHintOpen(false)} />
+            <motion.div key="hint" className="sheet" role="dialog" aria-label="Grammar hint" initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} transition={{ type: 'spring', stiffness: 360, damping: 28 }}>
+              <div className="sheet-head">
+                <Mascot who="mentai" mood="happy" size={56} />
                 <div>
-                  <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 11, color: 'rgba(255,255,255,0.65)', letterSpacing: '2px', textTransform: 'uppercase' }}>Grammar Hint</div>
-                  <div style={{ fontFamily: "'Noto Sans JP'", fontWeight: 900, fontSize: 20, color: '#fff', lineHeight: 1.2 }}>
-                    {quizMeta?.grammarPoint ?? quizMeta?.title}
-                  </div>
+                  <span className="eyebrow">Grammar hint</span>
+                  <Jp className="sheet-title">{quizMeta?.grammarPoint ?? quizMeta?.title ?? ''}</Jp>
                 </div>
               </div>
-
-              {/* Description */}
-              <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: '16px 18px', marginBottom: 16, border: '1px solid rgba(255,255,255,0.2)' }}>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 15, color: '#fff', lineHeight: 1.6 }}>
-                  {quizMeta?.description ?? 'No description available.'}
-                </div>
-              </div>
-
-              {/* Topic tag */}
-              {quizMeta?.topic && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', borderRadius: 999, padding: '5px 14px' }}>
-                  <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 12, color: 'rgba(255,255,255,0.85)' }}>
-                    📚 {quizMeta.topic}
-                  </div>
-                </div>
-              )}
-
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setHintOpen(false)}
-                style={{
-                  width: '100%', marginTop: 20, padding: '13px 0',
-                  background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.3)',
-                  borderRadius: 14, fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15,
-                  color: '#fff', cursor: 'pointer',
-                }}
-              >
-                Got it, let's go!
-              </motion.button>
+              <p className="sheet-body">{quizMeta?.description ?? 'No description available.'}</p>
+              <button type="button" className="btn btn-lg btn-accent" onClick={() => setHintOpen(false)}>Got it</button>
             </motion.div>
           </>
         )}

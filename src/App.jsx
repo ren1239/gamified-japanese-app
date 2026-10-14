@@ -3,8 +3,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useParticles } from './hooks/useParticles'
 import { useGameStore, useQuizStore } from './store/quizStore'
 import { useStatsStore, computeLevel } from './store/statsStore'
+import { getVocabForChapter } from './utils/vocabQuizGen'
 import DashboardScreen from './screens/DashboardScreen'
-import ChapterListScreen from './screens/ChapterListScreen'
+import PathScreen from './screens/PathScreen'
 import ChapterDetailScreen from './screens/ChapterDetailScreen'
 import HomeScreen from './screens/HomeScreen'
 import QuizScreen from './screens/QuizScreen'
@@ -13,13 +14,13 @@ import ScoreScreen from './screens/ScoreScreen'
 import ReviewScreen from './screens/ReviewScreen'
 import SettingsScreen from './screens/SettingsScreen'
 import BottomNav from './components/BottomNav'
-import XPToast from './components/XPToast'
 import LevelUpModal from './components/LevelUpModal'
+import QuitModal from './components/QuitModal'
 import './index.css'
 
 const SCREENS = {
+  learn: 'learn',
   dashboard: 'dashboard',
-  chapters: 'chapters',
   chapterDetail: 'chapterDetail',
   custom: 'custom',
   quiz: 'quiz',
@@ -29,34 +30,45 @@ const SCREENS = {
   flashcard: 'flashcard',
 }
 
-const NAV_SCREENS = new Set(['dashboard', 'chapters', 'chapterDetail', 'custom', 'settings'])
+const NAV_SCREENS = new Set(['learn', 'dashboard', 'chapterDetail', 'custom', 'settings'])
+
+// Readable kana for learned word ids like 'ch12-n01'
+function wordLabel(wordId) {
+  const m = wordId.match(/^ch(\d+)-(.+)$/)
+  if (!m) return wordId
+  const w = getVocabForChapter(Number(m[1])).find((x) => x.id === m[2])
+  return w ? (w.kanji || w.kana).replace(/〜/g, '') : wordId
+}
 
 export default function App() {
   // Navigation state
-  const [screen, setScreen] = useState(SCREENS.dashboard)
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [screen, setScreen] = useState(SCREENS.learn)
+  const [activeTab, setActiveTab] = useState('learn')
   const [selectedChapter, setSelectedChapter] = useState(null)
-  const [scoreBackTo, setScoreBackTo] = useState('dashboard') // where score → back goes
+  const [scoreBackTo, setScoreBackTo] = useState('learn') // where score → back goes
   const [reviewQuizId, setReviewQuizId] = useState(null)
   const [reviewBack, setReviewBack] = useState('score')
   const [flashcardConfig, setFlashcardConfig] = useState(null) // { chapter, category, direction }
+  const [flashcardBack, setFlashcardBack] = useState('learn')
 
   // Gamification state
-  const [xpToast, setXpToast] = useState({ show: false, xp: 0 })
+  const [lastResult, setLastResult] = useState(null) // { xp, learnedWords, newMistakes, goalJustMet }
   const [quitModal, setQuitModal] = useState(false)
   const [levelUp, setLevelUp] = useState({ show: false, from: 0, to: 0 })
 
   const { canvasRef, burst, perfectBurst } = useParticles()
   const theme = useStatsStore((s) => s.theme)
 
+  // 'system' follows prefers-color-scheme; 'light'/'dark' pin the palette (see index.css tokens)
   useEffect(() => {
-    document.body.className = theme === 'neon' ? 'theme-neon' : ''
+    const root = document.documentElement
+    if (theme === 'light' || theme === 'dark') root.dataset.theme = theme
+    else delete root.dataset.theme
   }, [theme])
 
   const startGame = useGameStore((s) => s.startGame)
   const updateStats = useQuizStore((s) => s.updateStats)
   const { quizId, score, shuffled } = useGameStore()
-  const getQuiz = useQuizStore((s) => s.getQuiz)
   const totalXp = useStatsStore((s) => s.totalXp)
 
   // Start a quiz from anywhere
@@ -66,13 +78,22 @@ export default function App() {
     setScreen(SCREENS.quiz)
   }, [startGame, activeTab])
 
-  // Finish quiz → record XP, show toast/levelup
+  // Finish quiz → record XP/streak, collect what changed for the lesson-complete screen
   const handleFinish = useCallback(() => {
+    const before = useStatsStore.getState()
     const prevLevel = computeLevel(totalXp)
+    const prevLearned = new Set(before.learnedBank.map((e) => e.wordId))
+    const prevBankKeys = new Set(before.wrongBank.map((e) => e.key))
     const xpEarned = updateStats(quizId, score)
-    const newLevel = computeLevel(useStatsStore.getState().totalXp)
+    const after = useStatsStore.getState()
+    const newLevel = computeLevel(after.totalXp)
 
-    if (xpEarned > 0) setXpToast({ show: true, xp: xpEarned })
+    setLastResult({
+      xp: xpEarned,
+      learnedWords: after.learnedBank.filter((e) => !prevLearned.has(e.wordId)).map((e) => wordLabel(e.wordId)),
+      newMistakes: after.wrongBank.filter((e) => !prevBankKeys.has(e.key)).length,
+      goalJustMet: after.lastGoalDate !== before.lastGoalDate,
+    })
     if (newLevel > prevLevel) {
       setTimeout(() => setLevelUp({ show: true, from: prevLevel, to: newLevel }), 1800)
     }
@@ -96,15 +117,14 @@ export default function App() {
     handleFinish()
   }, [handleFinish])
 
-  const handleXpDone = useCallback(() => setXpToast({ show: false, xp: 0 }), [])
-
   const handlePlayAgain = useCallback(() => {
     const quiz = useGameStore.getState().activeQuiz
     if (quiz) handleStart(quiz, shuffled, scoreBackTo)
   }, [shuffled, handleStart, scoreBackTo])
 
-  const handleFlashcard = useCallback(({ chapter, category, direction }) => {
+  const handleFlashcard = useCallback(({ chapter, category, direction }, back = 'learn') => {
     setFlashcardConfig({ chapter, category, direction })
+    setFlashcardBack(back)
     setScreen(SCREENS.flashcard)
   }, [])
 
@@ -116,8 +136,9 @@ export default function App() {
 
   // Tab switching
   const handleTabChange = useCallback((tab) => {
-    setActiveTab(tab)
-    setScreen(tab)
+    const t = tab === 'chapters' ? 'learn' : tab
+    setActiveTab(t)
+    setScreen(t)
   }, [])
 
   // Chapter selection
@@ -127,8 +148,8 @@ export default function App() {
   }, [])
 
   const handleBackFromChapter = useCallback(() => {
-    setScreen(SCREENS.chapters)
-    setActiveTab('chapters')
+    setScreen(SCREENS.learn)
+    setActiveTab('learn')
   }, [])
 
   // Score back navigation
@@ -136,7 +157,7 @@ export default function App() {
     if (scoreBackTo === 'chapterDetail' && selectedChapter) {
       setScreen(SCREENS.chapterDetail)
     } else {
-      const tab = NAV_SCREENS.has(scoreBackTo) ? scoreBackTo : 'dashboard'
+      const tab = NAV_SCREENS.has(scoreBackTo) ? scoreBackTo : 'learn'
       setActiveTab(tab)
       setScreen(tab)
     }
@@ -145,23 +166,25 @@ export default function App() {
   const showNav = NAV_SCREENS.has(screen)
 
   return (
-    <div style={{ minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
-      <div className="grid-bg" />
-      <div className="orb" style={{ width: 500, height: 500, background: 'var(--primary)', top: -150, right: -150, opacity: 0.15 }} />
-      <div className="orb" style={{ width: 350, height: 350, background: 'var(--primary-light)', bottom: -80, left: -80, opacity: 0.12 }} />
+    <div style={{ minHeight: '100dvh', position: 'relative', overflow: 'clip' }}>
       <canvas ref={canvasRef} id="particle-canvas" />
 
       <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo(0, 0)}>
 
         {screen === SCREENS.dashboard && (
           <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-            <DashboardScreen onNavigate={handleTabChange} />
+            <DashboardScreen onNavigate={handleTabChange} onStart={(quiz, shuffle) => handleStart(quiz, shuffle, 'dashboard')} />
           </motion.div>
         )}
 
-        {screen === SCREENS.chapters && (
-          <motion.div key="chapters" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
-            <ChapterListScreen onSelect={handleSelectChapter} />
+        {screen === SCREENS.learn && (
+          <motion.div key="learn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <PathScreen
+              onStartQuiz={(quiz, shuffle) => handleStart(quiz, shuffle, 'learn')}
+              onFlashcard={(cfg) => handleFlashcard(cfg, 'learn')}
+              onOpenChapter={handleSelectChapter}
+              onNavigate={handleTabChange}
+            />
           </motion.div>
         )}
 
@@ -171,7 +194,7 @@ export default function App() {
               chapter={selectedChapter}
               onStart={(quiz, shuffle) => handleStart(quiz, shuffle, 'chapterDetail')}
               onBack={handleBackFromChapter}
-              onFlashcard={handleFlashcard}
+              onFlashcard={(cfg) => handleFlashcard(cfg, 'chapterDetail')}
             />
           </motion.div>
         )}
@@ -196,7 +219,8 @@ export default function App() {
             <ScoreScreen
               onReview={() => handleOpenReview(quizId, 'score')}
               onPlayAgain={handlePlayAgain}
-              onDashboard={() => { setActiveTab('dashboard'); setScreen(SCREENS.dashboard) }}
+              result={lastResult}
+              onContinue={handleScoreBack}
               burst={burst}
               perfectBurst={perfectBurst}
             />
@@ -224,7 +248,7 @@ export default function App() {
               chapter={flashcardConfig.chapter}
               category={flashcardConfig.category}
               direction={flashcardConfig.direction}
-              onBack={() => setScreen(SCREENS.chapterDetail)}
+              onBack={() => { if (flashcardBack === 'chapterDetail' && selectedChapter) setScreen(SCREENS.chapterDetail); else handleTabChange('learn') }}
             />
           </motion.div>
         )}
@@ -233,100 +257,9 @@ export default function App() {
 
       {showNav && <BottomNav active={activeTab} onChange={handleTabChange} />}
 
-      <XPToast xp={xpToast.xp} show={xpToast.show} onDone={handleXpDone} />
       <LevelUpModal fromLevel={levelUp.from} toLevel={levelUp.to} show={levelUp.show} onClose={() => setLevelUp({ show: false, from: 0, to: 0 })} />
 
-      {/* ── Quit Confirmation Modal ── */}
-      <AnimatePresence>
-        {quitModal && (
-          <>
-            <motion.div
-              key="quit-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => setQuitModal(false)}
-              style={{
-                position: 'fixed', inset: 0, zIndex: 400,
-                background: 'rgba(15,10,40,0.55)',
-                backdropFilter: 'blur(6px)',
-              }}
-            />
-            <motion.div
-              key="quit-modal"
-              initial={{ scale: 0.9, y: '-50%', x: '-50%', opacity: 0 }}
-              animate={{ scale: 1, y: '-50%', x: '-50%', opacity: 1 }}
-              exit={{ scale: 0.9, y: '-50%', x: '-50%', opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 360, damping: 28 }}
-              style={{
-                position: 'fixed', top: '50%', left: '50%',
-                width: 'calc(100% - 48px)', maxWidth: 340, zIndex: 401,
-                background: 'var(--surface-solid)',
-                borderRadius: '24px',
-                padding: '32px 24px',
-                boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--border-md)',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🚪</div>
-              <div style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
-                Quit Quiz?
-              </div>
-              <div style={{ fontFamily: "'Nunito'", fontSize: 14, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 28, lineHeight: 1.5 }}>
-                Your progress on this quiz will be lost.<br />XP won't be saved.
-              </div>
-              <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setQuitModal(false)}
-                  style={{
-                    flex: 1, padding: '14px 0',
-                    background: 'var(--border)',
-                    border: '2px solid var(--border-md)',
-                    borderRadius: 14,
-                    fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15,
-                    color: 'var(--primary)', cursor: 'pointer',
-                  }}
-                >
-                  Keep Going
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={confirmQuit}
-                  style={{
-                    flex: 1, padding: '14px 0',
-                    background: 'linear-gradient(135deg, #DC2626, #EF4444)',
-                    border: 'none',
-                    borderRadius: 14,
-                    fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15,
-                    color: '#fff', cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(239,68,68,0.35)',
-                  }}
-                >
-                  Quit
-                </motion.button>
-              </div>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={handleSubmitEarly}
-                style={{
-                  width: '100%', padding: '14px 0',
-                  background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
-                  border: 'none',
-                  borderRadius: 14,
-                  fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15,
-                  color: '#fff', cursor: 'pointer',
-                  boxShadow: '0 4px 16px var(--primary-glow)',
-                }}
-              >
-                Submit & See Score
-              </motion.button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <QuitModal show={quitModal} onCancel={() => setQuitModal(false)} onQuit={confirmQuit} onSubmit={handleSubmitEarly} />
     </div>
   )
 }

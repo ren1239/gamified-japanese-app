@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dumbbell, Shuffle, Trash2, Plus, ChevronRight, AlertCircle, ChevronDown, Check, Flag } from 'lucide-react'
-import { useStatsStore } from '../store/statsStore'
+import { useStatsStore, getDueEntries } from '../store/statsStore'
+import { buildPracticeQuiz } from '../utils/practiceQuiz'
 import { useQuizStore } from '../store/quizStore'
 import ImportModal from '../components/ImportModal'
 
@@ -67,7 +68,7 @@ function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleCha
         const borderColor = allActive
           ? 'var(--primary)'
           : someActive
-          ? 'rgba(124,58,237,0.4)'
+          ? 'var(--primary-glow)'
           : 'var(--border-md)'
 
         return (
@@ -82,14 +83,14 @@ function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleCha
                 borderRadius: isExpanded ? '10px 10px 0 0' : 10,
                 border: `1.5px solid ${borderColor}`,
                 borderBottom: isExpanded ? '1px solid var(--border)' : `1.5px solid ${borderColor}`,
-                background: allActive ? 'rgba(124,58,237,0.06)' : 'var(--surface)',
+                background: allActive ? 'var(--primary-glow)' : 'var(--surface)',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
               {/* Chapter badge */}
               <div style={{
                 width: 34, height: 34, borderRadius: 9, flexShrink: 0,
-                background: chapterState === 'all' ? 'var(--primary)' : chapterState === 'some' ? 'rgba(124,58,237,0.25)' : 'var(--border)',
+                background: chapterState === 'all' ? 'var(--primary)' : chapterState === 'some' ? 'var(--primary-glow)' : 'var(--border)',
                 color: chapterState === 'none' ? 'var(--text-muted)' : chapterState === 'all' ? '#fff' : 'var(--primary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: "'Nunito'", fontWeight: 900, fontSize: 15,
@@ -127,7 +128,7 @@ function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleCha
                 style={{
                   width: 22, height: 22, borderRadius: 6,
                   border: allActive ? 'none' : someActive ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
-                  background: allActive ? 'var(--primary)' : someActive ? 'rgba(124,58,237,0.1)' : 'transparent',
+                  background: allActive ? 'var(--primary)' : someActive ? 'var(--primary-glow)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0, transition: 'all 0.15s', cursor: 'pointer',
                 }}
@@ -176,7 +177,7 @@ function ChapterFilter({ wrongBank, activeSourceIds, onToggleSource, onToggleCha
                           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                           padding: '9px 12px',
                           borderBottom: idx < group.sources.length - 1 ? '1px solid var(--border)' : 'none',
-                          background: active ? 'rgba(124,58,237,0.04)' : 'var(--bg)',
+                          background: active ? 'var(--primary-glow)' : 'var(--bg)',
                           border: 'none', cursor: 'pointer', textAlign: 'left',
                           transition: 'background 0.15s',
                         }}
@@ -227,7 +228,7 @@ export default function HomeScreen({ onStart, onReview }) {
   const removeQuiz = useQuizStore((s) => s.removeQuiz)
 
   const [count, setCount] = useState(10)
-  const [mode, setMode] = useState('missed')
+  const [mode, setMode] = useState('due')
   const [showImport, setShowImport] = useState(false)
   const [selectedSources, setSelectedSources] = useState(null) // null = all
 
@@ -271,25 +272,18 @@ export default function HomeScreen({ onStart, onReview }) {
 
   const bankSize = filteredBank.length
   const totalBankSize = wrongBank.length
-  const actualCount = Math.min(count, bankSize)
+
+  const dueBank = useMemo(() => getDueEntries(filteredBank), [filteredBank])
+  const modePool = mode === 'due' ? dueBank : filteredBank
+  const actualModeCount = Math.min(count, modePool.length)
 
   const handleGenerate = () => {
-    if (bankSize === 0) return
-    const sorted = mode === 'missed'
-      ? [...filteredBank].sort((a, b) => b.wrongCount - a.wrongCount)
-      : [...filteredBank].sort(() => Math.random() - 0.5)
-
-    const selected = sorted.slice(0, actualCount)
-    const practiceQuiz = {
-      id: `practice_${Date.now()}`,
-      title: 'Mistakes Practice',
-      topic: 'Wrong Answers',
-      created: new Date().toISOString().slice(0, 10),
-      playCount: 0,
-      bestScore: null,
-      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key, _sourceQuizId: entry.quizId, _sourceQuizTitle: entry.quizTitle })),
-    }
-    onStart(practiceQuiz, false)
+    if (modePool.length === 0) return
+    const sorted = mode === 'random'
+      ? [...modePool].sort(() => Math.random() - 0.5)
+      : [...modePool].sort((a, b) => b.wrongCount - a.wrongCount)
+    const title = mode === 'due' ? 'Daily Review' : 'Mistakes Practice'
+    onStart(buildPracticeQuiz(sorted.slice(0, actualModeCount), title), false)
   }
 
   // ── Flagged bank state ──
@@ -335,16 +329,7 @@ export default function HomeScreen({ onStart, onReview }) {
       ? [...filteredFlagBank].sort(() => Math.random() - 0.5)
       : [...filteredFlagBank]
 
-    const selected = sorted.slice(0, actualFlagCount)
-    const practiceQuiz = {
-      id: `practice_${Date.now()}`,
-      title: 'Flagged Practice',
-      topic: 'Flagged',
-      created: new Date().toISOString().slice(0, 10),
-      playCount: 0,
-      bestScore: null,
-      questions: selected.map((entry) => ({ ...entry.question, _bankKey: entry.key, _sourceQuizId: entry.quizId, _sourceQuizTitle: entry.quizTitle })),
-    }
+    const practiceQuiz = buildPracticeQuiz(sorted.slice(0, actualFlagCount), 'Flagged Practice', 'Flagged')
     onStart(practiceQuiz, false)
   }
 
@@ -354,8 +339,8 @@ export default function HomeScreen({ onStart, onReview }) {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
-            PRACTICE
+          <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 'clamp(32px, 8vw, 46px)', color: 'var(--text)', letterSpacing: '1px', lineHeight: 1 }}>
+            Review
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, marginTop: 4 }}>
             Drill your weak spots, turn mistakes into mastery
@@ -461,7 +446,7 @@ export default function HomeScreen({ onStart, onReview }) {
                   Order
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  {[{ key: 'missed', label: 'Most Missed First' }, { key: 'random', label: 'Shuffle' }].map(({ key, label }) => (
+                  {[{ key: 'due', label: `Due Today (${dueBank.length})` }, { key: 'missed', label: 'Most Missed First' }, { key: 'random', label: 'Shuffle' }].map(({ key, label }) => (
                     <button key={key} onClick={() => setMode(key)} style={{
                       flex: 1, padding: '9px 12px', borderRadius: 10,
                       border: mode === key ? '1.5px solid var(--primary)' : '1.5px solid var(--border-md)',
@@ -483,12 +468,12 @@ export default function HomeScreen({ onStart, onReview }) {
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleGenerate}
-                disabled={bankSize === 0}
+                disabled={modePool.length === 0}
                 className="btn btn-primary"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 15, opacity: bankSize === 0 ? 0.4 : 1 }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 15, opacity: modePool.length === 0 ? 0.4 : 1 }}
               >
                 <Dumbbell size={16} />
-                Start Practice · {actualCount} question{actualCount !== 1 ? 's' : ''}
+                {mode === "due" && modePool.length === 0 ? "Nothing due today ✓" : `Start Practice · ${actualModeCount} question${actualModeCount !== 1 ? "s" : ""}`}
                 <ChevronRight size={16} />
               </motion.button>
             </>

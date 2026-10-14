@@ -4,6 +4,9 @@
 
 import { ch00Vocab, getWordsForCategory as ch00GetWords } from '../data/ch00VocabData'
 import { ch1Vocab, getWordsForCategory as ch1GetWords } from '../data/ch1VocabData'
+import { ch02Vocab, getWordsForCategory as ch02GetWords } from '../data/ch02VocabData'
+import { ch03Vocab, getWordsForCategory as ch03GetWords } from '../data/ch03VocabData'
+import { ch04Vocab, getWordsForCategory as ch04GetWords } from '../data/ch04VocabData'
 import { ch05Vocab, getWordsForCategory as ch05GetWords } from '../data/ch05VocabData'
 import { ch06Vocab, getWordsForCategory as ch06GetWords } from '../data/ch06VocabData'
 import { ch07Vocab, getWordsForCategory as ch07GetWords } from '../data/ch07VocabData'
@@ -13,36 +16,54 @@ import { ch10Vocab, getWordsForCategory as ch10GetWords } from '../data/ch10Voca
 import { ch11Vocab, getWordsForCategory as ch11GetWords } from '../data/ch11VocabData'
 import { ch12Vocab, getWordsForCategory as ch12GetWords } from '../data/ch12VocabData'
 import { ch13Vocab, getWordsForCategory as ch13GetWords } from '../data/ch13VocabData'
+import { ch14Vocab, getWordsForCategory as ch14GetWords } from '../data/ch14VocabData'
+import { ch15Vocab, getWordsForCategory as ch15GetWords } from '../data/ch15VocabData'
+import { ch16Vocab, getWordsForCategory as ch16GetWords } from '../data/ch16VocabData'
+import { ch17Vocab, getWordsForCategory as ch17GetWords } from '../data/ch17VocabData'
+import { ch18Vocab, getWordsForCategory as ch18GetWords } from '../data/ch18VocabData'
+import { ch19Vocab, getWordsForCategory as ch19GetWords } from '../data/ch19VocabData'
+import { ch20Vocab, getWordsForCategory as ch20GetWords } from '../data/ch20VocabData'
+import { ch21Vocab, getWordsForCategory as ch21GetWords } from '../data/ch21VocabData'
+import { ch22Vocab, getWordsForCategory as ch22GetWords } from '../data/ch22VocabData'
+import { ch23Vocab, getWordsForCategory as ch23GetWords } from '../data/ch23VocabData'
+
+const VOCAB_BY_CHAPTER = {
+  0: [ch00Vocab, ch00GetWords],
+  1: [ch1Vocab, ch1GetWords],
+  2: [ch02Vocab, ch02GetWords],
+  3: [ch03Vocab, ch03GetWords],
+  4: [ch04Vocab, ch04GetWords],
+  5: [ch05Vocab, ch05GetWords],
+  6: [ch06Vocab, ch06GetWords],
+  7: [ch07Vocab, ch07GetWords],
+  8: [ch08Vocab, ch08GetWords],
+  9: [ch09Vocab, ch09GetWords],
+  10: [ch10Vocab, ch10GetWords],
+  11: [ch11Vocab, ch11GetWords],
+  12: [ch12Vocab, ch12GetWords],
+  13: [ch13Vocab, ch13GetWords],
+  14: [ch14Vocab, ch14GetWords],
+  15: [ch15Vocab, ch15GetWords],
+  16: [ch16Vocab, ch16GetWords],
+  17: [ch17Vocab, ch17GetWords],
+  18: [ch18Vocab, ch18GetWords],
+  19: [ch19Vocab, ch19GetWords],
+  20: [ch20Vocab, ch20GetWords],
+  21: [ch21Vocab, ch21GetWords],
+  22: [ch22Vocab, ch22GetWords],
+  23: [ch23Vocab, ch23GetWords],
+}
+
+export const DYNAMIC_VOCAB_CHAPTERS = Object.keys(VOCAB_BY_CHAPTER).map(Number)
 
 export function getWordsForChapterAndCategory(chapterNum, category) {
-  if (chapterNum === 0)  return ch00GetWords(category)
-  if (chapterNum === 1)  return ch1GetWords(category)
-  if (chapterNum === 5)  return ch05GetWords(category)
-  if (chapterNum === 6)  return ch06GetWords(category)
-  if (chapterNum === 7)  return ch07GetWords(category)
-  if (chapterNum === 8)  return ch08GetWords(category)
-  if (chapterNum === 9)  return ch09GetWords(category)
-  if (chapterNum === 10) return ch10GetWords(category)
-  if (chapterNum === 11) return ch11GetWords(category)
-  if (chapterNum === 12) return ch12GetWords(category)
-  if (chapterNum === 13) return ch13GetWords(category)
-  return []
+  return VOCAB_BY_CHAPTER[chapterNum]?.[1](category) ?? []
 }
 
 export function getVocabForChapter(chapterNum) {
-  if (chapterNum === 0)  return ch00Vocab
-  if (chapterNum === 1)  return ch1Vocab
-  if (chapterNum === 5)  return ch05Vocab
-  if (chapterNum === 6)  return ch06Vocab
-  if (chapterNum === 7)  return ch07Vocab
-  if (chapterNum === 8)  return ch08Vocab
-  if (chapterNum === 9)  return ch09Vocab
-  if (chapterNum === 10) return ch10Vocab
-  if (chapterNum === 11) return ch11Vocab
-  if (chapterNum === 12) return ch12Vocab
-  if (chapterNum === 13) return ch13Vocab
-  return []
+  return VOCAB_BY_CHAPTER[chapterNum]?.[0] ?? []
 }
+
 function shuffle(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -58,11 +79,21 @@ function pickDistractors(pool, correctId, count = 3) {
   return shuffle(others).slice(0, count)
 }
 
-/** Build a single quiz question */
-function buildQuestion(word, direction, pool, qIndex) {
+/** Build a single quiz question. Bank keys are per word so repeated misses accumulate. */
+function buildQuestion(word, direction, pool, qIndex, chapterNum, answerMode) {
   const isJpEn = direction === 'jp-en' || (direction === 'mix' && Math.random() > 0.5)
 
   const distractors = pickDistractors(pool, word.id)
+  const dir = isJpEn ? 'jp-en' : 'en-jp'
+  const meta = {
+    id: `${word.id}-${dir}`,
+    _bankKey: `ch${chapterNum}-vocab-${word.id}-${dir}`,
+    _sourceQuizId: `ch${chapterNum}-vocab`,
+    _sourceQuizTitle: `Ch.${chapterNum} · Vocab`,
+    _wordId: `ch${chapterNum}-${word.id}`,
+    _chapterNum: chapterNum,
+    _speak: word.kana.replace(/〜/g, ''),
+  }
 
   if (isJpEn) {
     // Show Japanese → pick English
@@ -70,7 +101,7 @@ function buildQuestion(word, direction, pool, qIndex) {
     const wrongAnswers = distractors.map(w => w.english)
     const choices = shuffle([correctAnswer, ...wrongAnswers])
     return {
-      id: qIndex + 1,
+      ...meta,
       question: 'What does this mean?',
       jp: word.kanji ? `${word.kana}（${word.kanji}）` : word.kana,
       jpRomaji: word.kana, // kana-only for romaji conversion — no map needed
@@ -78,16 +109,17 @@ function buildQuestion(word, direction, pool, qIndex) {
       correct: choices.indexOf(correctAnswer),
     }
   } else {
-    // Show English → pick Japanese
+    // Show English → pick (or type) Japanese
     const correctAnswer = word.kana
     const wrongAnswers = distractors.map(w => w.kana)
     const choices = shuffle([correctAnswer, ...wrongAnswers])
     return {
-      id: qIndex + 1,
+      ...meta,
       question: `How do you say "${word.english}" in Japanese?`,
       jp: null,
       choices,
       correct: choices.indexOf(correctAnswer),
+      ...(answerMode === 'type' ? { inputMode: true, accept: [word.kana, word.kanji].filter(Boolean) } : {}),
     }
   }
 }
@@ -97,8 +129,9 @@ function buildQuestion(word, direction, pool, qIndex) {
  * @param {string} category — 'all' | 'noun' | 'verb' | 'other'
  * @param {string} direction — 'jp-en' | 'en-jp' | 'mix'
  * @param {string} chapterNum — used for quiz ID
+ * @param {string} answerMode — 'choice' | 'type' (type applies to EN→JP questions)
  */
-export function generateVocabQuiz(category, direction, chapterNum = 11, limit = 10) {
+export function generateVocabQuiz(category, direction, chapterNum = 11, limit = 10, answerMode = 'choice') {
   const pool = getWordsForChapterAndCategory(chapterNum, category)
 
   if (pool.length < 4) {
@@ -108,14 +141,14 @@ export function generateVocabQuiz(category, direction, chapterNum = 11, limit = 
   // Pick up to limit random words
   const selected = shuffle(pool).slice(0, Math.min(limit, pool.length))
 
-  const questions = selected.map((word, i) => buildQuestion(word, direction, pool, i))
+  const questions = selected.map((word, i) => buildQuestion(word, direction, pool, i, chapterNum, answerMode))
 
   const catLabel = { all: 'All', noun: 'Nouns', verb: 'Verbs', other: 'Other' }[category] ?? category
   const dirLabel = { 'jp-en': 'JP→EN', 'en-jp': 'EN→JP', mix: 'Mixed' }[direction] ?? direction
 
   return {
     id: `ch${chapterNum}-vocab-${category}-${direction}-${Date.now()}`,
-    title: `Ch.${chapterNum} Vocab · ${catLabel} · ${dirLabel}`,
+    title: `Ch.${chapterNum} Vocab · ${catLabel} · ${dirLabel}${answerMode === 'type' ? ' · Typed' : ''}`,
     topic: 'Vocabulary',
     chapterNumber: chapterNum,
     isGenerated: true,

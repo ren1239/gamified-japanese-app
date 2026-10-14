@@ -1,49 +1,32 @@
-import { motion } from 'framer-motion'
-import { BarChart2, BookOpen, Settings, FolderPlus } from 'lucide-react'
+import { useStatsStore, getDueEntries } from '../store/statsStore'
+import Icon from './Icon'
 
 const TABS = [
-  { id: 'dashboard', label: 'Stats',     Icon: BarChart2 },
-  { id: 'chapters',  label: 'Chapters',  Icon: BookOpen  },
-  { id: 'custom',    label: 'Custom',    Icon: FolderPlus },
-  { id: 'settings',  label: 'Settings',  Icon: Settings  },
+  { id: 'learn',     label: 'Learn',    icon: 'home',     color: 'var(--primary)' },
+  { id: 'custom',    label: 'Review',   icon: 'dumbbell', color: 'var(--error)' },
+  { id: 'dashboard', label: 'Stats',    icon: 'trophy',   color: 'var(--gold-deep)' },
+  { id: 'settings',  label: 'Settings', icon: 'gear',     color: 'var(--text-muted)' },
 ]
 
 export default function BottomNav({ active, onChange }) {
+  const wrongBank = useStatsStore((s) => s.wrongBank)
+  const dueCount = getDueEntries(wrongBank).length
   return (
-    <div className="bottom-nav">
-      {TABS.map(({ id, label, Icon }) => {
-        const isActive = active === id
-        return (
-          <button
-            key={id}
-            onClick={() => onChange(id)}
-            className="bottom-nav-btn"
-            aria-label={label}
-          >
-            {isActive && (
-              <motion.div
-                layoutId="nav-pip"
-                className="nav-pip"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
-            )}
-            <motion.span
-              animate={{ scale: isActive ? 1.15 : 1, y: isActive ? -2 : 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Icon
-                size={22}
-                strokeWidth={isActive ? 2.5 : 1.8}
-                color={isActive ? 'var(--primary)' : 'var(--text-muted)'}
-              />
-            </motion.span>
-            <span className={`nav-label ${isActive ? 'nav-label-active' : ''}`}>
-              {label}
-            </span>
-          </button>
-        )
-      })}
-    </div>
+    <nav className="bottom-nav" aria-label="Main">
+      {TABS.map(({ id, label, icon, color }) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onChange(id)}
+          className={`bottom-nav-btn${active === id ? ' active' : ''}`}
+          aria-label={label}
+          aria-current={active === id ? 'page' : undefined}
+          title={label}
+        >
+          <Icon name={icon} size={28} color={color} />
+          {id === 'custom' && dueCount > 0 && <span className="nav-badge">{dueCount > 99 ? '99+' : dueCount}</span>}
+        </button>
+      ))}
+    </nav>
   )
 }

@@ -79,7 +79,7 @@ export default function ReviewScreen({ quizId, onBack }) {
             </div>
           )}
 
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(26px, 6.5vw, 36px)', color: '#fff', letterSpacing: '1px', lineHeight: 1.1, marginBottom: 18 }}>
+          <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 'clamp(26px, 6.5vw, 36px)', color: '#fff', letterSpacing: '1px', lineHeight: 1.1, marginBottom: 18 }}>
             {quiz.title}
           </div>
 
@@ -214,7 +214,7 @@ function ReviewQuestion({ q, qi, answer, quizId, quizTitle }) {
       {/* Japanese prompt */}
       {q.jp && (
         <div style={{
-          fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 900,
+          fontFamily: "'M PLUS Rounded 1c', sans-serif", fontWeight: 900,
           fontSize: 'clamp(20px, 5vw, 26px)', color: 'var(--primary)',
           lineHeight: 1.3, marginBottom: 14, paddingLeft: 38,
         }}>
@@ -291,7 +291,7 @@ function ReviewQuestion({ q, qi, answer, quizId, quizTitle }) {
                 {badgeContent}
               </div>
               <span style={{
-                fontFamily: c.match(/[\u3040-\u30FF\u4E00-\u9FAF]/) ? "'Noto Sans JP', sans-serif" : "'Nunito', sans-serif",
+                fontFamily: c.match(/[\u3040-\u30FF\u4E00-\u9FAF]/) ? "'M PLUS Rounded 1c', sans-serif" : "'Nunito', sans-serif",
                 fontWeight: isCorrect || isWrong ? 700 : 600,
                 fontSize: 14,
                 color: textColor,
