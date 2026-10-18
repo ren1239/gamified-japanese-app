@@ -131,8 +131,8 @@ export const LESSON_VIDEOS = {
    "type": "bonus",
    "youtube": "p66z1vPL63o",
    "file": "1-bonus.mp4",
-   "encoded": false,
-   "hosted": false,
+   "encoded": true,
+   "hosted": true,
    "title": "Genki Lesson 1 - Bonus Sentences",
    "duration": 1028,
    "points": [
@@ -179,8 +179,69 @@ export const LESSON_VIDEOS = {
    "type": "shadowing",
    "youtube": "dy2PeqUl61w",
    "file": "1-shadowing.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Listening and Shadowing | LESSON 1",
+   "duration": 841,
+   "points": [
+    {
+     "start": 0,
+     "end": 97,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 97,
+     "end": 283,
+     "title": "Textbook Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 283,
+     "end": 464,
+     "title": "Textbook Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 464,
+     "end": 562,
+     "title": "Stream Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 3
+    },
+    {
+     "start": 562,
+     "end": 690,
+     "title": "Stream Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 4
+    },
+    {
+     "start": 690,
+     "end": 841,
+     "title": "Stream Dialogue III",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue III",
+     "label": "Listen & shadow",
+     "xp": 5
+    }
+   ]
   }
  ],
  "2": [
@@ -192,29 +253,396 @@ export const LESSON_VIDEOS = {
    "type": "stream",
    "youtube": "ftXNzFRpDbk",
    "file": "2-stream.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "【N5】Genki 1 Lesson 2 Japanese Grammar Made Clear",
+   "duration": 3040,
+   "points": [
+    {
+     "start": 0,
+     "end": 48,
+     "title": "Introduction",
+     "kind": "point",
+     "label": "Introduction",
+     "xp": 2
+    },
+    {
+     "start": 48,
+     "end": 556,
+     "title": "これ, それ, etc",
+     "kind": "point",
+     "label": "これ, それ, etc",
+     "xp": 17
+    },
+    {
+     "start": 556,
+     "end": 1016,
+     "title": "この, その, etc",
+     "kind": "point",
+     "label": "この, その, etc",
+     "xp": 15
+    },
+    {
+     "start": 1016,
+     "end": 1465,
+     "title": "ここ, そこ, etc",
+     "kind": "point",
+     "label": "ここ, そこ, etc",
+     "xp": 15
+    },
+    {
+     "start": 1465,
+     "end": 1807,
+     "title": "だれの",
+     "kind": "point",
+     "label": "だれの",
+     "xp": 11
+    },
+    {
+     "start": 1807,
+     "end": 2205,
+     "title": "noun+も",
+     "kind": "point",
+     "label": "noun+も",
+     "xp": 13
+    },
+    {
+     "start": 2205,
+     "end": 2558,
+     "title": "noun+じゃない",
+     "kind": "point",
+     "label": "noun+じゃない",
+     "xp": 12
+    },
+    {
+     "start": 2558,
+     "end": 3040,
+     "title": "ね and よ particles",
+     "kind": "point",
+     "label": "ね and よ particles",
+     "xp": 16
+    }
+   ]
   },
   {
    "type": "textbook",
    "youtube": "HdDIQGNpIf8",
    "file": "2-textbook.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Textbook Practice | LESSON 2",
+   "duration": 1450,
+   "points": [
+    {
+     "start": 0,
+     "end": 66,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 66,
+     "end": 341,
+     "title": "Number Practice",
+     "kind": "point",
+     "label": "Number Practice",
+     "xp": 9
+    },
+    {
+     "start": 341,
+     "end": 576,
+     "title": "This and That Practice",
+     "kind": "point",
+     "label": "This and That Practice",
+     "xp": 8
+    },
+    {
+     "start": 576,
+     "end": 802,
+     "title": "Shopping Practice",
+     "kind": "point",
+     "label": "Shopping Practice",
+     "xp": 8
+    },
+    {
+     "start": 802,
+     "end": 881,
+     "title": "Giving Simple Directions",
+     "kind": "point",
+     "label": "Giving Simple Directions",
+     "xp": 3
+    },
+    {
+     "start": 881,
+     "end": 1001,
+     "title": "This and \"WHOSE\" Practice",
+     "kind": "point",
+     "label": "This and \"WHOSE\" Practice",
+     "xp": 4
+    },
+    {
+     "start": 1001,
+     "end": 1091,
+     "title": "\"Too\" Practice (も)",
+     "kind": "point",
+     "label": "\"Too\" Practice (も)",
+     "xp": 3
+    },
+    {
+     "start": 1091,
+     "end": 1295,
+     "title": "Negative Statement Practice",
+     "kind": "point",
+     "label": "Negative Statement Practice",
+     "xp": 7
+    },
+    {
+     "start": 1295,
+     "end": 1450,
+     "title": "Review",
+     "kind": "point",
+     "label": "Review",
+     "xp": 5
+    }
+   ]
   },
   {
    "type": "bonus",
    "youtube": "4Gm-Z8-bsns",
    "file": "2-bonus.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki Bonus Grammar Sentences Lesson 2",
+   "duration": 1694,
+   "points": [
+    {
+     "start": 0,
+     "end": 172,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 172,
+     "end": 232,
+     "title": "This and That",
+     "kind": "point",
+     "label": "This and That",
+     "xp": 2
+    },
+    {
+     "start": 232,
+     "end": 425,
+     "title": "BONUS This and That",
+     "kind": "point",
+     "label": "BONUS This and That",
+     "xp": 6
+    },
+    {
+     "start": 425,
+     "end": 513,
+     "title": "Specific This and That",
+     "kind": "point",
+     "label": "Specific This and That",
+     "xp": 3
+    },
+    {
+     "start": 513,
+     "end": 619,
+     "title": "BONUS Specific This and That",
+     "kind": "point",
+     "label": "BONUS Specific This and That",
+     "xp": 4
+    },
+    {
+     "start": 619,
+     "end": 661,
+     "title": "Here and There",
+     "kind": "point",
+     "label": "Here and There",
+     "xp": 2
+    },
+    {
+     "start": 661,
+     "end": 736,
+     "title": "BONUS Here and There",
+     "kind": "point",
+     "label": "BONUS Here and There",
+     "xp": 2
+    },
+    {
+     "start": 736,
+     "end": 794,
+     "title": "Who/Whose",
+     "kind": "point",
+     "label": "Who/Whose",
+     "xp": 2
+    },
+    {
+     "start": 794,
+     "end": 888,
+     "title": "BONUS Who/Whose",
+     "kind": "point",
+     "label": "BONUS Who/Whose",
+     "xp": 3
+    },
+    {
+     "start": 888,
+     "end": 973,
+     "title": "Too/Also in Japanese",
+     "kind": "point",
+     "label": "Too/Also in Japanese",
+     "xp": 3
+    },
+    {
+     "start": 973,
+     "end": 1063,
+     "title": "BONUS Too/Also",
+     "kind": "point",
+     "label": "BONUS Too/Also",
+     "xp": 3
+    },
+    {
+     "start": 1063,
+     "end": 1159,
+     "title": "Negative Statements (janai)",
+     "kind": "point",
+     "label": "Negative Statements (janai)",
+     "xp": 3
+    },
+    {
+     "start": 1159,
+     "end": 1349,
+     "title": "BONUS Negative Statements",
+     "kind": "point",
+     "label": "BONUS Negative Statements",
+     "xp": 6
+    },
+    {
+     "start": 1349,
+     "end": 1415,
+     "title": "Sentence Enders よ and ね",
+     "kind": "point",
+     "label": "Sentence Enders よ and ね",
+     "xp": 2
+    },
+    {
+     "start": 1415,
+     "end": 1694,
+     "title": "BONUS Sentence Enders よ and ね",
+     "kind": "point",
+     "label": "BONUS Sentence Enders よ and ね",
+     "xp": 9
+    }
+   ]
   },
   {
    "type": "shadowing",
    "youtube": "P1V9VSADFAA",
    "file": "2-shadowing.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Listening & Shadowing | LESSON 2",
+   "duration": 1879,
+   "points": [
+    {
+     "start": 0,
+     "end": 121,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 121,
+     "end": 490,
+     "title": "Textbook Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 12
+    },
+    {
+     "start": 490,
+     "end": 824,
+     "title": "Textbook Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 11
+    },
+    {
+     "start": 824,
+     "end": 940,
+     "title": "Grammar Stream Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 4
+    },
+    {
+     "start": 940,
+     "end": 1103,
+     "title": "Grammar Stream Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1103,
+     "end": 1286,
+     "title": "Grammar Stream Dialogue III",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue III",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1286,
+     "end": 1441,
+     "title": "Grammar Stream Dialogue IV",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue IV",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1441,
+     "end": 1561,
+     "title": "Grammar Stream Dialogue V",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue V",
+     "label": "Listen & shadow",
+     "xp": 4
+    },
+    {
+     "start": 1561,
+     "end": 1703,
+     "title": "Grammar Stream Dialogue VI",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue VI",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1703,
+     "end": 1879,
+     "title": "Grammar Stream Dialogue VII",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue VII",
+     "label": "Listen & shadow",
+     "xp": 6
+    }
+   ]
   }
  ],
  "3": [
@@ -226,29 +654,469 @@ export const LESSON_VIDEOS = {
    "type": "stream",
    "youtube": "ed4rmIY4mL0",
    "file": "3-stream.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "【N5】Genki 1 Lesson 3 Japanese Grammar Made Clear | ます CONJUGATION SIMPLIFIED",
+   "duration": 3781,
+   "points": [
+    {
+     "start": 0,
+     "end": 65,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 65,
+     "end": 907,
+     "title": "Polite Verb Conjugation",
+     "kind": "point",
+     "label": "Polite Verb Conjugation",
+     "xp": 28
+    },
+    {
+     "start": 907,
+     "end": 1080,
+     "title": "Negative Polite Verb Conjugation",
+     "kind": "point",
+     "label": "Negative Polite Verb Conjugation",
+     "xp": 6
+    },
+    {
+     "start": 1080,
+     "end": 1611,
+     "title": "Present Tense",
+     "kind": "point",
+     "label": "Present Tense",
+     "xp": 18
+    },
+    {
+     "start": 1611,
+     "end": 2115,
+     "title": "Particles",
+     "kind": "point",
+     "label": "Particles",
+     "xp": 17
+    },
+    {
+     "start": 2115,
+     "end": 2431,
+     "title": "Time References",
+     "kind": "point",
+     "label": "Time References",
+     "xp": 11
+    },
+    {
+     "start": 2431,
+     "end": 2662,
+     "title": "Polite Invitations",
+     "kind": "point",
+     "label": "Polite Invitations",
+     "xp": 8
+    },
+    {
+     "start": 2662,
+     "end": 3091,
+     "title": "Frequency Adverbs",
+     "kind": "point",
+     "label": "Frequency Adverbs",
+     "xp": 14
+    },
+    {
+     "start": 3091,
+     "end": 3360,
+     "title": "Word Order",
+     "kind": "point",
+     "label": "Word Order",
+     "xp": 9
+    },
+    {
+     "start": 3360,
+     "end": 3673,
+     "title": "More about は",
+     "kind": "point",
+     "label": "More about は",
+     "xp": 10
+    },
+    {
+     "start": 3673,
+     "end": 3781,
+     "title": "QUESTION TIME",
+     "kind": "point",
+     "label": "QUESTION TIME",
+     "xp": 4
+    }
+   ]
   },
   {
    "type": "textbook",
    "youtube": "vvrrRMkEj7s",
    "file": "3-textbook.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Textbook Practice | Lesson 3",
+   "duration": 1309,
+   "points": [
+    {
+     "start": 0,
+     "end": 64,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 64,
+     "end": 159,
+     "title": "Verb Conjugation",
+     "kind": "point",
+     "label": "Verb Conjugation",
+     "xp": 3
+    },
+    {
+     "start": 159,
+     "end": 456,
+     "title": "Particles",
+     "kind": "point",
+     "label": "Particles",
+     "xp": 10
+    },
+    {
+     "start": 456,
+     "end": 577,
+     "title": "More Particles",
+     "kind": "point",
+     "label": "More Particles",
+     "xp": 4
+    },
+    {
+     "start": 577,
+     "end": 943,
+     "title": "Time References",
+     "kind": "point",
+     "label": "Time References",
+     "xp": 12
+    },
+    {
+     "start": 943,
+     "end": 1149,
+     "title": "Polite Invitations",
+     "kind": "point",
+     "label": "Polite Invitations",
+     "xp": 7
+    },
+    {
+     "start": 1149,
+     "end": 1269,
+     "title": "Frequency Adverbs",
+     "kind": "point",
+     "label": "Frequency Adverbs",
+     "xp": 4
+    },
+    {
+     "start": 1269,
+     "end": 1309,
+     "title": "Review",
+     "kind": "point",
+     "label": "Review",
+     "xp": 2
+    }
+   ]
   },
   {
    "type": "bonus",
    "youtube": "I2xq4Nbvn94",
    "file": "3-bonus.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki Bonus Grammar Sentences Lesson 3",
+   "duration": 2436,
+   "points": [
+    {
+     "start": 0,
+     "end": 176,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 176,
+     "end": 270,
+     "title": "Japanese Polite Verb Conjugation and Present Tense",
+     "kind": "point",
+     "label": "Japanese Polite Verb Conjugation and Present Tense",
+     "xp": 3
+    },
+    {
+     "start": 270,
+     "end": 457,
+     "title": "Bonus 1",
+     "kind": "point",
+     "label": "Bonus · Japanese Polite Verb Conjugation and Present Tense",
+     "sub": "Extra sentences",
+     "xp": 6
+    },
+    {
+     "start": 457,
+     "end": 494,
+     "title": "The Particle を",
+     "kind": "point",
+     "label": "The Particle を",
+     "xp": 2
+    },
+    {
+     "start": 494,
+     "end": 684,
+     "title": "Bonus 2",
+     "kind": "point",
+     "label": "Bonus · The Particle を",
+     "sub": "Extra sentences",
+     "xp": 6
+    },
+    {
+     "start": 684,
+     "end": 722,
+     "title": "The Particle で",
+     "kind": "point",
+     "label": "The Particle で",
+     "xp": 2
+    },
+    {
+     "start": 722,
+     "end": 865,
+     "title": "Bonus 3",
+     "kind": "point",
+     "label": "Bonus · The Particle で",
+     "sub": "Extra sentences",
+     "xp": 5
+    },
+    {
+     "start": 865,
+     "end": 947,
+     "title": "The Particle に",
+     "kind": "point",
+     "label": "The Particle に",
+     "xp": 3
+    },
+    {
+     "start": 947,
+     "end": 1098,
+     "title": "Bonus 4",
+     "kind": "point",
+     "label": "Bonus · The Particle に",
+     "sub": "Extra sentences",
+     "xp": 5
+    },
+    {
+     "start": 1098,
+     "end": 1133,
+     "title": "The Particle へ",
+     "kind": "point",
+     "label": "The Particle へ",
+     "xp": 2
+    },
+    {
+     "start": 1133,
+     "end": 1199,
+     "title": "Bonus 5",
+     "kind": "point",
+     "label": "Bonus · The Particle へ",
+     "sub": "Extra sentences",
+     "xp": 2
+    },
+    {
+     "start": 1199,
+     "end": 1330,
+     "title": "Referencing Time in Japanese",
+     "kind": "point",
+     "label": "Referencing Time in Japanese",
+     "xp": 4
+    },
+    {
+     "start": 1330,
+     "end": 1437,
+     "title": "Bonus 6",
+     "kind": "point",
+     "label": "Bonus · Referencing Time in Japanese",
+     "sub": "Extra sentences",
+     "xp": 4
+    },
+    {
+     "start": 1437,
+     "end": 1553,
+     "title": "Polite Invitations in Japanese",
+     "kind": "point",
+     "label": "Polite Invitations in Japanese",
+     "xp": 4
+    },
+    {
+     "start": 1553,
+     "end": 1792,
+     "title": "Bonus 7",
+     "kind": "point",
+     "label": "Bonus · Polite Invitations in Japanese",
+     "sub": "Extra sentences",
+     "xp": 8
+    },
+    {
+     "start": 1792,
+     "end": 1890,
+     "title": "Frequency Adverbs in Japanese",
+     "kind": "point",
+     "label": "Frequency Adverbs in Japanese",
+     "xp": 3
+    },
+    {
+     "start": 1890,
+     "end": 2035,
+     "title": "Bonus 8",
+     "kind": "point",
+     "label": "Bonus · Frequency Adverbs in Japanese",
+     "sub": "Extra sentences",
+     "xp": 5
+    },
+    {
+     "start": 2035,
+     "end": 2101,
+     "title": "Word Order in Japanese",
+     "kind": "point",
+     "label": "Word Order in Japanese",
+     "xp": 2
+    },
+    {
+     "start": 2101,
+     "end": 2219,
+     "title": "Bonus 9",
+     "kind": "point",
+     "label": "Bonus · Word Order in Japanese",
+     "sub": "Extra sentences",
+     "xp": 4
+    },
+    {
+     "start": 2219,
+     "end": 2284,
+     "title": "More About \"は\"",
+     "kind": "point",
+     "label": "More About \"は\"",
+     "xp": 2
+    },
+    {
+     "start": 2284,
+     "end": 2436,
+     "title": "Bonus 10",
+     "kind": "point",
+     "label": "Bonus · More About \"は\"",
+     "sub": "Extra sentences",
+     "xp": 5
+    }
+   ]
   },
   {
    "type": "shadowing",
    "youtube": "TDoe7RGphFM",
    "file": "3-shadowing.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Listening & Shadowing | Lesson 3",
+   "duration": 1835,
+   "points": [
+    {
+     "start": 0,
+     "end": 102,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 102,
+     "end": 384,
+     "title": "Textbook Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 9
+    },
+    {
+     "start": 384,
+     "end": 640,
+     "title": "Textbook Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 9
+    },
+    {
+     "start": 640,
+     "end": 830,
+     "title": "Grammar Stream Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 830,
+     "end": 978,
+     "title": "Grammar Stream Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 978,
+     "end": 1155,
+     "title": "Grammar Stream Dialogue III",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue III",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1155,
+     "end": 1302,
+     "title": "Grammar Stream Dialogue IV",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue IV",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1302,
+     "end": 1499,
+     "title": "Grammar Stream Dialogue V",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue V",
+     "label": "Listen & shadow",
+     "xp": 7
+    },
+    {
+     "start": 1499,
+     "end": 1650,
+     "title": "Grammar Stream Dialogue VI",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue VI",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1650,
+     "end": 1835,
+     "title": "Grammar Stream Dialogue VII",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Grammar Stream Dialogue VII",
+     "label": "Listen & shadow",
+     "xp": 6
+    }
+   ]
   }
  ],
  "4": [
@@ -1384,8 +2252,8 @@ export const LESSON_VIDEOS = {
    "type": "stream",
    "youtube": "l5zV-7bs2Eo",
    "file": "7-stream.mp4",
-   "encoded": false,
-   "hosted": false,
+   "encoded": true,
+   "hosted": true,
    "title": "【N5】Genki 1 Lesson 7 Japanese Grammar Made Clear",
    "duration": 2358,
    "points": [
@@ -1458,22 +2326,293 @@ export const LESSON_VIDEOS = {
    "type": "textbook",
    "youtube": "E8_jyIMSyP4",
    "file": "7-textbook.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Textbook Practice | Lesson 7",
+   "duration": 1167,
+   "points": [
+    {
+     "start": 0,
+     "end": 26,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 26,
+     "end": 178,
+     "title": "The Te-iru form (actions)",
+     "kind": "point",
+     "label": "The Te-iru form (actions)",
+     "xp": 5
+    },
+    {
+     "start": 178,
+     "end": 395,
+     "title": "The Te-iru form (results of change)",
+     "kind": "point",
+     "label": "The Te-iru form (results of change)",
+     "xp": 7
+    },
+    {
+     "start": 395,
+     "end": 613,
+     "title": "Describing Bodily Features",
+     "kind": "point",
+     "label": "Describing Bodily Features",
+     "xp": 7
+    },
+    {
+     "start": 613,
+     "end": 762,
+     "title": "The Te-form for Adjectives and Nouns",
+     "kind": "point",
+     "label": "The Te-form for Adjectives and Nouns",
+     "xp": 5
+    },
+    {
+     "start": 762,
+     "end": 959,
+     "title": "Go and do...",
+     "kind": "point",
+     "label": "Go and do...",
+     "xp": 7
+    },
+    {
+     "start": 959,
+     "end": 1070,
+     "title": "Counting People",
+     "kind": "point",
+     "label": "Counting People",
+     "xp": 4
+    },
+    {
+     "start": 1070,
+     "end": 1167,
+     "title": "Review",
+     "kind": "point",
+     "label": "Review",
+     "xp": 3
+    }
+   ]
   },
   {
    "type": "bonus",
    "youtube": "rcBOdgVD7Io",
    "file": "7-bonus.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki Lesson 7 Bonus Grammar Sentences",
+   "duration": 2118,
+   "points": [
+    {
+     "start": 0,
+     "end": 172,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 172,
+     "end": 267,
+     "title": "The Present Continuous ている",
+     "kind": "point",
+     "label": "The Present Continuous ている",
+     "xp": 3
+    },
+    {
+     "start": 267,
+     "end": 572,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · The Present Continuous ている",
+     "sub": "Extra sentences",
+     "xp": 10
+    },
+    {
+     "start": 572,
+     "end": 661,
+     "title": "Results of Past Change ている",
+     "kind": "point",
+     "label": "Results of Past Change ている",
+     "xp": 3
+    },
+    {
+     "start": 661,
+     "end": 855,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Results of Past Change ている",
+     "sub": "Extra sentences",
+     "xp": 6
+    },
+    {
+     "start": 855,
+     "end": 950,
+     "title": "Describing Physical Features",
+     "kind": "point",
+     "label": "Describing Physical Features",
+     "xp": 3
+    },
+    {
+     "start": 950,
+     "end": 1266,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Describing Physical Features",
+     "sub": "Extra sentences",
+     "xp": 11
+    },
+    {
+     "start": 1266,
+     "end": 1372,
+     "title": "て Form for Adjectives and Nouns",
+     "kind": "point",
+     "label": "て Form for Adjectives and Nouns",
+     "xp": 4
+    },
+    {
+     "start": 1372,
+     "end": 1583,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · て Form for Adjectives and Nouns",
+     "sub": "Extra sentences",
+     "xp": 7
+    },
+    {
+     "start": 1583,
+     "end": 1667,
+     "title": "Go and Do...",
+     "kind": "point",
+     "label": "Go and Do...",
+     "xp": 3
+    },
+    {
+     "start": 1667,
+     "end": 1906,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Go and Do...",
+     "sub": "Extra sentences",
+     "xp": 8
+    },
+    {
+     "start": 1906,
+     "end": 1964,
+     "title": "Counting People in Japanese",
+     "kind": "point",
+     "label": "Counting People in Japanese",
+     "xp": 2
+    },
+    {
+     "start": 1964,
+     "end": 2118,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Counting People in Japanese",
+     "sub": "Extra sentences",
+     "xp": 5
+    }
+   ]
   },
   {
    "type": "shadowing",
    "youtube": "A6lUCZKN5RE",
    "file": "7-shadowing.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Listening & Shadowing | Lesson 7",
+   "duration": 1893,
+   "points": [
+    {
+     "start": 0,
+     "end": 45,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 45,
+     "end": 500,
+     "title": "Textbook Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 15
+    },
+    {
+     "start": 500,
+     "end": 780,
+     "title": "Textbook Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 9
+    },
+    {
+     "start": 780,
+     "end": 948,
+     "title": "Stream Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 948,
+     "end": 1119,
+     "title": "Stream Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1119,
+     "end": 1278,
+     "title": "Stream Dialogue III",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue III",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1278,
+     "end": 1492,
+     "title": "Stream Dialogue IV",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue IV",
+     "label": "Listen & shadow",
+     "xp": 7
+    },
+    {
+     "start": 1492,
+     "end": 1676,
+     "title": "Stream Dialogue V",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue V",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1676,
+     "end": 1893,
+     "title": "Stream Dialogue VI",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue VI",
+     "label": "Listen & shadow",
+     "xp": 7
+    }
+   ]
   }
  ],
  "8": [
@@ -1485,29 +2624,426 @@ export const LESSON_VIDEOS = {
    "type": "stream",
    "youtube": "c1R--xAXleo",
    "file": "8-stream.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "【N5】Genki 1 Lesson 8 Japanese Grammar Made Clear",
+   "duration": 3253,
+   "points": [
+    {
+     "start": 0,
+     "end": 94,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 94,
+     "end": 471,
+     "title": "Short Forms in Japanese (Negative)",
+     "kind": "point",
+     "label": "Short Forms in Japanese (Negative)",
+     "xp": 13
+    },
+    {
+     "start": 471,
+     "end": 1151,
+     "title": "Short Forms in Informal Speech",
+     "kind": "point",
+     "label": "Short Forms in Informal Speech",
+     "xp": 23
+    },
+    {
+     "start": 1151,
+     "end": 1629,
+     "title": "How to Say \"I Think...\" in Japanese",
+     "kind": "point",
+     "label": "How to Say \"I Think...\" in Japanese",
+     "xp": 16
+    },
+    {
+     "start": 1629,
+     "end": 1953,
+     "title": "How to Say \"They said...\" in Japanese",
+     "kind": "point",
+     "label": "How to Say \"They said...\" in Japanese",
+     "xp": 11
+    },
+    {
+     "start": 1953,
+     "end": 2199,
+     "title": "How to Say \"Please don't...\" in Japanese",
+     "kind": "point",
+     "label": "How to Say \"Please don't...\" in Japanese",
+     "xp": 8
+    },
+    {
+     "start": 2199,
+     "end": 2509,
+     "title": "Nominalizing Sentences",
+     "kind": "point",
+     "label": "Nominalizing Sentences",
+     "xp": 10
+    },
+    {
+     "start": 2509,
+     "end": 2930,
+     "title": "The Subject Particle が",
+     "kind": "point",
+     "label": "The Subject Particle が",
+     "xp": 14
+    },
+    {
+     "start": 2930,
+     "end": 3189,
+     "title": "How to say \"something\" and \"nothing\" in Japanese",
+     "kind": "point",
+     "label": "How to say \"something\" and \"nothing\" in Japanese",
+     "xp": 9
+    },
+    {
+     "start": 3189,
+     "end": 3253,
+     "title": "Question Time",
+     "kind": "point",
+     "label": "Question Time",
+     "xp": 2
+    }
+   ]
   },
   {
    "type": "textbook",
    "youtube": "WALusCi_M2Y",
    "file": "8-textbook.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Textbook Practice | Lesson 8",
+   "duration": 1764,
+   "points": [
+    {
+     "start": 0,
+     "end": 40,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 40,
+     "end": 229,
+     "title": "Short Forms",
+     "kind": "point",
+     "label": "Short Forms",
+     "xp": 6
+    },
+    {
+     "start": 229,
+     "end": 465,
+     "title": "Informal Speech",
+     "kind": "point",
+     "label": "Informal Speech",
+     "xp": 8
+    },
+    {
+     "start": 465,
+     "end": 879,
+     "title": "I think...",
+     "kind": "point",
+     "label": "I think...",
+     "xp": 14
+    },
+    {
+     "start": 879,
+     "end": 1105,
+     "title": "They said...",
+     "kind": "point",
+     "label": "They said...",
+     "xp": 8
+    },
+    {
+     "start": 1105,
+     "end": 1292,
+     "title": "Please don't...",
+     "kind": "point",
+     "label": "Please don't...",
+     "xp": 6
+    },
+    {
+     "start": 1292,
+     "end": 1523,
+     "title": "Nominalizing Short Form Sentences",
+     "kind": "point",
+     "label": "Nominalizing Short Form Sentences",
+     "xp": 8
+    },
+    {
+     "start": 1523,
+     "end": 1584,
+     "title": "The が Particle",
+     "kind": "point",
+     "label": "The が Particle",
+     "xp": 2
+    },
+    {
+     "start": 1584,
+     "end": 1747,
+     "title": "Something or Anything",
+     "kind": "point",
+     "label": "Something or Anything",
+     "xp": 5
+    },
+    {
+     "start": 1747,
+     "end": 1764,
+     "title": "Review",
+     "kind": "point",
+     "label": "Review",
+     "xp": 2
+    }
+   ]
   },
   {
    "type": "bonus",
    "youtube": "TwUnVE6cuhI",
    "file": "8-bonus.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki Lesson 8 Bonus Grammar Sentences",
+   "duration": 1974,
+   "points": [
+    {
+     "start": 0,
+     "end": 179,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 179,
+     "end": 374,
+     "title": "Short Forms in Informal Speech",
+     "kind": "point",
+     "label": "Short Forms in Informal Speech",
+     "xp": 6
+    },
+    {
+     "start": 374,
+     "end": 530,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Short Forms in Informal Speech",
+     "sub": "Extra sentences",
+     "xp": 5
+    },
+    {
+     "start": 530,
+     "end": 635,
+     "title": "I think... in Japanese",
+     "kind": "point",
+     "label": "I think... in Japanese",
+     "xp": 4
+    },
+    {
+     "start": 635,
+     "end": 806,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · I think... in Japanese",
+     "sub": "Extra sentences",
+     "xp": 6
+    },
+    {
+     "start": 806,
+     "end": 865,
+     "title": "They said... in Japanese",
+     "kind": "point",
+     "label": "They said... in Japanese",
+     "xp": 2
+    },
+    {
+     "start": 865,
+     "end": 1031,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · They said... in Japanese",
+     "sub": "Extra sentences",
+     "xp": 6
+    },
+    {
+     "start": 1031,
+     "end": 1127,
+     "title": "Please don't... in Japanese",
+     "kind": "point",
+     "label": "Please don't... in Japanese",
+     "xp": 3
+    },
+    {
+     "start": 1127,
+     "end": 1248,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Please don't... in Japanese",
+     "sub": "Extra sentences",
+     "xp": 4
+    },
+    {
+     "start": 1248,
+     "end": 1359,
+     "title": "Nominalizing Sentences",
+     "kind": "point",
+     "label": "Nominalizing Sentences",
+     "xp": 4
+    },
+    {
+     "start": 1359,
+     "end": 1469,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Nominalizing Sentences",
+     "sub": "Extra sentences",
+     "xp": 4
+    },
+    {
+     "start": 1469,
+     "end": 1573,
+     "title": "The Subject Particle が",
+     "kind": "point",
+     "label": "The Subject Particle が",
+     "xp": 3
+    },
+    {
+     "start": 1573,
+     "end": 1679,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · The Subject Particle が",
+     "sub": "Extra sentences",
+     "xp": 4
+    },
+    {
+     "start": 1679,
+     "end": 1781,
+     "title": "Something or Nothing",
+     "kind": "point",
+     "label": "Something or Nothing",
+     "xp": 3
+    },
+    {
+     "start": 1781,
+     "end": 1974,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Something or Nothing",
+     "sub": "Extra sentences",
+     "xp": 6
+    }
+   ]
   },
   {
    "type": "shadowing",
    "youtube": "jVpDByUnM30",
    "file": "8-shadowing.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Listening & Shadowing | Lesson 8",
+   "duration": 1988,
+   "points": [
+    {
+     "start": 0,
+     "end": 89,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 89,
+     "end": 397,
+     "title": "Textbook Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 10
+    },
+    {
+     "start": 397,
+     "end": 736,
+     "title": "Textbook Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 11
+    },
+    {
+     "start": 736,
+     "end": 910,
+     "title": "Stream Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 910,
+     "end": 1123,
+     "title": "Stream Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 7
+    },
+    {
+     "start": 1123,
+     "end": 1307,
+     "title": "Stream Dialogue III",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue III",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1307,
+     "end": 1476,
+     "title": "Stream Dialogue IV",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue IV",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1476,
+     "end": 1628,
+     "title": "Stream Dialogue V",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue V",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1628,
+     "end": 1801,
+     "title": "Stream Dialogue VI",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue VI",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1801,
+     "end": 1988,
+     "title": "Stream Dialogue VII",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue VII",
+     "label": "Listen & shadow",
+     "xp": 6
+    }
+   ]
   }
  ],
  "9": [
@@ -1519,29 +3055,377 @@ export const LESSON_VIDEOS = {
    "type": "stream",
    "youtube": "icQv6j3Hz_4",
    "file": "9-stream.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "【N5】Genki 1 Lesson 9 Japanese Grammar Made Clear",
+   "duration": 2566,
+   "points": [
+    {
+     "start": 0,
+     "end": 70,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 70,
+     "end": 614,
+     "title": "Short Form Past Tense",
+     "kind": "point",
+     "label": "Short Form Past Tense",
+     "xp": 18
+    },
+    {
+     "start": 614,
+     "end": 933,
+     "title": "Informal Speech",
+     "kind": "point",
+     "label": "Informal Speech",
+     "xp": 11
+    },
+    {
+     "start": 933,
+     "end": 1211,
+     "title": "I think... in Japanese",
+     "kind": "point",
+     "label": "I think... in Japanese",
+     "xp": 9
+    },
+    {
+     "start": 1211,
+     "end": 1423,
+     "title": "They said... in Japanese",
+     "kind": "point",
+     "label": "They said... in Japanese",
+     "xp": 7
+    },
+    {
+     "start": 1423,
+     "end": 1738,
+     "title": "Qualifying Nouns with Verbs",
+     "kind": "point",
+     "label": "Qualifying Nouns with Verbs",
+     "xp": 10
+    },
+    {
+     "start": 1738,
+     "end": 2033,
+     "title": "Already... and Haven't... Yet",
+     "kind": "point",
+     "label": "Already... and Haven't... Yet",
+     "xp": 10
+    },
+    {
+     "start": 2033,
+     "end": 2476,
+     "title": "Because with から",
+     "kind": "point",
+     "label": "Because with から",
+     "xp": 15
+    },
+    {
+     "start": 2476,
+     "end": 2566,
+     "title": "Question Time",
+     "kind": "point",
+     "label": "Question Time",
+     "xp": 3
+    }
+   ]
   },
   {
    "type": "textbook",
    "youtube": "DB-swZ5IJ38",
    "file": "9-textbook.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Textbook Practice | Lesson 9",
+   "duration": 1615,
+   "points": [
+    {
+     "start": 0,
+     "end": 58,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 58,
+     "end": 429,
+     "title": "Past Tense Short Forms",
+     "kind": "point",
+     "label": "Past Tense Short Forms",
+     "xp": 12
+    },
+    {
+     "start": 429,
+     "end": 725,
+     "title": "Informal Speech",
+     "kind": "point",
+     "label": "Informal Speech",
+     "xp": 10
+    },
+    {
+     "start": 725,
+     "end": 918,
+     "title": "I think... in Japanese",
+     "kind": "point",
+     "label": "I think... in Japanese",
+     "xp": 6
+    },
+    {
+     "start": 918,
+     "end": 1145,
+     "title": "They said... in Japanese",
+     "kind": "point",
+     "label": "They said... in Japanese",
+     "xp": 8
+    },
+    {
+     "start": 1145,
+     "end": 1414,
+     "title": "Qualifying Nouns",
+     "kind": "point",
+     "label": "Qualifying Nouns",
+     "xp": 9
+    },
+    {
+     "start": 1414,
+     "end": 1615,
+     "title": "Explaining Yourself",
+     "kind": "point",
+     "label": "Explaining Yourself",
+     "xp": 7
+    }
+   ]
   },
   {
    "type": "bonus",
    "youtube": "MSJofA0QjQM",
    "file": "9-bonus.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki Lesson 9 Bonus Grammar Sentences",
+   "duration": 2465,
+   "points": [
+    {
+     "start": 0,
+     "end": 176,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 176,
+     "end": 284,
+     "title": "Short form past tense",
+     "kind": "point",
+     "label": "Short form past tense",
+     "xp": 4
+    },
+    {
+     "start": 284,
+     "end": 483,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Short form past tense",
+     "sub": "Extra sentences",
+     "xp": 7
+    },
+    {
+     "start": 483,
+     "end": 691,
+     "title": "Short Form Past Tense MORE",
+     "kind": "point",
+     "label": "Short Form Past Tense MORE",
+     "xp": 7
+    },
+    {
+     "start": 691,
+     "end": 918,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Short Form Past Tense MORE",
+     "sub": "Extra sentences",
+     "xp": 8
+    },
+    {
+     "start": 918,
+     "end": 1137,
+     "title": "I think...",
+     "kind": "point",
+     "label": "I think...",
+     "xp": 7
+    },
+    {
+     "start": 1137,
+     "end": 1298,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · I think...",
+     "sub": "Extra sentences",
+     "xp": 5
+    },
+    {
+     "start": 1298,
+     "end": 1442,
+     "title": "Qualifying Nouns with Verbs",
+     "kind": "point",
+     "label": "Qualifying Nouns with Verbs",
+     "xp": 5
+    },
+    {
+     "start": 1442,
+     "end": 1778,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Qualifying Nouns with Verbs",
+     "sub": "Extra sentences",
+     "xp": 11
+    },
+    {
+     "start": 1778,
+     "end": 1908,
+     "title": "Already... Haven't yet...",
+     "kind": "point",
+     "label": "Already... Haven't yet...",
+     "xp": 4
+    },
+    {
+     "start": 1908,
+     "end": 2140,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Already... Haven't yet...",
+     "sub": "Extra sentences",
+     "xp": 8
+    },
+    {
+     "start": 2140,
+     "end": 2241,
+     "title": "Because...",
+     "kind": "point",
+     "label": "Because...",
+     "xp": 3
+    },
+    {
+     "start": 2241,
+     "end": 2465,
+     "title": "BONUS",
+     "kind": "point",
+     "label": "Bonus · Because...",
+     "sub": "Extra sentences",
+     "xp": 7
+    }
+   ]
   },
   {
    "type": "shadowing",
    "youtube": "Lm_CjAS5jwI",
    "file": "9-shadowing.mp4",
-   "encoded": false,
-   "hosted": false
+   "encoded": true,
+   "hosted": true,
+   "title": "Genki | Listening & Shadowing | Lesson 9",
+   "duration": 1653,
+   "points": [
+    {
+     "start": 0,
+     "end": 63,
+     "title": "Intro",
+     "kind": "intro",
+     "label": "Intro"
+    },
+    {
+     "start": 63,
+     "end": 336,
+     "title": "Textbook Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 9
+    },
+    {
+     "start": 336,
+     "end": 515,
+     "title": "Textbook Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 515,
+     "end": 676,
+     "title": "Textbook Dialogue III",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Textbook Dialogue III",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 676,
+     "end": 779,
+     "title": "Stream Dialogue I",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue I",
+     "label": "Listen & shadow",
+     "xp": 3
+    },
+    {
+     "start": 779,
+     "end": 949,
+     "title": "Stream Dialogue II",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue II",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 949,
+     "end": 1098,
+     "title": "Stream Dialogue III",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue III",
+     "label": "Listen & shadow",
+     "xp": 5
+    },
+    {
+     "start": 1098,
+     "end": 1287,
+     "title": "Stream Dialogue IV",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue IV",
+     "label": "Listen & shadow",
+     "xp": 6
+    },
+    {
+     "start": 1287,
+     "end": 1418,
+     "title": "Stream Dialogue V",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue V",
+     "label": "Listen & shadow",
+     "xp": 4
+    },
+    {
+     "start": 1418,
+     "end": 1653,
+     "title": "Stream Dialogue VI",
+     "kind": "stage",
+     "stage": 1,
+     "dialogue": "Stream Dialogue VI",
+     "label": "Listen & shadow",
+     "xp": 8
+    }
+   ]
   }
  ],
  "10": [
@@ -1854,7 +3738,7 @@ export const LESSON_VIDEOS = {
    "youtube": "734aylkkd6E",
    "file": "10-shadowing.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki | Listening & Shadowing | Lesson 10",
    "duration": 2044,
    "points": [
