@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStatsStore } from '../store/statsStore'
@@ -7,6 +7,7 @@ import { usePWAInstall } from '../hooks/usePWAInstall'
 import Mascot from '../components/Mascot'
 import Icon from '../components/Icon'
 import ChipGroup from '../components/ChipGroup'
+import { useVideoSource, canPickFolder, pickVideoFolder, reconnectVideoFolder, loadFolderFiles, forgetVideoFolder, countAvailable, testMediaServer } from '../utils/videoSource'
 import { pushSupport, enableReminders, disableReminders, sendTestReminder, syncReminders } from '../utils/push'
 
 const THEME_OPTIONS = [
@@ -28,6 +29,96 @@ const PUSH_HELP = {
   'ios-home-screen': 'On iPhone, add the app to your Home Screen first (Share → Add to Home Screen), then turn reminders on from there.',
   unsupported: "This browser can't show notifications. Try Chrome, Edge or Safari on a recent device.",
   denied: 'Notifications are blocked for this site. Allow them in your browser or system settings, then try again.',
+}
+
+// Settings → Lesson videos: the folder on this computer that holds the encoded lesson videos.
+// The deployed app never hosts them; see utils/videoSource.js.
+function VideoFolderBlock() {
+  const { status, folderName, files } = useVideoSource()
+  const inputRef = useRef(null)
+  const [msg, setMsg] = useState(null)
+  const found = status === 'ready' ? countAvailable(files) : 0
+  const choose = async () => {
+    setMsg(null)
+    if (!canPickFolder) { inputRef.current?.click(); return }
+    try { await pickVideoFolder() } catch (e) { if (e?.name !== 'AbortError') setMsg("Couldn't open that folder.") }
+  }
+  const sub = status === 'ready' ? `“${folderName}” · ${found} lesson video${found === 1 ? '' : 's'} found`
+    : status === 'scanning' ? `Looking through “${folderName}”…`
+      : status === 'reconnect' ? `“${folderName}” · the browser needs one click to open it again`
+        : 'Not connected. Lesson videos play from a folder on this computer.'
+  return (
+    <section className="stats-card settings-block">
+      <div className="settings-block-head">
+        <span className="icon-chip accent"><Icon name="folder" size={22} /></span>
+        <span className="settings-item-text"><b>Video folder</b><small>{sub}</small></span>
+      </div>
+      <div className="settings-actions">
+        {status === 'reconnect' && <button type="button" className="btn btn-primary btn-sm" onClick={() => reconnectVideoFolder().catch(() => setMsg('Access was not granted.'))}>Reconnect</button>}
+        <button type="button" className={`btn btn-sm ${status === 'none' ? 'btn-primary' : 'btn-ghost'}`} onClick={choose}>{status === 'none' ? 'Choose folder' : 'Change folder'}</button>
+        {status !== 'none' && <button type="button" className="btn btn-ghost btn-sm" onClick={() => forgetVideoFolder()}>Forget</button>}
+        <input ref={inputRef} type="file" webkitdirectory="" multiple hidden onChange={(e) => e.target.files?.length && loadFolderFiles(e.target.files)} />
+      </div>
+      <p className="settings-note">
+        Files named like <b>15-stream.mp4</b> (or containing the YouTube id) are matched automatically, in subfolders too.
+        {canPickFolder ? ' Chrome and Edge remember the folder.' : ' This browser forgets the folder when the tab closes: Chrome or Edge remember it.'}
+        {' '}On a phone, lessons link to YouTube instead.
+      </p>
+      {msg && <p className="settings-note" role="status">{msg}</p>}
+    </section>
+  )
+}
+
+// Settings → Lesson videos → Video server: the Cloudflare Worker that streams the lessons to any device.
+// URL + key stay on this device. "Copy setup link" carries them to another device in the link's #fragment,
+// which browsers never send to a server.
+function VideoServerBlock() {
+  const saved = useStatsStore((st) => st.mediaServer)
+  const setMediaServer = useStatsStore((st) => st.setMediaServer)
+  const [url, setUrl] = useState(saved?.url ?? '')
+  const [key, setKey] = useState(saved?.key ?? '')
+  const [state, setState] = useState(null) // null | 'checking' | 'ok' | 'forbidden' | 'unreachable' | 'copied'
+  const connected = Boolean(saved?.url && saved?.key)
+  const save = async () => {
+    setState('checking')
+    const result = await testMediaServer({ url, key })
+    setState(result)
+    if (result === 'ok') setMediaServer({ url, key })
+  }
+  const copyLink = async () => {
+    const link = `${window.location.origin}/#media=${encodeURIComponent(saved.url)}&k=${encodeURIComponent(saved.key)}`
+    try { await navigator.clipboard.writeText(link); setState('copied') } catch { setState(null) }
+  }
+  const msg = {
+    checking: 'Checking…',
+    ok: 'Connected. Lessons stream from the server when they aren’t in your folder.',
+    forbidden: 'The server answered, but the key is wrong.',
+    unreachable: 'Couldn’t reach that address.',
+    copied: 'Setup link copied. Open it on your phone once and it’s connected.',
+  }[state]
+  return (
+    <section className="stats-card settings-block">
+      <div className="settings-block-head">
+        <span className="icon-chip"><Icon name="lesson" size={22} /></span>
+        <span className="settings-item-text">
+          <b>Video server</b>
+          <small>{connected ? `Streaming from ${saved.url.replace(/^https?:\/\//, '')}` : 'Stream lessons on any device, phone included, from your Cloudflare server.'}</small>
+        </span>
+      </div>
+      <label className="settings-field"><span className="field-label">Server address</span>
+        <input type="url" inputMode="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://nihongo-media.<you>.workers.dev" autoComplete="off" spellCheck={false} />
+      </label>
+      <label className="settings-field"><span className="field-label">Access key</span>
+        <input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="Paste the key" autoComplete="off" spellCheck={false} />
+      </label>
+      <div className="settings-actions">
+        <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={!url || !key || state === 'checking'}>{connected ? 'Update' : 'Connect'}</button>
+        {connected && <button type="button" className="btn btn-ghost btn-sm" onClick={copyLink}>Copy setup link</button>}
+        {connected && <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setMediaServer({ url: '', key: '' }); setUrl(''); setKey(''); setState(null) }}>Disconnect</button>}
+      </div>
+      {msg && <p className="settings-note" role="status">{msg}</p>}
+    </section>
+  )
 }
 
 function Switch({ on }) {
@@ -87,7 +178,7 @@ export default function SettingsScreen() {
     <div className="page settings-page">
       <header>
         <h1 className="tab-title">Settings</h1>
-        <p className="tab-sub">Your profile, daily goal and how lessons behave.</p>
+        <p className="tab-sub">Your profile, daily goal, video folder and how quizzes behave.</p>
       </header>
 
       {/* ── Profile ── */}
@@ -104,19 +195,24 @@ export default function SettingsScreen() {
       <section className="stats-card settings-block">
         <div className="settings-block-head">
           <span className="icon-chip accent"><Icon name="target" size={22} /></span>
-          <span className="settings-item-text"><b>XP per day</b><small>Hitting it keeps your streak alive. One lesson is roughly 100 XP.</small></span>
+          <span className="settings-item-text"><b>XP per day</b><small>Hitting it keeps your streak alive. Watching earns 2 XP a minute; a quiz is roughly 100 XP.</small></span>
         </div>
         <ChipGroup options={GOAL_OPTIONS} value={s.dailyGoal} onChange={s.setDailyGoal} />
       </section>
 
       {/* ── Lessons ── */}
-      <h2 className="stats-h">Lessons</h2>
+      <h2 className="stats-h">Quizzes &amp; flashcards</h2>
       <section className="stats-card settings-list">
         <ToggleItem icon={<span className="jp" style={{ fontWeight: 800, fontSize: 18 }}>あ</span>} title="Show romaji" sub="Readings under Japanese everywhere. Also one tap from any header." on={s.showRomaji} onToggle={s.toggleRomaji} />
         <ToggleItem icon={<Icon name="speaker" size={22} />} title="Auto-play pronunciation" sub="Read Japanese aloud on flashcards and vocab answers." on={s.autoSpeak} onToggle={s.toggleAutoSpeak} />
         <ToggleItem icon={<Icon name="bolt" size={22} />} tone="accent" title="Speed mode" sub="Timed questions: +3 XP when fast, a timeout counts as wrong." on={s.speedMode} onToggle={s.toggleSpeedMode} />
         <ToggleItem icon={<Icon name="bell" size={22} />} tone="gold" title="Sound effects" sub="Chimes for right and wrong answers." on={s.soundEnabled} onToggle={s.toggleSound} />
       </section>
+
+      {/* ── Lesson videos ── */}
+      <h2 className="stats-h">Lesson videos</h2>
+      <VideoFolderBlock />
+      <VideoServerBlock />
 
       {/* ── Reminders ── */}
       <h2 className="stats-h">Reminders</h2>

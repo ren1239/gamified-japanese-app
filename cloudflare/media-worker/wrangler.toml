@@ -1,0 +1,11 @@
+# Lesson-video Worker for Nihongo ToGo (see src/index.js and CLAUDE.md §14).
+# Deploy:  cd cloudflare/media-worker && npx wrangler deploy
+# Key:     npx wrangler secret put MEDIA_KEY   (the same key goes in the app: Settings → Lesson videos)
+name = "nihongo-media"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "nihongo-lessons"

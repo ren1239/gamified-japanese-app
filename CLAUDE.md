@@ -314,8 +314,8 @@ export const ch13NaraQuiz = makeQuiz({ id: 'ch13-nara', title, topic, grammarPoi
 - **Mascots** (`src/components/Mascot.jsx`): **Nori** (triangle onigiri) for vocab and celebrations; **Mentai** (round, spicy mentaiko + chili) for grammar. Moods: `happy | think | cheer | oops | sleep`. `mascotForQuiz()` in `src/utils/mascot.js` picks one per quiz.
 - **Icons**: `<Icon name="flame" />` from `src/components/Icon.jsx` (inline SVG, tinted via `color`).
 - **Romaji**: one global persisted setting (`statsStore.showRomaji`). Put `<RomajiToggle />` in any screen header and render Japanese with `<Jp>` so it gets a romaji line automatically.
-- **Learn tab** (`PathScreen.jsx`) has two tracks (`statsStore.learnTrack`): 単語 vocab (per chapter: Nouns · Verbs · Other · All words) and 文法 grammar (per chapter: each grammar point · まとめ). Nothing is locked; the first unfinished node in the most recently studied chapter gets START. Vocab node = mastered at 100% words learned; grammar node = mastered at best ≥ 80%.
-- **Lesson flow** (`QuizScreen.jsx`): select → Check → green/red check bar with correction + rule → Continue (correct answers also auto-advance). Lesson complete (`ScoreScreen.jsx`) shows XP / accuracy / best combo, then a streak screen when the daily goal was just met.
+- **Practice tab** (`PathScreen.jsx`, nav id `learn`; free play — Lessons is the home tab) has two tracks (`statsStore.learnTrack`): 単語 vocab (per chapter: Nouns · Verbs · Other · All words) and 文法 grammar (per chapter: each grammar point · まとめ). Nothing is locked; the first unfinished node in the most recently studied chapter gets START. Vocab node = mastered at 100% words learned; grammar node = mastered at best ≥ 80%.
+- **Lesson flow** (`QuizScreen.jsx`): select → Check → green/red check bar with correction + rule → Continue (correct answers also auto-advance). Quiz complete (`ScoreScreen.jsx`) shows XP / accuracy / best combo, then a streak screen when the daily goal was just met.
 - **Glass + glow**: sticky bars use `.glass` (translucent + backdrop blur); the body has a faint fixed radial glow (`--glow-a/b/c`). Solid shapes get a top `--sheen` highlight. Scattered mascots use `.mascot-idle`.
 - Sheets/dialogs opened from inside a tab screen must render via `createPortal(…, document.body)`, or the animated screen wrapper traps them under the bottom nav.
 - Keep `html, body, #root` and the App root on `overflow-x: clip` (not `hidden`) or sticky headers and the check bar stop sticking.
@@ -332,3 +332,16 @@ Reminders use Web Push backed by the **macro-monster** Supabase project (`fvbirn
 - **Schedule**: pg_cron job `nihongo-remind-hourly` (`0 * * * *`) → `net.http_post` to `nihongo-remind`.
 - **App side**: `src/utils/push.js` (enable/disable/test/sync), `public/push-sw.js` (push + notificationclick, imported into the Workbox SW via `workbox.importScripts`), Settings → Reminders. `syncReminders()` runs on app open, when the app is backgrounded, and after every lesson.
 - Push needs HTTPS (works on the deployed site, not plain-http LAN). iPhone: only from the Home Screen app, iOS 16.4+.
+
+---
+
+## 14 — Lessons (授業): ToKini Andy videos
+
+The main path of the app: Lessons (videos) is the home tab; Practice (games) is free play. Nav: phone bottom bar, desktop left rail (≥ 900px). Plan + design: `docs/lessons-plan.md`.
+
+- **Media workspace** `~/Dev/genki-videos/` (not in this repo): `data/catalog.tsv` (all 23 lessons × vocab/stream/textbook/bonus/shadowing, YouTube + Wistia ids), `data/meta/<ytid>.json` (yt-dlp `-J`: chapters), `data/points.json` (chapter → label / `quiz` id / `flash` category), `videos/360p/<lesson>-<type>.mp4`.
+- **Add a lesson**: `~/Dev/genki-videos/fetch_lesson.sh <n>` (360p download, H.264 CRF 28 + AAC 48k mono, keyframe per chapter), add its chapter → quiz mapping to `points.json`, then `python3 -I ~/Dev/genki-videos/build_lessons.py` → regenerates `src/data/lessons.generated.js` (never edit by hand).
+- **Video source** (`src/utils/videoSource.js`): videos are never deployed with the app. Order: folder picked in Settings → Lesson videos (Chrome/Edge keep the handle in IndexedDB) → **video server** (Settings → Lesson videos → Video server; URL + key stored on the device in `statsStore.mediaServer`, never in the bundle) → `VITE_MEDIA_BASE` → dev `/media/` (`public/media` symlink, gitignored).
+- **Cloudflare**: private R2 bucket `nihongo-lessons`, served by the Worker `cloudflare/media-worker` (`https://nihongo-media.tan-re60.workers.dev/<lesson>-<type>.mp4?k=<key>`, byte ranges for seeking). Key = Worker secret `MEDIA_KEY`; the local copy is `~/Dev/genki-videos/.media-key` (never commit or print it). Upload with `~/Dev/genki-videos/upload_r2.sh` (writes `data/uploaded.txt`; `build_lessons.py` marks those videos `hosted`). A phone joins via Settings → Copy setup link (`/#media=…&k=…`, read once by App.jsx).
+- **Points** = YouTube chapters played as virtual clips (one file per video). Watched = 90% actually played (`WATCHED_PCT`). XP = 2 per minute of a part (min 2), set by `build_lessons.py`, via `completeVideoPoint` → `recordResult('video:…')`; history entries with a `video:` id are excluded from lesson counts.
+- Screens: `LessonsScreen` (tab), `LessonScreen` (videos in course order + one row per grammar point with its Explained / Practice / Bonus clips and quiz), `PlayerScreen` (points or shadowing stepper, checkpoint sheet → quiz/flashcards, keyboard shortcuts). Thumbnails: `LessonThumb` (Nori/Mentai art + CSS lesson number). Desktop layout at ≥ 900px.

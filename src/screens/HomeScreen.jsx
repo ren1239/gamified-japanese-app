@@ -62,7 +62,7 @@ export default function HomeScreen({ onStart }) {
               {due.length
                 ? (due.length > BATCH ? `Clear them ${BATCH} at a time.` : 'Get each one right to push it further out.')
                 : empty
-                  ? 'Anything you miss in a lesson, or flag, shows up here.'
+                  ? 'Anything you miss in a quiz or flashcards, or flag, shows up here.'
                   : daysUntilNext === 1 ? 'Next reviews come back tomorrow.' : `Next reviews come back in ${daysUntilNext} days.`}
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function HomeScreen({ onStart }) {
       <h2 className="stats-h">How reviews work</h2>
       <section className="stats-card how-it-works">
         <ol>
-          <li><b>Miss it or flag it</b> in any lesson and it joins your reviews, due today.</li>
+          <li><b>Miss it or flag it</b> in any quiz or flashcard and it joins your reviews, due today.</li>
           <li><b>Get it right</b> and it comes back later: after {SRS_INTERVALS[2]} day, then {SRS_INTERVALS[3]}, {SRS_INTERVALS[4]} and {SRS_INTERVALS[5]} days.</li>
           <li><b>Five right in a row</b> on schedule and it graduates, about 25 days at the soonest.</li>
           <li><b>Miss it again</b> and it starts over today.</li>

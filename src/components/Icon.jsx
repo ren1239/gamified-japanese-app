@@ -111,6 +111,33 @@ const PATHS = {
   back: <path fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" d="M15 5l-7 7 7 7" />,
   next: <path fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />,
   shuffle: <path fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" d="M3 7h3.5c2 0 3 1 4.5 3.5l2 3c1.5 2.5 2.5 3.5 4.5 3.5H21M3 17h3.5c1.2 0 2-.4 2.8-1.2M14.7 8.2c.8-.8 1.6-1.2 2.8-1.2H21M18 4l3 3-3 3M18 14l3 3-3 3" />,
+  // Lessons tab: a class whiteboard on its stand, with a play mark
+  lesson: (
+    <>
+      <rect x="2.5" y="3" width="19" height="13.5" rx="3" fill="currentColor" />
+      <path fill="var(--surface)" d="M10.2 6.9v5.7c0 .5.5.8.9.5l4.4-2.8c.4-.3.4-.8 0-1.1L11.1 6.4c-.4-.3-.9 0-.9.5Z" />
+      <path fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" d="M8 21l2.6-4.5M16 21l-2.6-4.5" />
+    </>
+  ),
+  // Lessons (video) — player controls
+  film: (
+    <>
+      <rect x="2" y="5" width="20" height="14" rx="4" fill="currentColor" />
+      <path fill="var(--surface)" d="M10 9.2v5.6c0 .5.5.8.9.5l4.3-2.8c.4-.2.4-.8 0-1L10.9 8.7c-.4-.3-.9 0-.9.5Z" />
+    </>
+  ),
+  play: <path fill="currentColor" d="M7 4.6v14.8c0 .9 1 1.4 1.7.9l11.2-7.4c.6-.4.6-1.4 0-1.8L8.7 3.7C8 3.2 7 3.7 7 4.6Z" />,
+  pause: (
+    <>
+      <rect x="5.5" y="4" width="4.5" height="16" rx="1.6" fill="currentColor" />
+      <rect x="14" y="4" width="4.5" height="16" rx="1.6" fill="currentColor" />
+    </>
+  ),
+  prevPoint: <path fill="currentColor" d="M6 4.5c.8 0 1.5.7 1.5 1.5v4.3l9.8-6.1c.9-.6 2.2.1 2.2 1.2v13.2c0 1.1-1.3 1.8-2.2 1.2l-9.8-6.1V18A1.5 1.5 0 0 1 4.5 18V6c0-.8.7-1.5 1.5-1.5Z" />,
+  nextPoint: <path fill="currentColor" d="M18 4.5c-.8 0-1.5.7-1.5 1.5v4.3L6.7 4.2c-.9-.6-2.2.1-2.2 1.2v13.2c0 1.1 1.3 1.8 2.2 1.2l9.8-6.1V18a1.5 1.5 0 0 0 3 0V6c0-.8-.7-1.5-1.5-1.5Z" />,
+  loop: <path fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" d="M4 11.5A5.5 5.5 0 0 1 9.5 6H19m0 0-3-3m3 3-3 3M20 12.5a5.5 5.5 0 0 1-5.5 5.5H5m0 0 3 3m-3-3 3-3" />,
+  expand: <path fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
+  folder: <path fill="currentColor" d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.6c.7 0 1.3.3 1.8.8L12.2 7h6.3A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-10Z" />,
   keyboard: (
     <>
       <rect x="2" y="6" width="20" height="13" rx="3" fill="currentColor" />

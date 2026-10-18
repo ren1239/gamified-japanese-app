@@ -9,8 +9,9 @@ import Icon from '../components/Icon'
 import Mascot from '../components/Mascot'
 import Jp from '../components/Jp'
 import RomajiToggle from '../components/RomajiToggle'
+import { lessonVideos } from '../utils/lessons'
 
-// The Learn tab: two separate tracks over the same Genki chapters.
+// The Practice tab (free play with the games; Lessons is the main path): two tracks over the same Genki chapters.
 //   単語 (vocab, guided by Nori)  — per chapter: Nouns · Verbs · Other · All-words review
 //   文法 (grammar, guided by Mentai) — per chapter: each grammar point · まとめ chest
 // Nothing is locked. The recommended next node gets a START tag.
@@ -136,7 +137,7 @@ function NodePanel({ node, accent, onStartQuiz, onFlashcard }) {
   )
 }
 
-export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, onNavigate }) {
+export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, onOpenLesson, onNavigate }) {
   const stats = useStatsStore()
   const { totalXp, learnedBank, wrongBank, history, learnTrack, setLearnTrack } = stats
   const quizzes = useQuizStore((s) => s.quizzes)
@@ -163,7 +164,7 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
 
   // Recommended node: first unfinished node in the chapter you studied most recently (for this track)
   const currentKey = useMemo(() => {
-    const recent = history.find((h) => isGrammar ? !/vocab/.test(h.quizId) && /^ch\d+/.test(h.quizId) : /vocab/.test(h.quizId))
+    const recent = history.find((h) => h.quizId.startsWith('video:') ? false : isGrammar ? !/vocab/.test(h.quizId) && /^ch\d+/.test(h.quizId) : /vocab/.test(h.quizId))
     const recentCh = recent ? parseInt(recent.quizId.match(/^ch(\d+)/)?.[1] ?? '-1') : -1
     const ordered = [...units.filter((u) => u.chapter.number >= recentCh), ...units.filter((u) => u.chapter.number < recentCh)]
     for (const u of ordered) {
@@ -258,6 +259,11 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
                 </div>
                 <span className="path-unit-guide"><Icon name="guide" size={22} /></span>
               </button>
+              {onOpenLesson && lessonVideos(ch.number).some((v) => v.youtube) && (
+                <button type="button" className="path-unit-watch" onClick={() => onOpenLesson(ch.number)}>
+                  <Icon name="lesson" size={18} color="var(--accent)" />Watch Lesson {ch.number}
+                </button>
+              )}
               <div className="path-nodes">
                 {unit.nodes.map((node) => {
                   const x = ZIGZAG[zig++ % ZIGZAG.length]
@@ -295,7 +301,7 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
             onClick={() => currentRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}
           >
             <Icon name={jump === 'down' ? 'next' : 'back'} size={16} style={{ transform: 'rotate(90deg)' }} />
-            {currentChapterNum === 0 ? 'Basics' : `Ch.${currentChapterNum}`} · next lesson
+            {currentChapterNum === 0 ? 'Basics' : `Ch.${currentChapterNum}`} · up next
           </motion.button>
         )}
       </AnimatePresence>

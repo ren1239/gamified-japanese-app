@@ -6,6 +6,7 @@ import { getChapterMastery } from '../utils/mastery'
 import { getVocabForChapter } from '../utils/vocabQuizGen'
 import { useQuizStore } from '../store/quizStore'
 import { chapters } from '../data/chapterData'
+import { LESSON_NUMBERS, lessonStatus, lessonWatchTime, fmtDuration } from '../utils/lessons'
 import Icon from '../components/Icon'
 import Mascot from '../components/Mascot'
 
@@ -50,7 +51,7 @@ const ACHIEVEMENTS = [
 ]
 const COLLAPSED_COUNT = 6
 
-function MasteryCard({ who, title, jp, done, total, rows, tone }) {
+function MasteryCard({ who, title, jp, done, total, rows, tone, unit }) {
   const pct = total ? Math.round((done / total) * 100) : 0
   return (
     <div className="stats-card mastery-card">
@@ -58,7 +59,7 @@ function MasteryCard({ who, title, jp, done, total, rows, tone }) {
         <Mascot who={who} mood={pct >= 50 ? 'cheer' : 'happy'} size={44} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="mastery-title"><span className="jp">{jp}</span> {title}</div>
-          <div className="mastery-sub">{done} / {total} {who === 'nori' ? 'words learned' : 'drills mastered'}</div>
+          <div className="mastery-sub">{done} / {total} {unit ?? (who === 'nori' ? 'words learned' : 'drills mastered')}</div>
         </div>
         <span className={`mastery-pct ${tone}`}>{pct}%</span>
       </div>
@@ -78,7 +79,7 @@ function MasteryCard({ who, title, jp, done, total, rows, tone }) {
 
 export default function DashboardScreen({ onNavigate }) {
   const stats = useStatsStore()
-  const { totalXp, history, username, learnedBank, dailyGoal, streakFreezes } = stats
+  const { totalXp, history, username, learnedBank, dailyGoal, streakFreezes, videoProgress } = stats
   const quizzes = useQuizStore((s) => s.quizzes)
   const streakInfo = getStreakInfo(stats)
   const streak = streakInfo.current
@@ -158,8 +159,23 @@ export default function DashboardScreen({ onNavigate }) {
   const active = activeBarIdx != null ? chartData[activeBarIdx] : null
 
   // ── Achievements ────────────────────────────────────────────────
+  const quizRuns = history.filter((e) => !e.quizId?.startsWith('video:')).length // watched video parts aren't quizzes
+  // Lessons (videos): time actually watched and videos finished, overall and per book
+  const watch = useMemo(() => {
+    let sec = 0
+    const books = { 'Genki I': { done: 0, total: 0 }, 'Genki II': { done: 0, total: 0 } }
+    for (const n of LESSON_NUMBERS) {
+      sec += lessonWatchTime(n, videoProgress).watched
+      const st = lessonStatus(n, videoProgress)
+      const b = books[n <= 12 ? 'Genki I' : 'Genki II']
+      b.done += st.complete
+      b.total += st.total
+    }
+    const rows = Object.entries(books).map(([label, b]) => ({ label, ...b }))
+    return { sec, rows, done: rows.reduce((a, r) => a + r.done, 0), total: rows.reduce((a, r) => a + r.total, 0) }
+  }, [videoProgress])
   const ctx = {
-    lessons: history.length,
+    lessons: quizRuns,
     perfects: history.filter((e) => e.total > 0 && e.score === e.total).length,
     bestStreak: stats.bestStreak || 0,
     totalXp,
@@ -220,8 +236,10 @@ export default function DashboardScreen({ onNavigate }) {
         {[
           { icon: 'flame', val: streak, label: 'Day streak', tone: 'accent' },
           { icon: 'bolt', val: totalXp.toLocaleString(), label: 'Total XP', tone: 'gold' },
+          { icon: 'lesson', val: fmtDuration(watch.sec) || '0 min', label: 'Watched', tone: 'accent' },
+          { icon: 'check', val: `${watch.done}/${watch.total}`, label: 'Videos done', tone: 'accent' },
+          { icon: 'book', val: quizRuns, label: 'Quizzes', tone: 'primary' },
           { icon: 'target', val: `${accuracy}%`, label: 'Accuracy', tone: 'success' },
-          { icon: 'book', val: history.length, label: 'Lessons', tone: 'primary' },
         ].map((s) => (
           <div key={s.label} className="stats-card stat-box">
             <Icon name={s.icon} size={26} color={`var(--${s.tone === 'gold' ? 'gold-deep' : s.tone})`} />
@@ -236,6 +254,7 @@ export default function DashboardScreen({ onNavigate }) {
       {/* ── Mastery ── */}
       <h2 className="stats-h">Mastery</h2>
       <div style={{ display: 'grid', gap: 12 }}>
+        <MasteryCard who="nori" jp="授業" title="Lessons" done={watch.done} total={watch.total} rows={watch.rows} tone="accent" unit="videos watched" />
         <MasteryCard who="nori" jp="単語" title="Vocabulary" done={mastery.vocabDone} total={mastery.vocabTotal} rows={mastery.vocab} tone="primary" />
         <MasteryCard who="mentai" jp="文法" title="Grammar" done={mastery.grammarDone} total={mastery.grammarTotal} rows={mastery.grammar} tone="accent" />
       </div>

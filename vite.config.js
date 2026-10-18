@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // public/media is a local symlink to the lesson videos (gitignored); encoding writes there constantly,
+  // which would otherwise full-reload the dev page on every chunk.
+  server: { watch: { ignored: ['**/public/media/**'] } },
   plugins: [
     react(),
     VitePWA({

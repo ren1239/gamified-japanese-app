@@ -12,9 +12,9 @@ const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 function headline(pct) {
   if (pct === 100) return { jp: '完璧！', en: 'Perfect lesson!' }
-  if (pct >= 80) return { jp: 'すごい！', en: 'Lesson complete!' }
-  if (pct >= 60) return { jp: 'よくできました', en: 'Lesson complete!' }
-  return { jp: 'がんばろう！', en: 'Lesson done. Keep at it!' }
+  if (pct >= 80) return { jp: 'すごい！', en: 'Quiz complete!' }
+  if (pct >= 60) return { jp: 'よくできました', en: 'Quiz complete!' }
+  return { jp: 'がんばろう！', en: 'Quiz done. Keep at it!' }
 }
 
 function StreakView({ onDone }) {

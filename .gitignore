@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Lesson videos: local symlink to ~/Dev/genki-videos/videos/360p (never deployed)
+public/media

@@ -96,6 +96,12 @@ export const useStatsStore = create(
       flaggedBank: [], // [{ key, quizId, quizTitle, question, flaggedDate }]
       learnedBank: [], // [{ wordId: 'ch12-n01', chapterNum: 12, date: 'YYYY-MM-DD' }]
       wordProgress: {}, // { 'ch12-n01': consecutiveCorrect }
+      // Lesson videos (授業). Key = '<lesson>-<type>', e.g. '15-stream'. sec = seconds actually played per point
+      // (index into the video's points), done = date the point counted as watched (≥ 90% played).
+      videoProgress: {}, // { '15-stream': { pos, sec: { 1: 412 }, done: { 1: 'YYYY-MM-DD' } } }
+      lastVideo: null, // { key, lesson, type } — drives the Continue card
+      // Hosted lesson videos (Cloudflare Worker in front of R2). Kept on this device only, never in the bundle.
+      mediaServer: { url: '', key: '' },
 
       recordResult: (quizId, score, total, bonusXp = 0) => {
         const state = get()
@@ -143,6 +149,8 @@ export const useStatsStore = create(
         flaggedBank: [],
         learnedBank: [],
         wordProgress: {},
+        videoProgress: {},
+        lastVideo: null,
         soundEnabled: true,
       }),
 
@@ -234,6 +242,27 @@ export const useStatsStore = create(
         })
       },
 
+      /** Resume position + watched seconds for a lesson video (called every few seconds while playing). */
+      saveVideoProgress: (key, lesson, type, pos, sec) => set((state) => {
+        const vp = state.videoProgress[key] || {}
+        return {
+          videoProgress: { ...state.videoProgress, [key]: { ...vp, pos, sec: { ...vp.sec, ...sec } } },
+          lastVideo: { key, lesson, type },
+        }
+      }),
+
+      /** A point (chapter) of a lesson video was watched. Awards its XP once; returns the XP earned. */
+      completeVideoPoint: (key, index, xp) => {
+        const state = get()
+        const vp = state.videoProgress[key] || {}
+        if (vp.done?.[index]) return 0
+        set({ videoProgress: { ...state.videoProgress, [key]: { ...vp, done: { ...vp.done, [index]: todayStr() } } } })
+        // History entries for videos use a 'video:' id with no questions, so accuracy stats ignore them
+        return xp ? get().recordResult(`video:${key}:${index}`, 0, 0, xp) : 0
+      },
+
+      setMediaServer: (mediaServer) => set({ mediaServer: { url: mediaServer.url.trim().replace(/\/+$/, ''), key: mediaServer.key.trim() } }),
+
       recordCombo: (combo) => set((state) => (combo > (state.bestCombo || 0) ? { bestCombo: combo } : {})),
 
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
@@ -303,6 +332,9 @@ export const useStatsStore = create(
         flaggedBank: state.flaggedBank,
         learnedBank: state.learnedBank,
         wordProgress: state.wordProgress,
+        videoProgress: state.videoProgress,
+        lastVideo: state.lastVideo,
+        mediaServer: state.mediaServer,
       }),
     }
   )

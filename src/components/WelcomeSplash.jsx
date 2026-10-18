@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useStatsStore, getStreakInfo, getDueEntries, xpOnDate } from '../store/statsStore'
 import { todayStr } from '../utils/dates'
+import { getVideo, pointAt } from '../utils/lessons'
 import Mascot from './Mascot'
 
 const AUTO_DISMISS_MS = 4500
@@ -23,7 +24,7 @@ const DOODLES = [
 // Welcome-back hero: greets you on launch, then swipes up into the app.
 export default function WelcomeSplash({ onDone }) {
   const stats = useStatsStore()
-  const { username, history, wrongBank, dailyGoal } = stats
+  const { username, history, wrongBank, dailyGoal, lastVideo, videoProgress } = stats
   const returning = history.length > 0
   const due = getDueEntries(wrongBank).length
   const streak = getStreakInfo(stats)
@@ -41,6 +42,14 @@ export default function WelcomeSplash({ onDone }) {
         : streak.current
           ? `${Math.max(0, dailyGoal - todayXp)} XP to keep your ${streak.current}-day streak`
           : `Earn ${dailyGoal} XP today to start a streak`
+
+  // Lessons lead: name the lesson part you stopped in
+  const lastPart = (() => {
+    const v = lastVideo && getVideo(lastVideo.lesson, lastVideo.type)
+    if (!v?.points?.length) return null
+    const p = v.points[pointAt(v.points, videoProgress[lastVideo.key]?.pos ?? 0)]
+    return `Lesson ${lastVideo.lesson} · ${p.kind === 'intro' ? v.points.find((x) => x.kind !== 'intro')?.label ?? 'Intro' : p.label}`
+  })()
 
   useEffect(() => {
     const t = setTimeout(onDone, AUTO_DISMISS_MS)
@@ -74,6 +83,11 @@ export default function WelcomeSplash({ onDone }) {
         <motion.p className="welcome-sub" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <span className="jp">{g.jp}</span> · {line}
         </motion.p>
+        {lastPart && (
+          <motion.p className="welcome-next" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+            Up next: <b className="jp">{lastPart}</b>
+          </motion.p>
+        )}
       </div>
 
       {DOODLES.map((doodle, i) => (
