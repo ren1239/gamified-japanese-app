@@ -335,7 +335,7 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
                 <button type="button" className="player-fs" onClick={fullscreen} aria-label="Full screen"><Icon name="expand" size={18} /></button>
               </>
             ) : src === null ? (
-              <NoSource video={video} lesson={lesson} mascot={meta.art === 'poster' ? 'nori' : meta.art} status={status} folderName={folderName} onYouTube={switchSource} />
+              <NoSource video={video} lesson={lesson} mascot={meta.art === 'poster' ? 'stream' : meta.art} status={status} folderName={folderName} onYouTube={switchSource} />
             ) : (
               <>
                 <video

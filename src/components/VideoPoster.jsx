@@ -17,7 +17,7 @@ export default function VideoPoster({ video, lesson, className = '' }) {
     resolveMedia(video, '.jpg').then((u) => alive && setSrc(u)).catch(() => {})
     return () => { alive = false }
   }, [art, video, files, mediaServer])
-  if (art !== 'poster' || !src) return <LessonThumb lesson={lesson} mascot={art === 'poster' ? 'nori' : art} className={className} />
+  if (art !== 'poster' || !src) return <LessonThumb lesson={lesson} mascot={art === 'poster' ? 'stream' : art} className={className} />
   return (
     <span className={`video-poster ${className}`}>
       <img src={src} alt="" loading="lazy" onError={() => setSrc(null)} />
