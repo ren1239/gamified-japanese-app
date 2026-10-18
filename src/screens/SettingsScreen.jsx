@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStatsStore } from '../store/statsStore'
@@ -8,6 +8,7 @@ import Mascot from '../components/Mascot'
 import Icon from '../components/Icon'
 import ChipGroup from '../components/ChipGroup'
 import { useVideoSource, canPickFolder, pickVideoFolder, reconnectVideoFolder, loadFolderFiles, forgetVideoFolder, countAvailable, testMediaServer } from '../utils/videoSource'
+import { japaneseVoices, currentVoiceURI, setVoice, onVoicesChanged, speakJapanese, canSpeak } from '../utils/speech'
 import { pushSupport, enableReminders, disableReminders, sendTestReminder, syncReminders } from '../utils/push'
 
 const THEME_OPTIONS = [
@@ -29,6 +30,36 @@ const PUSH_HELP = {
   'ios-home-screen': 'On iPhone, add the app to your Home Screen first (Share → Add to Home Screen), then turn reminders on from there.',
   unsupported: "This browser can't show notifications. Try Chrome, Edge or Safari on a recent device.",
   denied: 'Notifications are blocked for this site. Allow them in your browser or system settings, then try again.',
+}
+
+// Settings → Quizzes & flashcards → Voice: which of this device's Japanese voices reads quizzes aloud.
+// Automatic = the best-ranked one (natural/network, female first); a choice is remembered per device.
+function VoiceBlock() {
+  const [voices, setVoices] = useState(() => japaneseVoices())
+  const [uri, setUri] = useState(() => currentVoiceURI())
+  useEffect(() => onVoicesChanged(() => setVoices(japaneseVoices())), [])
+  if (!canSpeak) return null
+  const choose = (value) => { setUri(value); setVoice(value); speakJapanese('こんにちは。日本語を勉強しましょう。') }
+  return (
+    <section className="stats-card settings-block">
+      <div className="settings-block-head">
+        <span className="icon-chip"><Icon name="speaker" size={22} /></span>
+        <span className="settings-item-text">
+          <b>Voice</b>
+          <small>{voices.length ? 'Reads Japanese aloud in quizzes and flashcards. Each device keeps its own choice.' : 'No Japanese voice on this device yet. Add one in your system’s speech settings.'}</small>
+        </span>
+      </div>
+      {voices.length > 0 && (
+        <div className="settings-actions">
+          <select className="settings-select" value={uri} onChange={(e) => choose(e.target.value)} aria-label="Japanese voice">
+            <option value="">Automatic · {voices[0].name}</option>
+            {voices.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name}{v.localService ? '' : ' (online)'}</option>)}
+          </select>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => speakJapanese('こんにちは。日本語を勉強しましょう。')}>Test</button>
+        </div>
+      )}
+    </section>
+  )
 }
 
 // Settings → Lesson videos: the folder on this computer that holds the encoded lesson videos.
@@ -208,6 +239,8 @@ export default function SettingsScreen() {
         <ToggleItem icon={<Icon name="bolt" size={22} />} tone="accent" title="Speed mode" sub="Timed questions: +3 XP when fast, a timeout counts as wrong." on={s.speedMode} onToggle={s.toggleSpeedMode} />
         <ToggleItem icon={<Icon name="bell" size={22} />} tone="gold" title="Sound effects" sub="Chimes for right and wrong answers." on={s.soundEnabled} onToggle={s.toggleSound} />
       </section>
+
+      <VoiceBlock />
 
       {/* ── Lesson videos ── */}
       <h2 className="stats-h">Lesson videos</h2>

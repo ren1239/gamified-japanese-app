@@ -266,7 +266,7 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
 
           <div ref={stageRef} className="player-stage">
             {src === null ? (
-              <NoSource video={video} lesson={lesson} mascot={meta.mascot} status={status} folderName={folderName} />
+              <NoSource video={video} lesson={lesson} mascot={meta.art === 'poster' ? 'nori' : meta.art} status={status} folderName={folderName} />
             ) : (
               <>
                 <video

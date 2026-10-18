@@ -1458,3 +1458,4 @@ input, textarea { font-family: inherit; outline: none; }
 /* Settings → Video server */
 .settings-field { display: grid; gap: 8px; }
 .settings-field input { font-size: 15px; font-weight: 700; }
+.settings-select { flex: 1; min-width: 0; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--border-md); background: var(--bg-2); color: var(--text); font: 800 14px var(--font-ui); }

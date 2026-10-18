@@ -6,13 +6,15 @@ import { chapters } from '../data/chapterData'
 
 export const WATCHED_PCT = 0.9 // a point counts as watched once 90% of it has actually played
 
-// Track colours follow the app: indigo = vocab, vermilion = grammar, purple = listening/shadowing
+// Track colours follow the app: indigo = vocab, vermilion = grammar, purple = listening/shadowing.
+// mascot = who guides it in the player; art = its thumbnail: the Nori or Mentai lesson artwork, or 'poster'
+// (a real frame from the video — the vocab video's own title card).
 export const VIDEO_TYPES = {
-  vocab:     { kanji: '単語', label: 'Vocabulary',         short: 'Vocab',     tone: 'primary', mascot: 'nori' },
-  stream:    { kanji: '文法', label: 'Grammar stream',     short: 'Grammar',   tone: 'accent',  mascot: 'mentai' },
-  textbook:  { kanji: '練習', label: 'Textbook practice',  short: 'Practice',  tone: 'accent',  mascot: 'mentai' },
-  bonus:     { kanji: '例文', label: 'Bonus sentences',    short: 'Bonus',     tone: 'accent',  mascot: 'mentai' },
-  shadowing: { kanji: 'シャドー', label: 'Listen & shadow', short: 'Shadowing', tone: 'listen',  mascot: 'nori' },
+  vocab:     { kanji: '単語', label: 'Vocabulary',         short: 'Vocab',     tone: 'primary', mascot: 'nori',   art: 'poster' },
+  stream:    { kanji: '文法', label: 'Grammar stream',     short: 'Grammar',   tone: 'accent',  mascot: 'mentai', art: 'nori' },
+  textbook:  { kanji: '練習', label: 'Textbook practice',  short: 'Practice',  tone: 'accent',  mascot: 'mentai', art: 'mentai' },
+  bonus:     { kanji: '例文', label: 'Bonus sentences',    short: 'Bonus',     tone: 'accent',  mascot: 'mentai', art: 'mentai' },
+  shadowing: { kanji: 'シャドー', label: 'Listen & shadow', short: 'Shadowing', tone: 'listen',  mascot: 'nori',   art: 'mentai' },
 }
 
 export const videoKey = (lesson, type) => `${lesson}-${type}`

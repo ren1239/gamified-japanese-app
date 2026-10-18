@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStatsStore, getStreakInfo, getDueEntries } from '../store/statsStore'
 import { useVideoSource, hasVideo, canPickFolder, pickVideoFolder, reconnectVideoFolder } from '../utils/videoSource'
 import { LESSON_NUMBERS, VIDEO_TYPES, lessonInfo, lessonStatus, lessonWatchTime, getVideo, pointAt, fmtTime, fmtDuration } from '../utils/lessons'
-import LessonThumb from '../components/LessonThumb'
+import VideoPoster from '../components/VideoPoster'
 import Icon from '../components/Icon'
 import Jp from '../components/Jp'
 
@@ -100,7 +100,7 @@ export default function LessonsScreen({ onOpenLesson, onPlay, onNavigate }) {
       {cont && (
         <button type="button" className="continue-card" onClick={() => onPlay({ lesson: cont.lesson, type: cont.type })}>
           <span className="continue-thumb">
-            <LessonThumb lesson={cont.lesson} mascot={VIDEO_TYPES[cont.type].mascot} />
+            <VideoPoster video={cont.video} lesson={cont.lesson} />
             <span className="continue-time">{fmtTime(cont.pos)} / {fmtTime(cont.video.duration)}</span>
             <span className="continue-bar"><i style={{ width: `${Math.round(cont.pct * 100)}%` }} /></span>
           </span>
