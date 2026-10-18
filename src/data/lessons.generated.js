@@ -4066,7 +4066,7 @@ export const LESSON_VIDEOS = {
    "youtube": "mSDtOkWB0Zg",
    "file": "20-vocab.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki | Vocabulary | Lesson 20",
    "duration": 893,
    "points": [
@@ -4147,7 +4147,7 @@ export const LESSON_VIDEOS = {
    "youtube": "pYZASUOlcok",
    "file": "20-stream.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "【N4】Genki II Lesson 20 Japanese Grammar Made Clear | Humble Expressions in Japanese",
    "duration": 3626,
    "points": [
@@ -4225,7 +4225,7 @@ export const LESSON_VIDEOS = {
    "youtube": "X2X8hEpJUjM",
    "file": "20-textbook.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki | Textbook Practice | Lesson 20",
    "duration": 2021,
    "points": [
@@ -4313,7 +4313,7 @@ export const LESSON_VIDEOS = {
    "youtube": "RPoKyHqRqLo",
    "file": "20-bonus.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki Lesson 20 Bonus Grammar Sentences",
    "duration": 2239,
    "points": [
@@ -4470,8 +4470,8 @@ export const LESSON_VIDEOS = {
    "type": "shadowing",
    "youtube": "88KS9uhJ-KU",
    "file": "20-shadowing.mp4",
-   "encoded": false,
-   "hosted": false,
+   "encoded": true,
+   "hosted": true,
    "title": "Genki | Listening & Shadowing | Lesson 20",
    "duration": 3275,
    "points": [
@@ -4891,7 +4891,7 @@ export const LESSON_VIDEOS = {
    "youtube": "cHBr0NmONjM",
    "file": "21-vocab.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki | Vocabulary | Lesson 21",
    "duration": 820,
    "points": [
@@ -4972,7 +4972,7 @@ export const LESSON_VIDEOS = {
    "youtube": "eh5G78_wFAM",
    "file": "21-stream.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "【N4】Genki II Lesson 21 Japanese Grammar Made Clear 【Chat Removed】",
    "duration": 3032,
    "points": [
@@ -5039,8 +5039,8 @@ export const LESSON_VIDEOS = {
    "type": "textbook",
    "youtube": "eOsbk-5y-YM",
    "file": "21-textbook.mp4",
-   "encoded": false,
-   "hosted": false,
+   "encoded": true,
+   "hosted": true,
    "title": "Genki | Textbook Practice | Lesson 21",
    "duration": 1603,
    "points": [
@@ -5117,8 +5117,8 @@ export const LESSON_VIDEOS = {
    "type": "bonus",
    "youtube": "EhcnoTzhcxI",
    "file": "21-bonus.mp4",
-   "encoded": false,
-   "hosted": false,
+   "encoded": true,
+   "hosted": true,
    "title": "Lesson 21 Bonus Grammar Sentences",
    "duration": 1916,
    "points": [
@@ -5235,8 +5235,8 @@ export const LESSON_VIDEOS = {
    "type": "shadowing",
    "youtube": "X-4RDF9KGpw",
    "file": "21-shadowing.mp4",
-   "encoded": false,
-   "hosted": false,
+   "encoded": true,
+   "hosted": true,
    "title": "Genki | Listening & Shadowing | Lesson 21",
    "duration": 2493,
    "points": [
@@ -5815,7 +5815,7 @@ export const LESSON_VIDEOS = {
    "youtube": "iuw8HU5jlOU",
    "file": "22-textbook.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki | Textbook Practice | Lesson 22",
    "duration": 1705,
    "points": [
@@ -5893,7 +5893,7 @@ export const LESSON_VIDEOS = {
    "youtube": "7cSByUY2Dl0",
    "file": "22-bonus.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki Lesson 22 | Bonus Grammar Sentences",
    "duration": 2149,
    "points": [
@@ -6031,7 +6031,7 @@ export const LESSON_VIDEOS = {
    "youtube": "KmXxgcmie_o",
    "file": "22-shadowing.mp4",
    "encoded": true,
-   "hosted": false,
+   "hosted": true,
    "title": "Genki | Listening & Shadowing | Lesson 22",
    "duration": 2597,
    "points": [

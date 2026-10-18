@@ -34,43 +34,47 @@ export default {
     if (!sameSecret(url.searchParams.get('k') ?? '', env.MEDIA_KEY)) return new Response('Forbidden', { status: 403, headers: CORS })
 
     const key = url.pathname.slice(1)
-    const meta = await env.MEDIA.head(key) // size + metadata; needed to answer byte ranges exactly
-    if (!meta) return new Response('Not found', { status: 404, headers: CORS })
-
-    const headers = new Headers(CORS)
-    meta.writeHttpMetadata(headers)
-    headers.set('ETag', meta.httpEtag)
-    headers.set('Accept-Ranges', 'bytes')
-    headers.set('Cache-Control', 'private, max-age=604800')
-    if (!headers.has('Content-Type')) headers.set('Content-Type', match[3] === 'mp4' ? 'video/mp4' : 'image/jpeg')
+    const respond = (obj, status, extra = {}) => {
+      const headers = new Headers(CORS)
+      obj.writeHttpMetadata(headers)
+      headers.set('ETag', obj.httpEtag)
+      headers.set('Accept-Ranges', 'bytes')
+      headers.set('Cache-Control', 'private, max-age=604800')
+      if (!headers.has('Content-Type')) headers.set('Content-Type', match[3] === 'mp4' ? 'video/mp4' : 'image/jpeg')
+      for (const [k, v] of Object.entries(extra)) headers.set(k, v)
+      return new Response(status === 200 || status === 206 ? obj.body ?? null : null, { status, headers })
+    }
 
     if (request.method === 'HEAD') {
-      headers.set('Content-Length', String(meta.size))
-      return new Response(null, { headers })
+      const meta = await env.MEDIA.head(key)
+      return meta ? respond(meta, 200, { 'Content-Length': String(meta.size) }) : new Response('Not found', { status: 404, headers: CORS })
     }
-    if (request.headers.get('If-None-Match') === meta.httpEtag) return new Response(null, { status: 304, headers })
 
-    // Range: bytes=start-end | start- | -suffix  (players ask for one range at a time)
-    const range = (request.headers.get('Range') ?? '').match(/^bytes=(\d*)-(\d*)$/)
-    if (range && (range[1] || range[2])) {
-      const size = meta.size
-      let start, end
-      if (range[1] === '') { start = Math.max(0, size - Number(range[2])); end = size - 1 } // last N bytes
-      else { start = Number(range[1]); end = range[2] === '' ? size - 1 : Math.min(Number(range[2]), size - 1) }
-      if (start >= size || start > end) {
-        headers.set('Content-Range', `bytes */${size}`)
-        return new Response(null, { status: 416, headers })
+    // Range: bytes=start-end | start- | -suffix  (players ask for one range at a time).
+    // One R2 call per request: the object's total size comes back with the ranged read.
+    const m = (request.headers.get('Range') ?? '').match(/^bytes=(\d*)-(\d*)$/)
+    if (m && (m[1] || m[2])) {
+      const r = m[1] === '' ? { suffix: Number(m[2]) }
+        : m[2] === '' ? { offset: Number(m[1]) }
+          : { offset: Number(m[1]), length: Number(m[2]) - Number(m[1]) + 1 }
+      let obj
+      try { obj = await env.MEDIA.get(key, { range: r }) } catch { obj = undefined } // out-of-range read
+      if (obj === null) return new Response('Not found', { status: 404, headers: CORS })
+      if (!obj) {
+        const meta = await env.MEDIA.head(key)
+        if (!meta) return new Response('Not found', { status: 404, headers: CORS })
+        return respond(meta, 416, { 'Content-Range': `bytes */${meta.size}` })
       }
-      const obj = await env.MEDIA.get(key, { range: { offset: start, length: end - start + 1 } })
-      if (!obj) return new Response('Not found', { status: 404, headers: CORS })
-      headers.set('Content-Range', `bytes ${start}-${end}/${size}`)
-      headers.set('Content-Length', String(end - start + 1))
-      return new Response(obj.body, { status: 206, headers })
+      const size = obj.size
+      const start = 'suffix' in r ? Math.max(0, size - r.suffix) : r.offset
+      const end = 'length' in r ? Math.min(start + r.length, size) - 1 : size - 1
+      if (start >= size || start > end) return respond(obj, 416, { 'Content-Range': `bytes */${size}` })
+      return respond(obj, 206, { 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': String(end - start + 1) })
     }
 
-    const obj = await env.MEDIA.get(key)
+    const obj = await env.MEDIA.get(key, { onlyIf: request.headers })
     if (!obj) return new Response('Not found', { status: 404, headers: CORS })
-    headers.set('Content-Length', String(meta.size))
-    return new Response(obj.body, { headers })
+    if (!('body' in obj)) return respond(obj, 304) // If-None-Match matched
+    return respond(obj, 200, { 'Content-Length': String(obj.size) })
   },
 }

@@ -6,6 +6,7 @@ import { useQuizStore } from '../store/quizStore'
 import { useVideoSource, resolveMedia, canPickFolder, pickVideoFolder, reconnectVideoFolder } from '../utils/videoSource'
 import { VIDEO_TYPES, WATCHED_PCT, getVideo, videoKey, lessonInfo, pointAt, fmtTime, stageShort, stageSpeed } from '../utils/lessons'
 import { todayStr } from '../utils/dates'
+import { createYouTubeEngine } from '../utils/youtubeEngine'
 import LessonThumb from '../components/LessonThumb'
 import Mascot from '../components/Mascot'
 import Icon from '../components/Icon'
@@ -27,8 +28,7 @@ const STAGE_HINT = {
   Shadow: "Speak along half a beat behind. Copy Yuki's voice: the course recommends modelling the native speaker.",
 }
 
-function NoSource({ video, lesson, mascot, status, folderName }) {
-  const yt = `https://www.youtube.com/watch?v=${video.youtube}`
+function NoSource({ video, lesson, mascot, status, folderName, onYouTube }) {
   return (
     <div className="player-nosource">
       <LessonThumb lesson={lesson} mascot={mascot} className="player-nosource-art" />
@@ -42,7 +42,7 @@ function NoSource({ video, lesson, mascot, status, folderName }) {
         <div className="player-nosource-actions">
           {status === 'reconnect' && <button type="button" className="btn btn-primary btn-sm" onClick={() => reconnectVideoFolder().catch(() => {})}><Icon name="folder" size={16} />Reconnect</button>}
           {status !== 'reconnect' && canPickFolder && <button type="button" className="btn btn-primary btn-sm" onClick={() => pickVideoFolder().catch(() => {})}><Icon name="folder" size={16} />Choose folder</button>}
-          <a className="btn btn-ghost btn-sm" href={yt} target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+          {video.youtube && <button type="button" className="btn btn-accent btn-sm" onClick={onYouTube}><Icon name="play" size={16} />Play from YouTube here</button>}
         </div>
       </div>
     </div>
@@ -75,13 +75,21 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
     return { saved: sv, startAt: at }
   })
 
-  const vRef = useRef(null)
+  const vRef = useRef(null) // the <video> element, or the YouTube engine (same interface)
   const stageRef = useRef(null)
+  const ytHost = useRef(null)
+  const handlers = useRef({})
   const [src, setSrc] = useState(undefined) // undefined = looking, null = no source
   const [poster, setPoster] = useState(null)
   const [time, setTime] = useState(startAt)
   const [duration, setDuration] = useState(video?.duration ?? 0)
   const [playing, setPlaying] = useState(false)
+  // Network state, so a slow server never looks like a frozen app:
+  // 'connecting' (no data yet) → 'ready'; 'buffering' while playback waits for data; 'error' if loading failed
+  // (keyed by the current source, so a new video or a retry starts again at 'connecting')
+  const [retry, setRetry] = useState(0)
+  const [netState, setNetState] = useState({ key: null, value: 'connecting' })
+  const [slowFor, setSlowFor] = useState(null)
   const [rate, setRate] = useState(1)
   const [loop, setLoop] = useState(false)
   const [pauseAtEnd, setPauseAtEnd] = useState(!isShadow)
@@ -102,6 +110,18 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
     resolveMedia(video, '.jpg').then((u) => alive && setPoster(u)).catch(() => {})
     return () => { alive = false }
   }, [video, files, mediaServer])
+
+  const loadKey = `${src}|${retry}`
+  const net = netState.key === loadKey ? netState.value : 'connecting'
+  const setNet = (value) => setNetState({ key: loadKey, value })
+  // After 8 s of waiting, say it's slow rather than leave it looking stuck
+  const waitKey = `${loadKey}|${net}`
+  const slow = slowFor === waitKey
+  useEffect(() => {
+    if (net !== 'connecting' && net !== 'buffering') return undefined
+    const id = setTimeout(() => setSlowFor(waitKey), 8000)
+    return () => clearTimeout(id)
+  }, [net, waitKey])
 
   // Save position + watched seconds every few seconds, and when leaving
   const flush = useCallback(() => {
@@ -198,9 +218,37 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
     const v = vRef.current
     setDuration(v.duration)
     v.playbackRate = rate
-    if (startAt > 0) v.currentTime = startAt
+    if (posRef.current > 0) v.currentTime = posRef.current
     lastT.current = v.currentTime
   }
+
+  // YouTube, inside the player, only when you choose it (it can show ads): from the "not downloaded" panel,
+  // from a slow/failed load, or the YouTube button under the player. Switching keeps your place.
+  const [ytChosen, setYtChosen] = useState(false)
+  const ytMode = Boolean(video?.youtube) && ytChosen
+  const canPlay = Boolean(src) || ytMode
+  const switchSource = () => { flush(); setPlaying(false); setYtChosen((x) => !x) }
+  useEffect(() => {
+    handlers.current = {
+      loaded: () => { onLoaded(); setNet('ready') },
+      time: onTime,
+      play: () => setPlaying(true),
+      pause: () => { setPlaying(false); flush() },
+      ended: onEnded,
+      waiting: () => setNet('buffering'),
+      playing: () => setNet('ready'),
+      error: () => setNet('error'),
+    }
+  })
+  useEffect(() => {
+    const host = ytHost.current
+    if (!ytMode || !host) return undefined
+    const el = document.createElement('div') // YouTube replaces this node with its iframe, so keep it outside React
+    host.appendChild(el)
+    const engine = createYouTubeEngine(el, video.youtube, posRef.current, () => handlers.current)
+    vRef.current = engine
+    return () => { engine.destroy(); vRef.current = null; host.replaceChildren() }
+  }, [ytMode, video?.youtube, retry])
 
   // Desktop keyboard shortcuts (ignored while typing)
   useEffect(() => {
@@ -265,11 +313,33 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
           </header>
 
           <div ref={stageRef} className="player-stage">
-            {src === null ? (
-              <NoSource video={video} lesson={lesson} mascot={meta.art === 'poster' ? 'nori' : meta.art} status={status} folderName={folderName} />
+            {ytMode ? (
+              <>
+                <div ref={ytHost} className="player-yt" />
+                {net !== 'ready' && net !== 'error' && (
+                  <div className="player-loading" role="status" aria-live="polite">
+                    <span className="spinner" aria-hidden="true" />
+                    <b>{net === 'connecting' ? 'Loading from YouTube…' : 'Loading…'}</b>
+                    {slow && <small>Taking longer than usual. Check your connection.</small>}
+                  </div>
+                )}
+                {net === 'error' && (
+                  <div className="player-loading error" role="alert">
+                    <b>YouTube couldn’t play this video here</b>
+                    <span className="player-nosource-actions">
+                      <button type="button" className="btn btn-primary btn-sm" onClick={() => setRetry((r) => r + 1)}>Retry</button>
+                      {src && <button type="button" className="btn btn-white btn-sm" onClick={switchSource}>Use my copy</button>}
+                    </span>
+                  </div>
+                )}
+                <button type="button" className="player-fs" onClick={fullscreen} aria-label="Full screen"><Icon name="expand" size={18} /></button>
+              </>
+            ) : src === null ? (
+              <NoSource video={video} lesson={lesson} mascot={meta.art === 'poster' ? 'nori' : meta.art} status={status} folderName={folderName} onYouTube={switchSource} />
             ) : (
               <>
                 <video
+                  key={retry}
                   ref={vRef}
                   src={src || undefined}
                   poster={poster || undefined}
@@ -281,9 +351,32 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
                   onPlay={() => setPlaying(true)}
                   onPause={() => { setPlaying(false); flush() }}
                   onEnded={onEnded}
+                  onCanPlay={() => { if (net !== 'error') setNet('ready') }}
+                  onPlaying={() => setNet('ready')}
+                  onWaiting={() => setNet('buffering')}
+                  onSeeking={() => { if (vRef.current?.readyState < 3) setNet('buffering') }}
+                  onError={() => setNet('error')}
                 />
+                {src && net !== 'ready' && net !== 'error' && (
+                  <div className="player-loading" role="status" aria-live="polite">
+                    <span className="spinner" aria-hidden="true" />
+                    <b>{net === 'connecting' ? (src.startsWith('blob:') ? 'Opening video…' : 'Connecting to video server…') : 'Loading…'}</b>
+                    {slow && <small>Taking longer than usual. A slow connection, or the video is large.</small>}
+                    {slow && video.youtube && <button type="button" className="btn btn-white btn-sm player-loading-btn" onClick={switchSource}>Switch to YouTube</button>}
+                  </div>
+                )}
+                {net === 'error' && (
+                  <div className="player-loading error" role="alert">
+                    <b>Couldn’t load this video</b>
+                    <small>Check your connection or the video server in Settings.</small>
+                    <span className="player-nosource-actions">
+                      <button type="button" className="btn btn-primary btn-sm" onClick={() => setRetry((r) => r + 1)}>Retry</button>
+                      {video.youtube && <button type="button" className="btn btn-white btn-sm" onClick={switchSource}>Switch to YouTube</button>}
+                    </span>
+                  </div>
+                )}
                 {cp && cp.kind !== 'intro' && <span className="player-chip jp">{counted.indexOf(cp) + 1}/{counted.length} · {cp.label}</span>}
-                {!playing && src && (
+                {!playing && src && net === 'ready' && (
                   <button type="button" className="player-bigplay" onClick={toggle} aria-label="Play"><Icon name="play" size={30} /></button>
                 )}
                 <button type="button" className="player-fs" onClick={fullscreen} aria-label="Full screen"><Icon name="expand" size={18} /></button>
@@ -325,22 +418,28 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
               value={Math.min(Math.max(time, range.start), range.end || 1)}
               onChange={(e) => seek(Number(e.target.value))}
               aria-label="Position in this part"
-              disabled={!src}
+              disabled={!canPlay}
               style={{ '--pct': `${((time - range.start) / ((range.end - range.start) || 1)) * 100}%` }}
             />
             <span>{fmtTime(range.end - range.start)}</span>
           </div>
           <p className="player-scrub-note">{cp && points.length > 1 ? 'This part · ' : ''}{fmtTime(time)} of {fmtTime(total)} in the full video</p>
+          {ytMode && <p className="player-source-note">Playing from YouTube inside the app (it may show ads).{src ? '' : ' Connect your video folder or server in Settings for ad-free playback.'}</p>}
 
           <div className="player-controls">
-            <button type="button" className="ctl" onClick={() => seek(time - 10)} aria-label="Back 10 seconds" disabled={!src}>−10</button>
-            <button type="button" className="ctl" onClick={() => playPoint(Math.max(0, ci - 1))} aria-label="Previous part" disabled={!src}><Icon name="prevPoint" size={20} /></button>
-            <button type="button" className="ctl-main" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'} disabled={!src}><Icon name={playing ? 'pause' : 'play'} size={28} /></button>
-            <button type="button" className="ctl" onClick={() => playPoint(Math.min(points.length - 1, ci + 1))} aria-label="Next part" disabled={!src}><Icon name="nextPoint" size={20} /></button>
-            <button type="button" className="ctl" onClick={() => seek(time + 10)} aria-label="Forward 10 seconds" disabled={!src}>+10</button>
+            <button type="button" className="ctl" onClick={() => seek(time - 10)} aria-label="Back 10 seconds" disabled={!canPlay}>−10</button>
+            <button type="button" className="ctl" onClick={() => playPoint(Math.max(0, ci - 1))} aria-label="Previous part" disabled={!canPlay}><Icon name="prevPoint" size={20} /></button>
+            <button type="button" className="ctl-main" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'} disabled={!canPlay}><Icon name={playing ? 'pause' : 'play'} size={28} /></button>
+            <button type="button" className="ctl" onClick={() => playPoint(Math.min(points.length - 1, ci + 1))} aria-label="Next part" disabled={!canPlay}><Icon name="nextPoint" size={20} /></button>
+            <button type="button" className="ctl" onClick={() => seek(time + 10)} aria-label="Forward 10 seconds" disabled={!canPlay}>+10</button>
           </div>
           <div className="player-pills">
             <button type="button" className="pill-btn" onClick={cycleRate} aria-label={`Speed ${rate}×`}>{rate}×</button>
+            {video.youtube && (src || ytMode) && (
+              <button type="button" className={`pill-btn${ytMode ? ' on' : ''}`} aria-pressed={ytMode} onClick={switchSource} title={ytMode ? 'Back to your own copy' : 'Play this video from YouTube instead'}>
+                <Icon name="play" size={14} />{ytMode ? (src ? 'YouTube · use my copy' : 'YouTube') : 'YouTube'}
+              </button>
+            )}
             <button type="button" className={`pill-btn${loop ? ' on' : ''}`} aria-pressed={loop} onClick={() => setLoop((x) => !x)}><Icon name="loop" size={16} />{isShadow ? 'Repeat stage' : 'Loop part'}</button>
             {hasPractice && (
               <button type="button" className={`pill-btn${pauseAtEnd ? ' on' : ''}`} aria-pressed={pauseAtEnd} onClick={() => setPauseAtEnd((x) => !x)}>Pause after each part</button>

@@ -1368,8 +1368,6 @@ input, textarea { font-family: inherit; outline: none; }
 
 /* Lessons polish: availability note, dimmed lessons, next-up action, real poster frames, hover states */
 .lessons-note { margin-top: -8px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
-.lesson-row.away { opacity: 0.72; }
-.lesson-row.away:hover { opacity: 1; }
 .lesson-next { display: flex; align-items: center; gap: 12px; padding: 12px; text-align: left; color: var(--text); background: var(--surface); border-radius: var(--radius-sm); box-shadow: 0 4px 0 var(--primary-deep); transition: transform 0.06s, box-shadow 0.06s; }
 .lesson-next:hover { filter: brightness(1.03); }
 .lesson-next:active { transform: translateY(4px); box-shadow: 0 0 0 var(--primary-deep); }
@@ -1459,3 +1457,15 @@ input, textarea { font-family: inherit; outline: none; }
 .settings-field { display: grid; gap: 8px; }
 .settings-field input { font-size: 15px; font-weight: 700; }
 .settings-select { flex: 1; min-width: 0; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--border-md); background: var(--bg-2); color: var(--text); font: 800 14px var(--font-ui); }
+
+/* Player: loading / buffering / error overlay */
+.player-loading { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 16px; text-align: center; color: #fff; background: rgba(14, 17, 26, 0.55); pointer-events: none; }
+.player-loading.error { pointer-events: auto; background: rgba(14, 17, 26, 0.85); }
+.player-loading b { font-size: 15px; font-weight: 900; }
+.player-loading small { max-width: 320px; font-size: 13px; font-weight: 700; opacity: 0.85; }
+.spinner { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, 0.25); border-top-color: #fff; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+.player-yt, .player-yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.player-source-note { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); padding: 0 16px; }
+.player-loading-btn { pointer-events: auto; margin-top: 4px; }

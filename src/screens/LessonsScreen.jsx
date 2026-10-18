@@ -119,7 +119,7 @@ export default function LessonsScreen({ onOpenLesson, onPlay, onNavigate }) {
 
       <h2 className="lessons-h">{book === 1 ? 'GENKI I' : 'GENKI II'} · {lessons.length} LESSONS</h2>
       {anyPlayable && missing.length > 0 && (
-        <p className="lessons-note">Not in your video folder yet: Lesson {rangeLabel(missing)}</p>
+        <p className="lessons-note">Not downloaded yet, but watchable via YouTube in the player: Lesson {rangeLabel(missing)}</p>
       )}
       <div className="lessons-grid">
         {lessons.map((n) => {

@@ -182,7 +182,7 @@ export default function LessonScreen({ lesson, onBack, onPlay, onStartQuiz, onFl
                           {v.duration ? fmtTime(v.duration) : 'Not downloaded yet'}
                           {pts.length > 1 ? ` · ${dialogues.length ? `${dialogues.length} dialogues` : `${pts.length} parts`}` : ''}
                           {st.complete ? ' · watched' : ''}
-                          {!playable && v.duration ? ' · not on this device' : ''}
+                          {!playable ? ' · YouTube only for now' : ''}
                         </small>
                       </span>
                     </button>
