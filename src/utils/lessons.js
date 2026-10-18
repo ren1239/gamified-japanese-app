@@ -14,7 +14,7 @@ export const VIDEO_TYPES = {
   stream:    { kanji: '文法', label: 'Grammar stream',     short: 'Grammar',   tone: 'accent',  mascot: 'mentai', art: 'nori' },
   textbook:  { kanji: '練習', label: 'Textbook practice',  short: 'Practice',  tone: 'accent',  mascot: 'mentai', art: 'mentai' },
   bonus:     { kanji: '例文', label: 'Bonus sentences',    short: 'Bonus',     tone: 'accent',  mascot: 'mentai', art: 'mentai' },
-  shadowing: { kanji: 'シャドー', label: 'Listen & shadow', short: 'Shadowing', tone: 'listen',  mascot: 'nori',   art: 'mentai' },
+  shadowing: { kanji: 'シャドー', label: 'Listen & shadow', short: 'Shadowing', tone: 'listen',  mascot: 'nori',   art: 'shadowing' },
 }
 
 export const videoKey = (lesson, type) => `${lesson}-${type}`

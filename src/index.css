@@ -1110,9 +1110,9 @@ input, textarea { font-family: inherit; outline: none; }
   color: #fff;
   letter-spacing: 0.01em;
 }
-/* Mentai art: the pill ends in a white slot (x 1645–1839, y 682–821); "LESSON" caps are y 707–796.
+/* Mentai and shadowing art (class .slot): the pill ends in a white slot (x 1645–1839, y 682–821); "LESSON" caps are y 707–796.
    The number is centred in the slot in dark ink, at the same cap height. */
-.lesson-thumb.mentai .lesson-thumb-num {
+.lesson-thumb.slot .lesson-thumb-num {
   left: 87.1%;
   transform: translateX(-50%);
   top: 62.06%;
