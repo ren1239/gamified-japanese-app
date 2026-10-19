@@ -6,6 +6,7 @@ import { useStatsStore, getStreakInfo, getDueEntries } from '../store/statsStore
 import { getVocabForChapter, generateVocabQuiz } from '../utils/vocabQuizGen'
 import { toTypedQuiz } from '../utils/answerMatch'
 import Icon from '../components/Icon'
+import GameIcon from '../components/GameIcon'
 import Mascot from '../components/Mascot'
 import Jp from '../components/Jp'
 import RomajiToggle from '../components/RomajiToggle'
@@ -67,14 +68,16 @@ function isDone(node) {
 function NodeButton({ node, x, selected, current, accent, onClick }) {
   const done = isDone(node)
   const started = !done && (node.pct > 0 || node.played)
-  const icon = node.kind === 'vocab' ? node.group.icon : node.kind.endsWith('review') ? 'chest' : 'brush'
+  const icon = done ? 'mastered'
+    : node.kind === 'vocab' ? { noun: 'nouns', verb: 'verbs', other: 'other' }[node.group.id]
+      : node.kind === 'vocab-review' ? 'vocab-review' : node.kind === 'grammar-review' ? 'grammar-review' : 'grammar'
   const cls = ['path-node', done ? 'done' : '', accent ? 'accent' : '', selected ? 'selected' : ''].join(' ')
   return (
     <div className="path-node-wrap" style={{ transform: `translateX(${x}px)` }}>
       {current && !selected && <span className="path-start-tag">START</span>}
       <span className="path-ring" style={{ '--p': `${Math.round((started ? node.pct : done ? 1 : 0) * 360)}deg` }}>
         <button type="button" className={cls} onClick={onClick} aria-expanded={selected} aria-label={nodeTitle(node)}>
-          <Icon name={done ? 'crown' : icon} size={30} />
+          <GameIcon name={icon} size={46} />
         </button>
       </span>
     </div>
@@ -104,13 +107,13 @@ function NodePanel({ node, accent, onStartQuiz, onFlashcard }) {
         </div>
         <div className="path-panel-actions">
           <button type="button" className="btn btn-white" onClick={() => onFlashcard({ chapter: ch, category, direction: 'jp-en' })}>
-            <Icon name="cards" size={18} /> Flashcards
+            <GameIcon name="flashcards" size={24} /> Flashcards
           </button>
           <button type="button" className="btn btn-white" onClick={() => start('mix', 'choice')}>
             <Icon name="target" size={18} /> Quiz
           </button>
           <button type="button" className="btn btn-white" onClick={() => start('en-jp', 'type')}>
-            <Icon name="keyboard" size={18} /> Type it
+            <GameIcon name="type" size={24} /> Type it
           </button>
         </div>
       </div>
@@ -128,9 +131,9 @@ function NodePanel({ node, accent, onStartQuiz, onFlashcard }) {
       </div>
       <div className="path-panel-actions">
         <button type="button" className="btn btn-white" onClick={() => onStartQuiz(quiz, false)}>Start</button>
-        <button type="button" className="btn btn-white" onClick={() => onStartQuiz(quiz, true)}><Icon name="shuffle" size={18} /> Shuffle</button>
+        <button type="button" className="btn btn-white" onClick={() => onStartQuiz(quiz, true)}><GameIcon name="shuffle" size={24} /> Shuffle</button>
         {ch.number === 0 && (
-          <button type="button" className="btn btn-white" onClick={() => onStartQuiz(toTypedQuiz(quiz), true)}><Icon name="keyboard" size={18} /> Type</button>
+          <button type="button" className="btn btn-white" onClick={() => onStartQuiz(toTypedQuiz(quiz), true)}><GameIcon name="type" size={24} /> Type</button>
         )}
       </div>
     </div>
