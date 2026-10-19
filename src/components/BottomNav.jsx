@@ -1,5 +1,7 @@
 import { useStatsStore, getDueEntries } from '../store/statsStore'
 import Icon from './Icon'
+import logoLight from '../assets/brand/logo-light.png'
+import logoDark from '../assets/brand/logo-dark.png'
 
 // Main navigation. Lessons (the videos) is home; Practice is free play with the quiz games.
 // Phone: icon bar at the bottom. Desktop (≥ 900px, see .bottom-nav in index.css): labelled rail on the left.
@@ -16,7 +18,11 @@ export default function BottomNav({ active, onChange }) {
   const dueCount = getDueEntries(wrongBank).length
   return (
     <nav className="bottom-nav" aria-label="Main">
-      <span className="nav-brand jp" aria-hidden="true">日本語<b>ToGo</b></span>
+      {/* Desktop rail only. Two cut-outs (2×, 400 px) so dark mode gets lighter letters and a sticker edge round Nori. */}
+      <span className="nav-brand" aria-hidden="true">
+        <img className="nav-logo light" src={logoLight} alt="" width="200" height="56" draggable="false" />
+        <img className="nav-logo dark" src={logoDark} alt="" width="200" height="56" draggable="false" />
+      </span>
       {TABS.map(({ id, label, icon, color }) => (
         <button
           key={id}
