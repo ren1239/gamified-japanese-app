@@ -10,7 +10,7 @@ export const WATCHED_PCT = 0.9 // a point counts as watched once 90% of it has a
 // mascot = who guides it in the player; art = its thumbnail: the Nori or Mentai lesson artwork, or 'poster'
 // (a real frame from the video — the vocab video's own title card).
 export const VIDEO_TYPES = {
-  vocab:     { kanji: '単語', label: 'Vocabulary',         short: 'Vocab',     tone: 'primary', mascot: 'nori',   art: 'poster' },
+  vocab:     { kanji: '単語', label: 'Vocabulary',         short: 'Vocab',     tone: 'primary', mascot: 'nori',   art: 'vocab' },
   stream:    { kanji: '文法', label: 'Grammar stream',     short: 'Grammar',   tone: 'accent',  mascot: 'mentai', art: 'stream' },
   textbook:  { kanji: '練習', label: 'Textbook practice',  short: 'Practice',  tone: 'accent',  mascot: 'mentai', art: 'textbook' },
   bonus:     { kanji: '例文', label: 'Bonus sentences',    short: 'Bonus',     tone: 'accent',  mascot: 'mentai', art: 'bonus' },

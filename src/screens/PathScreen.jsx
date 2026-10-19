@@ -7,6 +7,7 @@ import { getVocabForChapter, generateVocabQuiz } from '../utils/vocabQuizGen'
 import { toTypedQuiz } from '../utils/answerMatch'
 import Icon from '../components/Icon'
 import GameIcon from '../components/GameIcon'
+import { PracticeIndex, PracticePanel } from '../components/PracticeSide'
 import Mascot from '../components/Mascot'
 import Jp from '../components/Jp'
 import RomajiToggle from '../components/RomajiToggle'
@@ -227,9 +228,43 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
     return null
   }, [units, currentKey])
 
+  // Desktop side columns: which chapter is in view (index highlight + lesson-video card), jump, up next
+  const [activeCh, setActiveCh] = useState(null)
+  useEffect(() => {
+    let raf = 0
+    const spy = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const headerBottom = stickyRef.current?.getBoundingClientRect().bottom ?? 0
+        let ch = null
+        for (const el of document.querySelectorAll('.path-unit')) {
+          if (ch == null || el.getBoundingClientRect().top <= headerBottom + 120) ch = Number(el.dataset.ch)
+          else break
+        }
+        setActiveCh(ch)
+      })
+    }
+    spy()
+    window.addEventListener('scroll', spy, { passive: true })
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('scroll', spy) }
+  }, [units])
+  const jumpToChapter = (n) => {
+    const el = document.querySelector(`.path-unit[data-ch="${n}"]`)
+    if (!el) return
+    const headerH = stickyRef.current?.offsetHeight ?? 0
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - headerH - 12, behavior: 'smooth' })
+  }
+  const upNextNode = useMemo(() => units.flatMap((u) => u.nodes).find((n) => n.key === currentKey) ?? null, [units, currentKey])
+  const goUpNext = () => {
+    setSelected(currentKey)
+    currentRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }
+
   let zig = 0
   return (
     <div className="path-screen">
+      <PracticeIndex units={units} activeCh={activeCh} isGrammar={isGrammar} isDone={isDone} onJump={jumpToChapter} />
+      <div className="practice-main">
       <div ref={stickyRef} className={`path-sticky glass${compact ? ' compact' : ''}`}>
       <header className="path-status">
         <span className="path-stat streak" title="Day streak"><Icon name="flame" size={24} />{streak}</span>
@@ -294,6 +329,16 @@ export default function PathScreen({ onStartQuiz, onFlashcard, onOpenChapter, on
           )
         })}
       </div>
+      </div>
+      <PracticePanel
+        upNext={upNextNode}
+        upNextTitle={upNextNode ? `${nodeTitle(upNextNode)} · ${upNextNode.chapter.subtitle.replace(/^★\s*/, '')}` : ''}
+        activeCh={activeCh}
+        isGrammar={isGrammar}
+        onGoUpNext={goUpNext}
+        onNavigate={onNavigate}
+        onOpenLesson={onOpenLesson}
+      />
       <AnimatePresence>
         {jump && currentChapterNum != null && (
           <motion.button

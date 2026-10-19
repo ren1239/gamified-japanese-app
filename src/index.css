@@ -1475,3 +1475,59 @@ input, textarea { font-family: inherit; outline: none; }
 .path-node .game-icon { margin-top: -2px; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.12)); }
 .path-node.done { background: var(--gold-dim); box-shadow: inset 0 0 0 4px var(--gold), 0 6px 0 var(--gold-deep); }
 .path-panel-actions .btn .game-icon { margin: -4px 0; }
+
+/* Vocab cover (indigo, its own layout): gold pill with dark "LESSON" (caps y 657–740 of 1116) ending in a white
+   slot (x 1654–1877, y 652–761). The number is centred in the slot in dark ink. */
+.lesson-thumb.vocab .lesson-thumb-num { left: 88.27%; transform: translateX(-50%); top: 57.35%; font-size: 5.89cqw; color: #1E2333; letter-spacing: 0; }
+
+/* ═══ Practice on desktop: chapter index | path | panel (PracticeSide.jsx). Phones keep the single path column. ═══ */
+.practice-index, .practice-panel { display: none; }
+.practice-index-group { display: grid; gap: 4px; }
+.practice-index-group + .practice-index-group { margin-top: 12px; }
+.practice-index-row { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; text-align: left; background: none; color: var(--text); }
+.practice-index-row:hover { background: var(--bg-2); }
+.practice-index-row.active { background: var(--primary-tint); }
+.practice-index.accent .practice-index-row.active { background: var(--accent-tint); }
+.practice-index-num { width: 32px; height: 32px; flex-shrink: 0; border-radius: 10px; display: grid; place-items: center; font-size: 14px; font-weight: 900; color: var(--text-2); background: var(--surface); border: 2px solid var(--border); }
+.practice-index-row.active .practice-index-num { color: #fff; background: var(--primary); border-color: var(--primary); }
+.practice-index.accent .practice-index-row.active .practice-index-num { background: var(--accent); border-color: var(--accent); }
+.practice-index-row.complete .practice-index-num { color: #fff; background: var(--gold); border-color: var(--gold-deep); }
+.practice-index-text { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.practice-index-title { font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.practice-index-bar { display: block; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.practice-index-bar i { display: block; height: 100%; background: var(--primary); }
+.practice-index.accent .practice-index-bar i { background: var(--accent); }
+.practice-index-row small { font-size: 12px; font-weight: 800; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.practice-card { display: grid; gap: 8px; padding: 16px; text-align: left; color: var(--text); background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 3px 0 var(--border); }
+button.practice-card:hover { border-color: var(--border-md); }
+button.practice-card:active { transform: translateY(3px); box-shadow: none; }
+.practice-card-kicker { font-size: 12px; font-weight: 900; letter-spacing: 0.08em; color: var(--text-muted); }
+.practice-card.upnext { border-color: var(--primary); box-shadow: 0 3px 0 var(--primary-deep); }
+.practice-card.upnext.accent { border-color: var(--accent); box-shadow: 0 3px 0 var(--accent-deep); }
+.practice-card.upnext .btn { text-transform: none; letter-spacing: 0.01em; }
+.practice-upnext-title { font-size: 17px; font-weight: 800; line-height: 1.35; }
+.practice-card.today { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px; }
+.practice-today-text { display: grid; gap: 4px; }
+.practice-today-text b { font-size: 15px; font-weight: 900; }
+.practice-today-streak { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 800; color: var(--accent-deep); }
+.practice-today-text small { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+.practice-card.reviews { display: flex; align-items: center; gap: 12px; }
+.practice-card.lesson { display: grid; gap: 12px; }
+.practice-lesson-thumb { width: 100%; border-radius: 12px; }
+.practice-card-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.practice-card-text b { font-size: 15px; font-weight: 900; }
+.practice-card-text small { font-size: 12px; font-weight: 700; color: var(--text-muted); line-height: 1.4; }
+
+@media (min-width: 1140px) {
+  .path-screen { max-width: 1240px; display: grid; grid-template-columns: minmax(0, 480px) 320px; justify-content: center; gap: 32px; padding: 0 24px 96px; align-items: start; }
+  .practice-main { min-width: 0; }
+  .practice-panel { display: grid; gap: 16px; position: sticky; top: 24px; margin-top: 24px; }
+  .path-status .path-stat { display: none; } /* streak / XP / reviews live in the panel */
+  .path-status { justify-content: flex-end; }
+  .path-jump { display: none; } /* the panel's Up next card does this */
+}
+@media (min-width: 1300px) {
+  .path-screen { grid-template-columns: 240px minmax(380px, 480px) 300px; }
+  .practice-index { display: grid; gap: 0; position: sticky; top: 24px; margin-top: 24px; max-height: calc(100dvh - 48px); overflow-y: auto; padding-right: 4px; }
+}

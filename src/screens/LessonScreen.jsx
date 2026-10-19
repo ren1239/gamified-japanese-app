@@ -163,7 +163,6 @@ export default function LessonScreen({ lesson, onBack, onPlay, onStartQuiz, onFl
             }
 
             const st = videoStatus(v, videoProgress, lesson)
-            const vp = videoProgress[videoKey(lesson, v.type)]
             const pts = countedPoints(v)
             const playable = hasVideo(v, files)
             const state = st.complete ? 'done' : st.started ? 'started' : ''
@@ -191,20 +190,6 @@ export default function LessonScreen({ lesson, onBack, onPlay, onStartQuiz, onFl
 
                   {v.type === 'vocab' && hasVocab && (
                     <div className="lesson-chips"><button type="button" className="chip-btn" onClick={vocabCards}><Icon name="cards" size={16} />Flashcards</button></div>
-                  )}
-                  {dialogues.length > 0 && (
-                    <div className="lesson-chips">
-                      {dialogues.map((d) => {
-                        const stages = pts.filter((p) => p.dialogue === d)
-                        const doneN = stages.filter((p) => vp?.done?.[p.index]).length
-                        return (
-                          <button key={d} type="button" className={`chip-btn tone-listen${doneN === stages.length ? ' done' : ''}`} onClick={() => onPlay({ lesson, type: v.type, point: stages[0].index })}>
-                            {doneN === stages.length && <Icon name="check" size={14} />}{d.replace(/Dialogue\s*/i, '')}
-                            <small>{doneN}/{stages.length}</small>
-                          </button>
-                        )
-                      })}
-                    </div>
                   )}
                 </div>
               </div>
