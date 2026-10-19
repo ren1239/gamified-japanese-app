@@ -1474,7 +1474,8 @@ input, textarea { font-family: inherit; outline: none; }
    pale gold with a gold rim, so the gold crown stands out instead of vanishing into a gold circle. */
 .path-node .game-icon { margin-top: -2px; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.12)); }
 .path-node.done { background: var(--gold-dim); box-shadow: inset 0 0 0 4px var(--gold), 0 6px 0 var(--gold-deep); }
-.path-panel-actions .btn .game-icon { margin: -4px 0; }
+.path-panel-actions .btn { text-transform: none; letter-spacing: 0.01em; white-space: nowrap; font-size: 14px; gap: 6px; }
+.path-panel-actions .btn .game-icon { margin: -4px 0; width: 20px; height: 20px; }
 
 /* Vocab cover (indigo, its own layout): gold pill with dark "LESSON" (caps y 657–740 of 1116) ending in a white
    slot (x 1654–1877, y 652–761). The number is centred in the slot in dark ink. */
