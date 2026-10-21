@@ -138,6 +138,12 @@ const PATHS = {
   loop: <path fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" d="M4 11.5A5.5 5.5 0 0 1 9.5 6H19m0 0-3-3m3 3-3 3M20 12.5a5.5 5.5 0 0 1-5.5 5.5H5m0 0 3 3m-3-3 3-3" />,
   expand: <path fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
   folder: <path fill="currentColor" d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.6c.7 0 1.3.3 1.8.8L12.2 7h6.3A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-10Z" />,
+  cloud: (
+    <>
+      <path fill="currentColor" d="M7 19.5a5 5 0 0 1-.8-9.94A6.5 6.5 0 0 1 18.7 8.2a4.75 4.75 0 0 1-.95 11.3H7Z" />
+      <path fill="none" stroke="var(--surface)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" d="m9 14.2 2.3 2.3L15.6 12" />
+    </>
+  ),
   keyboard: (
     <>
       <rect x="2" y="6" width="20" height="13" rx="3" fill="currentColor" />

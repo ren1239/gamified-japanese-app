@@ -1,12 +1,15 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { todayStr, addDays, daysBetween } from '../utils/dates'
+import { todayStr, addDays } from '../utils/dates'
+import { xpOnDate, getStreakInfo, advanceStreak } from '../utils/streak'
+import { HISTORY_CAP, bury } from '../utils/progressMerge'
 
 const XP_PER_CORRECT = 10
 const XP_PER_PERFECT = 50 // bonus for 100%
-const MAX_FREEZES = 2
-const FREEZE_EVERY = 7 // earn a streak freeze every 7 streak days
-const HISTORY_CAP = 2000
+
+// Cross-device sync (utils/progressSync.js) merges by these stamps: history entries carry `t`, review and flag
+// entries `u` (last change), video progress and lastVideo `t`; removals leave a tombstone in bankGone / flagGone
+// so another device's older copy doesn't bring the item back.
 
 // ── Spaced repetition (Leitner) ──────────────────────────────────────────────
 // New mistakes enter box 1 (due today). Each correct review moves the item up a
@@ -41,24 +44,7 @@ function xpInCurrentLevel(totalXp) {
   return { earned: totalXp - base, needed: next - base, pct: Math.round(((totalXp - base) / (next - base)) * 100) }
 }
 
-export function xpOnDate(history, date) {
-  return history.reduce((sum, e) => (e.date === date ? sum + (e.xpEarned || 0) : sum), 0)
-}
-
-/**
- * Streak as it stands right now. A streak survives missed days while there are
- * enough freezes to cover them; freezes are only spent when the goal is next met.
- */
-export function getStreakInfo({ streak, lastGoalDate, streakFreezes }, today = todayStr()) {
-  if (!lastGoalDate) return { current: 0, doneToday: false, atRisk: false, freezesNeeded: 0 }
-  const gap = daysBetween(lastGoalDate, today)
-  if (gap <= 0) return { current: streak, doneToday: true, atRisk: false, freezesNeeded: 0 }
-  const missed = gap - 1
-  if (missed <= (streakFreezes || 0)) {
-    return { current: streak, doneToday: false, atRisk: true, freezesNeeded: missed }
-  }
-  return { current: 0, doneToday: false, atRisk: false, freezesNeeded: 0 }
-}
+export { xpOnDate, getStreakInfo }
 
 function bankKeyFor(quizId, question) {
   return question._bankKey ?? `${quizId}-${question.id ?? question.question.slice(0, 30)}`
@@ -98,8 +84,11 @@ export const useStatsStore = create(
       wordProgress: {}, // { 'ch12-n01': consecutiveCorrect }
       // Lesson videos (授業). Key = '<lesson>-<type>', e.g. '15-stream'. sec = seconds actually played per point
       // (index into the video's points), done = date the point counted as watched (≥ 90% played).
-      videoProgress: {}, // { '15-stream': { pos, sec: { 1: 412 }, done: { 1: 'YYYY-MM-DD' } } }
-      lastVideo: null, // { key, lesson, type } — drives the Continue card
+      videoProgress: {}, // { '15-stream': { pos, sec: { 1: 412 }, done: { 1: 'YYYY-MM-DD' }, t } }
+      lastVideo: null, // { key, lesson, type, t } — drives the Continue card
+      bankGone: {}, // { key: ms } removed from reviews (mastered / deleted) — for sync
+      flagGone: {}, // { key: ms } unflagged — for sync
+      prefsAt: 0, // last change to the synced preferences (name, daily goal, romaji)
       // Hosted lesson videos (Cloudflare Worker in front of R2). Kept on this device only, never in the bundle.
       mediaServer: { url: '', key: '' },
 
@@ -107,28 +96,12 @@ export const useStatsStore = create(
         const state = get()
         const xpEarned = score * XP_PER_CORRECT + (total > 0 && score === total ? XP_PER_PERFECT : 0) + bonusXp
         const today = todayStr()
-        const history = [{ date: today, quizId, score, total, xpEarned }, ...state.history].slice(0, HISTORY_CAP)
+        const history = [{ date: today, quizId, score, total, xpEarned, t: Date.now() }, ...state.history].slice(0, HISTORY_CAP)
 
         const updates = { totalXp: state.totalXp + xpEarned, lastPlayedDate: today, history }
 
         // Streak advances the first time today's XP reaches the daily goal
-        const goalMet = xpOnDate(history, today) >= state.dailyGoal
-        if (goalMet && state.lastGoalDate !== today) {
-          let streak = 1
-          let freezes = state.streakFreezes || 0
-          if (state.lastGoalDate) {
-            const missed = daysBetween(state.lastGoalDate, today) - 1
-            if (missed <= 0) streak = state.streak + 1
-            else if (missed <= freezes) { freezes -= missed; streak = state.streak + 1 }
-          }
-          if (streak % FREEZE_EVERY === 0) freezes = Math.min(MAX_FREEZES, freezes + 1)
-          Object.assign(updates, {
-            streak,
-            streakFreezes: freezes,
-            lastGoalDate: today,
-            bestStreak: Math.max(state.bestStreak || 0, streak),
-          })
-        }
+        Object.assign(updates, advanceStreak(state, xpOnDate(history, today) >= state.dailyGoal, today))
 
         set(updates)
         return xpEarned
@@ -151,6 +124,8 @@ export const useStatsStore = create(
         wordProgress: {},
         videoProgress: {},
         lastVideo: null,
+        bankGone: {},
+        flagGone: {},
         soundEnabled: true,
       }),
 
@@ -161,6 +136,7 @@ export const useStatsStore = create(
       applyAnswersToBank: (results) => {
         set((state) => {
           const today = todayStr()
+          const u = Date.now()
           const bank = [...state.wrongBank]
           const hadItems = bank.length > 0
           let reviewCount = state.reviewCount || 0
@@ -174,20 +150,21 @@ export const useStatsStore = create(
               reviewCount++
               const box = (bank[idx].box ?? 1) + 1
               if (box > SRS_MAX_BOX) removeKeys.add(key) // mastered
-              else bank[idx] = { ...bank[idx], box, due: addDays(today, SRS_INTERVALS[box]) }
+              else bank[idx] = { ...bank[idx], box, due: addDays(today, SRS_INTERVALS[box]), u }
             } else if (idx >= 0) {
               if (isDue(bank[idx], today)) reviewCount++
-              bank[idx] = { ...bank[idx], wrongCount: bank[idx].wrongCount + 1, lastWrong: today, box: 1, due: today }
+              bank[idx] = { ...bank[idx], wrongCount: bank[idx].wrongCount + 1, lastWrong: today, box: 1, due: today, u }
             } else {
               // Strip any per-run metadata before banking
               const { _bankKey, _sourceQuizId, _sourceQuizTitle, ...clean } = question
-              bank.push({ key, quizId, quizTitle, question: { ...clean, _bankKey: key }, wrongCount: 1, lastWrong: today, box: 1, due: today })
+              bank.push({ key, quizId, quizTitle, question: { ...clean, _bankKey: key }, wrongCount: 1, lastWrong: today, box: 1, due: today, u })
             }
           })
 
           const wrongBank = bank.filter((e) => !removeKeys.has(e.key)).slice(-300)
           return {
             wrongBank,
+            bankGone: removeKeys.size ? bury(state.bankGone, removeKeys, u) : state.bankGone,
             reviewCount,
             bankCleared: state.bankCleared || (hadItems && wrongBank.length === 0),
           }
@@ -196,9 +173,10 @@ export const useStatsStore = create(
 
       removeFromBank: (keys) => set((state) => ({
         wrongBank: state.wrongBank.filter((e) => !keys.includes(e.key)),
+        bankGone: bury(state.bankGone, keys, Date.now()),
       })),
 
-      clearWrongBank: () => set({ wrongBank: [] }),
+      clearWrongBank: () => set((state) => ({ wrongBank: [], bankGone: bury(state.bankGone, state.wrongBank.map((e) => e.key), Date.now()) })),
 
       // Flagging puts a question straight into the review schedule (box 1, due today).
       // flaggedBank only remembers which questions show a filled flag.
@@ -207,24 +185,31 @@ export const useStatsStore = create(
           const key = bankKeyFor(quizId, question)
           if (state.flaggedBank.some((e) => e.key === key)) return {}
           const today = todayStr()
+          const u = Date.now()
           const { _bankKey, _sourceQuizId, _sourceQuizTitle, ...clean } = question
           const inBank = state.wrongBank.some((e) => e.key === key)
           return {
-            flaggedBank: [...state.flaggedBank, { key, quizId, quizTitle, question, flaggedDate: today }].slice(-300),
+            flaggedBank: [...state.flaggedBank, { key, quizId, quizTitle, question, flaggedDate: today, u }].slice(-300),
             wrongBank: inBank
-              ? state.wrongBank.map((e) => (e.key === key ? { ...e, box: 1, due: today, flagged: true } : e))
-              : [...state.wrongBank, { key, quizId, quizTitle, question: { ...clean, _bankKey: key }, wrongCount: 0, lastWrong: null, box: 1, due: today, flagged: true }].slice(-300),
+              ? state.wrongBank.map((e) => (e.key === key ? { ...e, box: 1, due: today, flagged: true, u } : e))
+              : [...state.wrongBank, { key, quizId, quizTitle, question: { ...clean, _bankKey: key }, wrongCount: 0, lastWrong: null, box: 1, due: today, flagged: true, u }].slice(-300),
           }
         })
       },
 
-      unflagQuestion: (key) => set((state) => ({
-        flaggedBank: state.flaggedBank.filter((e) => e.key !== key),
+      unflagQuestion: (key) => set((state) => {
+        const u = Date.now()
         // Drop it from reviews only if it was there because of the flag (never answered wrong)
-        wrongBank: state.wrongBank
-          .filter((e) => !(e.key === key && e.flagged && !e.wrongCount))
-          .map((e) => (e.key === key ? { ...e, flagged: false } : e)),
-      })),
+        const dropped = state.wrongBank.some((e) => e.key === key && e.flagged && !e.wrongCount)
+        return {
+          flaggedBank: state.flaggedBank.filter((e) => e.key !== key),
+          flagGone: bury(state.flagGone, [key], u),
+          wrongBank: state.wrongBank
+            .filter((e) => !(e.key === key && e.flagged && !e.wrongCount))
+            .map((e) => (e.key === key ? { ...e, flagged: false, u } : e)),
+          bankGone: dropped ? bury(state.bankGone, [key], u) : state.bankGone,
+        }
+      }),
 
       /** A word counts as learned after 2 correct quiz answers in a row */
       recordVocabAnswer: (wordId, chapterNum, correct) => {
@@ -245,9 +230,10 @@ export const useStatsStore = create(
       /** Resume position + watched seconds for a lesson video (called every few seconds while playing). */
       saveVideoProgress: (key, lesson, type, pos, sec) => set((state) => {
         const vp = state.videoProgress[key] || {}
+        const t = Date.now()
         return {
-          videoProgress: { ...state.videoProgress, [key]: { ...vp, pos, sec: { ...vp.sec, ...sec } } },
-          lastVideo: { key, lesson, type },
+          videoProgress: { ...state.videoProgress, [key]: { ...vp, pos, sec: { ...vp.sec, ...sec }, t } },
+          lastVideo: { key, lesson, type, t },
         }
       }),
 
@@ -256,7 +242,7 @@ export const useStatsStore = create(
         const state = get()
         const vp = state.videoProgress[key] || {}
         if (vp.done?.[index]) return 0
-        set({ videoProgress: { ...state.videoProgress, [key]: { ...vp, done: { ...vp.done, [index]: todayStr() } } } })
+        set({ videoProgress: { ...state.videoProgress, [key]: { ...vp, done: { ...vp.done, [index]: todayStr() }, t: Date.now() } } })
         // History entries for videos use a 'video:' id with no questions, so accuracy stats ignore them
         return xp ? get().recordResult(`video:${key}:${index}`, 0, 0, xp) : 0
       },
@@ -268,12 +254,12 @@ export const useStatsStore = create(
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
       toggleAutoSpeak: () => set((state) => ({ autoSpeak: !state.autoSpeak })),
       toggleSpeedMode: () => set((state) => ({ speedMode: !state.speedMode })),
-      setDailyGoal: (dailyGoal) => set({ dailyGoal }),
+      setDailyGoal: (dailyGoal) => set({ dailyGoal, prefsAt: Date.now() }),
       setTheme: (theme) => set({ theme }),
-      toggleRomaji: () => set((state) => ({ showRomaji: !state.showRomaji })),
+      toggleRomaji: () => set((state) => ({ showRomaji: !state.showRomaji, prefsAt: Date.now() })),
       setLearnTrack: (learnTrack) => set({ learnTrack }),
       setReminders: (patch) => set(patch),
-      setUsername: (username) => set({ username }),
+      setUsername: (username) => set({ username, prefsAt: Date.now() }),
     }),
     {
       name: 'nihongo-stats-store',
@@ -334,6 +320,9 @@ export const useStatsStore = create(
         wordProgress: state.wordProgress,
         videoProgress: state.videoProgress,
         lastVideo: state.lastVideo,
+        bankGone: state.bankGone,
+        flagGone: state.flagGone,
+        prefsAt: state.prefsAt,
         mediaServer: state.mediaServer,
       }),
     }

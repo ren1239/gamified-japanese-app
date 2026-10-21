@@ -282,7 +282,7 @@ Not every dimension applies to every grammar point (e.g., ほうがいいです 
 - **Lesson audio** (auto-play setting): the Japanese prompt is read when a question appears (not for fill-in-the-blank `___` sentences); a Japanese answer is read when it is selected, before Check.
 - **Streak** advances the first time a day's XP reaches `dailyGoal`. Freezes (max 2, earned every 7 streak days) cover missed days.
 - **XP** = 10/correct + 50 perfect + combo bonus (+5 at 3 in a row, +10 at 5+) + speed bonus (+3, speed mode only).
-- If you add persisted fields to `statsStore`, add them to `partialize`; bump `version` + `migrate` when changing the shape of existing data.
+- If you add persisted fields to `statsStore`, add them to `partialize`; bump `version` + `migrate` when changing the shape of existing data. If the field is progress that should follow the account, also add it to `SYNCED_STATS` with a merge rule (§15).
 
 ---
 
@@ -348,3 +348,17 @@ The main path of the app: Lessons (videos) is the home tab; Practice (games) is 
 - **Points** = YouTube chapters played as virtual clips (one file per video). Watched = 90% actually played (`WATCHED_PCT`). "Played" is measured against the real clock (`advance()` in `PlayerScreen`): a step counts when the video moved forward no faster than wall time × speed, so background tabs (sparse or no `timeupdate` events) still count, and it also catches up on pause, end, tab show/hide and `pagehide`. Seeks never count. The intro gets a tick too (no XP). XP = 2 per minute of a part (min 2), set by `build_lessons.py`, via `completeVideoPoint` → `recordResult('video:…')`; history entries with a `video:` id are excluded from lesson counts.
 - **YouTube in the player** (`src/utils/youtubeEngine.js`): an IFrame-API adapter shaped like the `<video>` element (currentTime, duration, paused, playbackRate, play/pause; position polled 4×/s). Opt-in only (it can show ads): "Play from YouTube here" when a video isn't downloaded, "Switch to YouTube" on a slow/failed load, and the YouTube pill under the player; switching keeps the position. The player always shows loading / buffering / error states.
 - Screens: `LessonsScreen` (tab), `LessonScreen` (videos in course order + one row per grammar point with its Explained / Practice / Bonus clips and quiz), `PlayerScreen` (points or shadowing stepper, checkpoint sheet → quiz/flashcards, keyboard shortcuts). Thumbnails: `LessonThumb` (Nori/Mentai art + CSS lesson number). Desktop layout at ≥ 900px.
+
+---
+
+## 15 — Account & Sync (optional sign-in)
+
+Optional. Signed out, everything stays on the device as before. Signed in, progress follows the account to every device.
+
+- **Backend**: the shared **macro-monster** Supabase project (same as §13). Accounts are shared with MacroMonster: Google or email + password (sign-up needs the email link). Table `public.nihongo_progress` — one row per user `{ state jsonb, rev }`; RLS = owner only, real (non-anonymous) accounts only; `anon` has no access.
+- **Dashboard requirement**: Authentication → URL Configuration → Redirect URLs must list `https://japanese-sage.vercel.app/**` (and `http://localhost:5174/**` for dev). Otherwise Supabase sends people back to the project's Site URL, which is MacroMonster.
+- **Code**: `utils/progressSync.js` (lazy supabase-js client, auth, `syncNow`, the `useSync` status store), `utils/progressMerge.js` (pure merge rules, testable in Node), `utils/streak.js` (streak rules shared by the store and the merge). UI: Settings → Sync (`AccountBlock`). supabase-js is only downloaded on a device that has a session or is coming back from Google.
+- **Sync** = pull → merge → apply here → write back if changed, with `rev` as an optimistic lock (a stale write updates 0 rows → re-read and merge again). Runs on open, on sign-in, 15 s after any change to synced progress, immediately when the tab is hidden, and shortly after it's shown again.
+- **What syncs**: everything in `SYNCED_STATS` (XP, history, streak, reviews, flags, learned words, video progress, Continue card, name / daily goal / romaji) plus each quiz's plays and best score. **Device-only**: theme, sound, voice, reminders, the video server URL and key.
+- **Merge rules** (see the header of `progressMerge.js`): history entries carry `t`; review and flag entries `u`; removals leave tombstones in `bankGone` / `flagGone`; video progress and `lastVideo` carry `t`; preferences use `prefsAt`. Any new synced field needs a merge rule there and a stamp where it changes.
+- **Reset all progress** while signed in overwrites the cloud copy (`resetCloudProgress`) instead of merging it back.

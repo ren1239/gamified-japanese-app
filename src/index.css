@@ -890,6 +890,7 @@ input, textarea { font-family: inherit; outline: none; }
 .icon-chip.error { background: var(--error-dim); color: var(--error); }
 .icon-chip.accent { background: var(--accent-tint); color: var(--accent); }
 .icon-chip.gold { background: var(--gold-dim); color: var(--gold-deep); }
+.icon-chip.success { background: var(--success-dim); color: var(--success-deep); }
 
 /* ─── Review tab ─── */
 .review-page { padding-top: calc(22px + env(safe-area-inset-top, 0px)); padding-bottom: 100px; display: flex; flex-direction: column; gap: 14px; }
@@ -982,6 +983,7 @@ input, textarea { font-family: inherit; outline: none; }
 }
 .settings-name input:focus, .settings-field input:focus { border-color: var(--primary); background: var(--surface); }
 .settings-block { display: grid; gap: 14px; }
+.account-form { display: grid; gap: 12px; padding-top: 14px; border-top: 2px solid var(--border); }
 .settings-block-head { display: flex; align-items: center; gap: 12px; }
 .settings-list { padding: 0; overflow: hidden; }
 .settings-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: transparent; text-align: left; color: var(--text); border-bottom: 2px solid var(--border); }

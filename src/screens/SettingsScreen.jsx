@@ -10,6 +10,7 @@ import ChipGroup from '../components/ChipGroup'
 import { useVideoSource, canPickFolder, pickVideoFolder, reconnectVideoFolder, loadFolderFiles, forgetVideoFolder, countAvailable, testMediaServer } from '../utils/videoSource'
 import { japaneseVoices, currentVoiceURI, setVoice, onVoicesChanged, speakJapanese, canSpeak } from '../utils/speech'
 import { pushSupport, enableReminders, disableReminders, sendTestReminder, syncReminders } from '../utils/push'
+import { useSync, syncNow, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut, resetCloudProgress } from '../utils/progressSync'
 
 const THEME_OPTIONS = [
   { id: 'system', label: 'Match device' },
@@ -152,6 +153,81 @@ function VideoServerBlock() {
   )
 }
 
+function ago(ms) {
+  const s = Math.round((Date.now() - ms) / 1000)
+  if (s < 45) return 'just now'
+  if (s < 3600) return `${Math.round(s / 60)} min ago`
+  return new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}
+
+// Settings → Sync: optional account (Google or email, shared with MacroMonster) that keeps progress the same
+// on every device. Signed out, nothing changes: progress just lives on this device. See utils/progressSync.js.
+function AccountBlock() {
+  const { ready, user, status, lastSync, error } = useSync()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(null) // 'google' | 'in' | 'up' | 'out'
+  const [msg, setMsg] = useState(null)
+  const run = (which, fn) => async () => {
+    setBusy(which)
+    setMsg(null)
+    try { const m = await fn(); if (m) setMsg(m) } catch (e) { setMsg(e.message) } finally { setBusy(null) }
+  }
+
+  if (user) {
+    const line = status === 'syncing' ? 'Syncing…'
+      : status === 'error' ? `Couldn’t sync: ${error}`
+        : lastSync ? `Synced ${ago(lastSync)}` : 'Connected'
+    return (
+      <section className="stats-card settings-block">
+        <div className="settings-block-head">
+          <span className="icon-chip success"><Icon name="cloud" size={22} /></span>
+          <span className="settings-item-text">
+            <b>{user.email}</b>
+            <small>{line} · lessons, XP, streak and reviews stay the same on every device you sign in on.</small>
+          </span>
+        </div>
+        <div className="settings-actions">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => syncNow()} disabled={status === 'syncing'}>Sync now</button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={run('out', signOut)} disabled={busy === 'out'}>Sign out</button>
+        </div>
+        <p className="settings-note">Signed in with {user.provider === 'google' ? 'Google' : 'email'}. Signing out keeps your progress on this device.</p>
+      </section>
+    )
+  }
+
+  const canSubmit = /\S+@\S+\.\S+/.test(email) && password.length >= 6 && !busy
+  return (
+    <section className="stats-card settings-block">
+      <div className="settings-block-head">
+        <span className="icon-chip"><Icon name="cloud" size={22} /></span>
+        <span className="settings-item-text">
+          <b>Sync across devices</b>
+          <small>Optional. Sign in to keep lessons watched, XP, streak and reviews the same on your phone and computer. Your MacroMonster account works here too.</small>
+        </span>
+      </div>
+      <div className="settings-actions">
+        <button type="button" className="btn btn-primary btn-sm" onClick={run('google', signInWithGoogle)} disabled={!ready || Boolean(busy)}>
+          {busy === 'google' ? 'Opening Google…' : 'Continue with Google'}
+        </button>
+      </div>
+      <form className="account-form" onSubmit={(e) => { e.preventDefault(); if (canSubmit) run('in', () => signInWithEmail(email, password))() }}>
+        <label className="settings-field"><span className="field-label">Email</span>
+          <input type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" spellCheck={false} />
+        </label>
+        <label className="settings-field"><span className="field-label">Password</span>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" autoComplete="current-password" />
+        </label>
+        <div className="settings-actions">
+          <button type="submit" className="btn btn-ghost btn-sm" disabled={!canSubmit}>{busy === 'in' ? 'Signing in…' : 'Sign in'}</button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={run('up', () => signUpWithEmail(email, password))} disabled={!canSubmit}>{busy === 'up' ? 'Creating…' : 'Create account'}</button>
+        </div>
+      </form>
+      {(msg || error) && <p className="settings-note" role="status">{msg || error}</p>}
+    </section>
+  )
+}
+
 function Switch({ on }) {
   return <span className={`switch${on ? ' on' : ''}`} aria-hidden="true"><i /></span>
 }
@@ -201,6 +277,7 @@ export default function SettingsScreen() {
   const doReset = () => {
     s.resetStats()
     resetQuizzesProgress()
+    resetCloudProgress() // signed in: the cloud copy is reset too, not merged back
     setConfirmReset(false)
     setResetDone(true)
   }
@@ -209,7 +286,7 @@ export default function SettingsScreen() {
     <div className="page settings-page">
       <header>
         <h1 className="tab-title">Settings</h1>
-        <p className="tab-sub">Your profile, daily goal, video folder and how quizzes behave.</p>
+        <p className="tab-sub">Your profile, sync, daily goal, video folder and how quizzes behave.</p>
       </header>
 
       {/* ── Profile ── */}
@@ -220,6 +297,10 @@ export default function SettingsScreen() {
           <input id="settings-name" type="text" value={s.username} onChange={(e) => s.setUsername(e.target.value)} placeholder="Student" maxLength={24} autoComplete="nickname" />
         </label>
       </section>
+
+      {/* ── Account & sync ── */}
+      <h2 className="stats-h">Sync</h2>
+      <AccountBlock />
 
       {/* ── Daily goal ── */}
       <h2 className="stats-h">Daily goal</h2>

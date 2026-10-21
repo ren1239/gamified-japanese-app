@@ -5,6 +5,7 @@ import { useGameStore, useQuizStore } from './store/quizStore'
 import { useStatsStore, computeLevel } from './store/statsStore'
 import { getVocabForChapter } from './utils/vocabQuizGen'
 import { syncReminders } from './utils/push'
+import { initSync } from './utils/progressSync'
 import { restoreVideoFolder } from './utils/videoSource'
 import DashboardScreen from './screens/DashboardScreen'
 import PathScreen from './screens/PathScreen'
@@ -80,6 +81,7 @@ export default function App() {
 
   // Keep the reminder server's progress snapshot fresh: on open and whenever the app is backgrounded
   useEffect(() => {
+    initSync() // first: it reads a Google sign-in result from the URL before it gets tidied below
     if (window.location.search) window.history.replaceState(null, '', window.location.pathname)
     // Video-server setup link from another device (Settings → Copy setup link): read it once, then drop it from the URL
     const hash = new URLSearchParams(window.location.hash.slice(1))
