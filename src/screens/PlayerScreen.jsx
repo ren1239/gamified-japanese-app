@@ -99,7 +99,8 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
 
   const sec = useRef({ ...(saved?.sec || {}) }) // seconds actually played per point
   const doneRef = useRef({ ...(saved?.done || {}) })
-  const lastT = useRef(null)
+  const lastT = useRef(null) // video time at the previous time update (null after a pause or seek)
+  const lastWall = useRef(0) // and the real clock then, to tell playing from jumping
   const posRef = useRef(startAt)
   const dirty = useRef(false)
 
@@ -142,7 +143,8 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
     if (!v) return
     const end = (v.duration || duration || 0) - 0.1
     v.currentTime = Math.max(0, end > 0 ? Math.min(s, end) : s)
-    lastT.current = v.currentTime
+    lastT.current = v.paused ? null : v.currentTime // a jump is never "watched"
+    lastWall.current = performance.now()
     posRef.current = v.currentTime
     setTime(v.currentTime)
     dirty.current = true
@@ -168,45 +170,78 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
     else v?.webkitEnterFullscreen?.() // iPhone Safari
   }, [])
 
+  // The intro gets its tick too, but no XP
   const markWatched = (i) => {
     const p = points[i]
-    if (!p || p.kind === 'intro' || doneRef.current[i]) return
+    if (!p || doneRef.current[i]) return
     doneRef.current[i] = true
-    const xp = completeVideoPoint(key, i, p.xp ?? 10)
+    const xp = completeVideoPoint(key, i, p.kind === 'intro' ? 0 : p.xp ?? 10)
     if (xp) {
       setEarned((e) => ({ ...e, [i]: xp }))
       setFlash({ xp, label: p.label, id: Date.now() })
     }
   }
 
+  // Credit the stretch prev → now to every point it overlaps (one step can span a boundary)
+  const creditPlayed = (prev, now) => {
+    for (let k = pointAt(points, prev); k < points.length && points[k].start < now; k++) {
+      const p = points[k]
+      const d = Math.min(now, p.end) - Math.max(prev, p.start)
+      if (d <= 0) continue
+      sec.current[k] = (sec.current[k] || 0) + d
+      if (sec.current[k] >= WATCHED_PCT * (p.end - p.start)) markWatched(k)
+    }
+    dirty.current = true
+  }
+
+  // Measure what played since the last check and credit it. It counts as played (not jumped) when the video
+  // moved forward no faster than the real clock allows: background tabs get time updates seconds apart, or
+  // none at all, so one step may cover minutes. Returns where the step started, or null.
+  const advance = () => {
+    const v = vRef.current
+    const prev = lastT.current
+    if (!v || prev == null) return null
+    const now = v.currentTime
+    const wall = performance.now()
+    const elapsed = (wall - lastWall.current) / 1000
+    lastT.current = now
+    lastWall.current = wall
+    posRef.current = now
+    if (v.seeking || now <= prev || now - prev > elapsed * Math.max(1, v.playbackRate) * 1.25 + 0.5) return null
+    creditPlayed(prev, now)
+    return prev
+  }
+
   const onTime = () => {
     const v = vRef.current
     const now = v.currentTime
-    const prev = lastT.current
-    lastT.current = now
     posRef.current = now
-    if (prev != null && !v.paused && !v.seeking) {
-      const d = now - prev
-      if (d > 0 && d < 1.5 * Math.max(1, v.playbackRate)) { // normal playback, not a jump
-        const i0 = pointAt(points, prev)
-        const p0 = points[i0]
-        sec.current[i0] = (sec.current[i0] || 0) + d
-        dirty.current = true
-        if (p0 && sec.current[i0] >= WATCHED_PCT * (p0.end - p0.start)) markWatched(i0)
-        // Played past the end of a point: loop it, or stop and offer its practice
-        if (p0 && prev < p0.end - 0.05 && now >= p0.end - 0.05 && i0 < points.length - 1) {
-          if (loop) { seek(p0.start + 0.01); return }
-          // Pause once per topic: not between a point and its BONUS part, or between verb groups sharing one deck
-          const nx = points[i0 + 1]
-          const sameTopic = nx && ((p0.quiz && nx.quiz === p0.quiz) || (!p0.quiz && p0.flash && nx.flash === p0.flash))
-          if (pauseAtEnd && p0.kind !== 'intro' && (p0.quiz || p0.flash) && !sameTopic) { v.pause(); setSheet({ index: i0 }) }
-        }
-      }
+    const prev = v.paused ? null : advance()
+    // Just played past the end of a point: loop it, or stop and offer its practice. Not when the end was
+    // long ago (listening in a background tab) — then just keep going.
+    const i0 = prev == null ? -1 : pointAt(points, prev)
+    const p0 = points[i0]
+    if (p0 && prev < p0.end - 0.05 && now >= p0.end - 0.05 && i0 < points.length - 1 && now - p0.end < 1.5 * Math.max(1, v.playbackRate)) {
+      if (loop) { seek(p0.start + 0.01); return }
+      // Pause once per topic: not between a point and its BONUS part, or between verb groups sharing one deck
+      const nx = points[i0 + 1]
+      const sameTopic = nx && ((p0.quiz && nx.quiz === p0.quiz) || (!p0.quiz && p0.flash && nx.flash === p0.flash))
+      if (pauseAtEnd && p0.kind !== 'intro' && (p0.quiz || p0.flash) && !sameTopic) { v.pause(); setSheet({ index: i0 }) }
     }
     setTime(now)
   }
 
+  // Measuring starts when playback starts and stops (after one last credit) when it pauses or ends
+  const onPlayed = () => {
+    setPlaying(true)
+    lastT.current = vRef.current?.currentTime ?? null
+    lastWall.current = performance.now()
+  }
+  const onPaused = () => { setPlaying(false); advance(); lastT.current = null; flush() }
+
   const onEnded = () => {
+    advance()
+    lastT.current = null
     const last = points.length - 1
     if (last >= 0 && sec.current[last] >= WATCHED_PCT * (points[last].end - points[last].start)) markWatched(last)
     if (loop && last >= 0) { playPoint(last); return }
@@ -219,7 +254,6 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
     setDuration(v.duration)
     v.playbackRate = rate
     if (posRef.current > 0) v.currentTime = posRef.current
-    lastT.current = v.currentTime
   }
 
   // YouTube, inside the player, only when you choose it (it can show ads): from the "not downloaded" panel,
@@ -232,14 +266,22 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
     handlers.current = {
       loaded: () => { onLoaded(); setNet('ready') },
       time: onTime,
-      play: () => setPlaying(true),
-      pause: () => { setPlaying(false); flush() },
+      play: onPlayed,
+      pause: onPaused,
       ended: onEnded,
+      // Switching back to the tab, hiding it or closing it: credit what played meanwhile and save
+      sync: () => { if (advance() != null) flush() },
       waiting: () => setNet('buffering'),
       playing: () => setNet('ready'),
       error: () => setNet('error'),
     }
   })
+  useEffect(() => {
+    const sync = () => handlers.current.sync?.()
+    document.addEventListener('visibilitychange', sync)
+    window.addEventListener('pagehide', sync)
+    return () => { document.removeEventListener('visibilitychange', sync); window.removeEventListener('pagehide', sync) }
+  }, [])
   useEffect(() => {
     const host = ytHost.current
     if (!ytMode || !host) return undefined
@@ -348,8 +390,8 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
                   onClick={toggle}
                   onLoadedMetadata={onLoaded}
                   onTimeUpdate={onTime}
-                  onPlay={() => setPlaying(true)}
-                  onPause={() => { setPlaying(false); flush() }}
+                  onPlay={onPlayed}
+                  onPause={onPaused}
                   onEnded={onEnded}
                   onCanPlay={() => { if (net !== 'error') setNet('ready') }}
                   onPlaying={() => setNet('ready')}

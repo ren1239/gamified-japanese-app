@@ -1221,8 +1221,10 @@ input, textarea { font-family: inherit; outline: none; }
 .lesson-point-label { font-size: 15px; font-weight: 800; }
 .lesson-point-text small { font-size: 12px; font-weight: 700; color: var(--text-muted); }
 .point-dot { width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 900; background: var(--bg-2); color: var(--text-muted); }
-.point-dot.done { background: var(--success); color: #fff; }
 .point-dot.current { background: var(--tone, var(--accent)); color: #fff; }
+/* Watched: the check icon is itself a filled circle with a white tick, so it fills the dot (even on the current part) */
+.point-dot.done { background: none; color: var(--success); }
+.point-dot.done svg { width: 100%; height: 100%; }
 .quiz-pill { flex-shrink: 0; padding: 8px 12px; border-radius: 10px; font: 900 12px var(--font-ui); background: var(--accent-tint); color: var(--accent-deep); }
 .quiz-pill.gold { background: var(--gold-dim); color: var(--gold-deep); }
 .quiz-pill:hover { filter: brightness(0.97); }
