@@ -6,6 +6,13 @@ main = "src/index.js"
 compatibility_date = "2026-09-01"
 workers_dev = true
 
+# Workers Cache: Cloudflare keeps each full video at the edge (keyed by path + ?k=) and answers
+# byte ranges from it, so seeks don't wait on R2. Shared across deploys since files rarely change;
+# after re-uploading a file, purge it (dashboard → Workers → nihongo-media → Cache).
+[cache]
+enabled = true
+cross_version_cache = true
+
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "nihongo-lessons"

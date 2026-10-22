@@ -3,14 +3,19 @@
 //   GET/HEAD /<lesson>-<type>.mp4|jpg?k=<MEDIA_KEY>
 //
 // The key is a Worker secret (wrangler secret put MEDIA_KEY); the app keeps it on each device
-// (Settings → Lesson videos → Video server), never in the deployed bundle. Range requests are
-// passed through to R2, so the player can seek without downloading the whole file.
+// (Settings → Lesson videos → Video server), never in the deployed bundle.
+//
+// Workers Cache is on (wrangler.toml [cache]): Cloudflare strips Range, stores the full 200 under
+// path + query string (so the key is part of the cache key and a wrong key never matches), and
+// slices ranges from the edge copy. Errors are no-store. The Range branch below only runs if
+// caching is turned off.
 const FILE = /^\/(\d{1,2})-(vocab|stream|textbook|bonus|shadowing)\.(mp4|jpg)$/
 
 const CORS = {
   'Access-Control-Allow-Origin': '*', // the key is the gate; media elements don't send Origin anyway
   'Access-Control-Allow-Headers': 'Range',
   'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges',
+  'Cache-Control': 'no-store', // errors and health checks; video responses override it
 }
 
 function sameSecret(a, b) {
@@ -39,7 +44,7 @@ export default {
       obj.writeHttpMetadata(headers)
       headers.set('ETag', obj.httpEtag)
       headers.set('Accept-Ranges', 'bytes')
-      headers.set('Cache-Control', 'private, max-age=604800')
+      headers.set('Cache-Control', 'public, max-age=2592000') // 30 days at the edge and in the browser
       if (!headers.has('Content-Type')) headers.set('Content-Type', match[3] === 'mp4' ? 'video/mp4' : 'image/jpeg')
       for (const [k, v] of Object.entries(extra)) headers.set(k, v)
       return new Response(status === 200 || status === 206 ? obj.body ?? null : null, { status, headers })
