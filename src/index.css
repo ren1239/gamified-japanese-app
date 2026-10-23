@@ -1303,7 +1303,12 @@ input, textarea { font-family: inherit; outline: none; }
 .point-row { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 0; background: var(--surface); border: 2px solid var(--border); border-radius: 16px; }
 .point-row.current { border-color: var(--tone); background: var(--tone-tint); }
 .point-row.intro { opacity: 0.85; }
-.point-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px 0 8px 8px; text-align: left; background: none; color: var(--text); }
+.point-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px 0; text-align: left; background: none; color: var(--text); }
+/* Part checkbox: the leading circle. A ring until ticked; hover/focus shows it can be ticked */
+.point-tick { flex-shrink: 0; display: grid; place-items: center; padding: 8px 0 8px 8px; background: none; border-radius: 50%; }
+.point-tick .point-dot:not(.done):not(.current) { box-shadow: inset 0 0 0 2px var(--border-md); }
+.point-tick:hover .point-dot:not(.done), .point-tick:focus-visible .point-dot:not(.done) { box-shadow: inset 0 0 0 2px var(--success); color: var(--success); background: var(--success-dim); }
+.point-tick:active .point-dot { transform: scale(0.9); }
 .point-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .point-label { font-size: 15px; font-weight: 800; }
 .point-text small { font-size: 12px; font-weight: 700; color: var(--text-muted); }

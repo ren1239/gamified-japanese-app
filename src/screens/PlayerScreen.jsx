@@ -61,6 +61,7 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
   const done = useStatsStore((s) => s.videoProgress[key]?.done)
   const saveVideoProgress = useStatsStore((s) => s.saveVideoProgress)
   const completeVideoPoint = useStatsStore((s) => s.completeVideoPoint)
+  const setVideoPointDone = useStatsStore((s) => s.setVideoPointDone)
   const history = useStatsStore((s) => s.history)
   const mediaServer = useStatsStore((s) => s.mediaServer)
   const dailyGoal = useStatsStore((s) => s.dailyGoal)
@@ -180,6 +181,13 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
       setEarned((e) => ({ ...e, [i]: xp }))
       setFlash({ xp, label: p.label, id: Date.now() })
     }
+  }
+
+  // Ticked by hand: progress, no XP (unticked, watching it again re-ticks it, but its XP is only ever paid once)
+  const toggleDone = (i) => {
+    const on = !done?.[i]
+    doneRef.current[i] = on
+    setVideoPointDone(key, i, on)
   }
 
   // Credit the stretch prev → now to every point it overlaps (one step can span a boundary)
@@ -553,10 +561,20 @@ export default function PlayerScreen({ lesson, type, startPoint, onBack, onStart
                 const n = counted.indexOf(p) + 1
                 return (
                   <div key={i} className={`point-row${isCur ? ' current' : ''}${p.kind === 'intro' ? ' intro' : ''}`}>
-                    <button type="button" className="point-main" onClick={() => playPoint(i)}>
+                    {/* The circle is a checkbox (watched elsewhere? tick it); the title plays the part */}
+                    <button
+                      type="button"
+                      className={`point-tick${isDone ? ' done' : ''}`}
+                      onClick={() => toggleDone(i)}
+                      aria-pressed={isDone}
+                      aria-label={isDone ? `Watched: ${p.label}. Untick` : `Mark ${p.label} as watched`}
+                      title={isDone ? 'Watched · tap to untick' : 'Mark as watched'}
+                    >
                       <span className={`point-dot${isDone ? ' done' : ''}${isCur ? ' current' : ''}`}>
                         {isDone ? <Icon name="check" size={14} /> : isCur && playing ? <Icon name="play" size={12} /> : p.kind === 'intro' ? '·' : n}
                       </span>
+                    </button>
+                    <button type="button" className="point-main" onClick={() => playPoint(i)}>
                       <span className="point-text">
                         <Jp className="point-label">{p.label}</Jp>
                         <small>{fmtTime(p.start)} · {fmtTime(p.end - p.start)} long{p.sub && p.kind !== 'intro' ? ` · ${p.sub}` : ''}</small>

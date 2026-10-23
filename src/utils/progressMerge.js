@@ -6,7 +6,7 @@
 //   wrongBank,     newest change per key (`u`), minus keys removed later on either device (bankGone /
 //   flaggedBank    flagGone tombstones)
 //   learnedBank    union, earliest date        wordProgress  max
-//   videoProgress  watched seconds: max · watched parts: union · resume position: most recent device
+//   videoProgress  watched seconds: max · watched parts: latest tick/untick (mk), else union · resume: most recent
 //   prefs          name, daily goal, romaji: whichever side changed them last (prefsAt)
 //   quizStats      per quiz: most plays, best score
 import { todayStr } from './dates.js'
@@ -91,10 +91,24 @@ function mergeVideo(a = {}, b = {}) {
     const newer = num(y.t) > num(x.t) ? y : x
     const sec = { ...x.sec }
     for (const [i, s] of Object.entries(y.sec || {})) sec[i] = Math.max(num(sec[i]), num(s))
-    const done = { ...x.done }
-    for (const [i, d] of Object.entries(y.done || {})) if (!done[i] || d < done[i]) done[i] = d
+    // Watched parts: the latest tick/untick wins (mk stamps); parts never stamped: ticked on either side
+    const done = {}
+    const mk = {}
+    for (const i of new Set([...Object.keys(x.done || {}), ...Object.keys(y.done || {}), ...Object.keys(x.mk || {}), ...Object.keys(y.mk || {})])) {
+      const sx = num(x.mk?.[i])
+      const sy = num(y.mk?.[i])
+      if (sx || sy) {
+        const d = (sy > sx ? y : x).done?.[i]
+        if (d) done[i] = d
+        mk[i] = Math.max(sx, sy)
+      } else {
+        const dx = x.done?.[i]
+        const dy = y.done?.[i]
+        if (dx || dy) done[i] = !dx ? dy : !dy ? dx : dx < dy ? dx : dy
+      }
+    }
     const t = Math.max(num(x.t), num(y.t))
-    out[key] = { ...newer, pos: newer.pos ?? x.pos ?? y.pos ?? 0, sec, done, ...(t ? { t } : {}) }
+    out[key] = { ...newer, pos: newer.pos ?? x.pos ?? y.pos ?? 0, sec, done, ...(Object.keys(mk).length ? { mk } : {}), ...(t ? { t } : {}) }
   }
   return out
 }

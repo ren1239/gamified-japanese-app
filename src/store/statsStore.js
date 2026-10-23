@@ -84,7 +84,7 @@ export const useStatsStore = create(
       wordProgress: {}, // { 'ch12-n01': consecutiveCorrect }
       // Lesson videos (授業). Key = '<lesson>-<type>', e.g. '15-stream'. sec = seconds actually played per point
       // (index into the video's points), done = date the point counted as watched (≥ 90% played).
-      videoProgress: {}, // { '15-stream': { pos, sec: { 1: 412 }, done: { 1: 'YYYY-MM-DD' }, t } }
+      videoProgress: {}, // { '15-stream': { pos, sec: { 1: 412 }, done: { 1: 'YYYY-MM-DD' }, mk: { 1: ms }, t } }
       lastVideo: null, // { key, lesson, type, t } — drives the Continue card
       bankGone: {}, // { key: ms } removed from reviews (mastered / deleted) — for sync
       flagGone: {}, // { key: ms } unflagged — for sync
@@ -237,15 +237,30 @@ export const useStatsStore = create(
         }
       }),
 
-      /** A point (chapter) of a lesson video was watched. Awards its XP once; returns the XP earned. */
+      /** A point (chapter) of a lesson video was watched. Awards its XP once ever; returns the XP earned. */
       completeVideoPoint: (key, index, xp) => {
         const state = get()
         const vp = state.videoProgress[key] || {}
         if (vp.done?.[index]) return 0
-        set({ videoProgress: { ...state.videoProgress, [key]: { ...vp, done: { ...vp.done, [index]: todayStr() }, t: Date.now() } } })
-        // History entries for videos use a 'video:' id with no questions, so accuracy stats ignore them
-        return xp ? get().recordResult(`video:${key}:${index}`, 0, 0, xp) : 0
+        const t = Date.now()
+        set({ videoProgress: { ...state.videoProgress, [key]: { ...vp, done: { ...vp.done, [index]: todayStr() }, mk: { ...vp.mk, [index]: t }, t } } })
+        // History entries for videos use a 'video:' id with no questions, so accuracy stats ignore them.
+        // Already earned (ticked off by hand later, then watched again): no second helping.
+        const id = `video:${key}:${index}`
+        return xp && !state.history.some((e) => e.quizId === id) ? get().recordResult(id, 0, 0, xp) : 0
       },
+
+      /** Tick or untick a part by hand (watched elsewhere, or a mis-tap). Progress only: XP comes from watching. */
+      setVideoPointDone: (key, index, on) => set((state) => {
+        const vp = state.videoProgress[key] || {}
+        if (Boolean(vp.done?.[index]) === on) return {}
+        const done = { ...vp.done }
+        if (on) done[index] = todayStr()
+        else delete done[index]
+        const t = Date.now()
+        // mk = when each part was last ticked or unticked, so sync keeps the latest choice (progressMerge.js)
+        return { videoProgress: { ...state.videoProgress, [key]: { ...vp, done, mk: { ...vp.mk, [index]: t }, t } } }
+      }),
 
       setMediaServer: (mediaServer) => set({ mediaServer: { url: mediaServer.url.trim().replace(/\/+$/, ''), key: mediaServer.key.trim() } }),
 
