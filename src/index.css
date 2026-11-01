@@ -1039,6 +1039,13 @@ input, textarea { font-family: inherit; outline: none; }
 .flash-en { font-size: clamp(24px, 7vw, 32px); font-weight: 900; line-height: 1.3; }
 .flash-sub { font-size: 18px; font-weight: 800; opacity: 0.92; }
 .flash-romaji { font-size: 16px; font-weight: 700; opacity: 0.85; }
+.vocab-icon {
+  width: var(--size); height: var(--size); flex: none; display: grid; place-items: center;
+  border-radius: calc(var(--size) * 0.26); background: var(--tint);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5), 0 3px 0 rgba(20, 24, 40, 0.14);
+}
+.vocab-icon svg { width: 78%; height: 78%; }
+.flash-face.pic .flash-face-label { opacity: 0.85; }
 .flash-hint { position: absolute; bottom: 16px; font-size: 12px; font-weight: 800; opacity: 0.6; }
 .flash-stamp { position: absolute; top: 20px; z-index: 2; padding: 6px 12px; border-radius: 12px; border: 3px solid currentColor; font-weight: 900; font-size: 16px; text-transform: uppercase; letter-spacing: 0.06em; background: var(--surface); pointer-events: none; }
 .flash-stamp.knew { left: 18px; color: var(--success-deep); transform: rotate(-10deg); }

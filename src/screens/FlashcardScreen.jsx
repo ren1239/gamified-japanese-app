@@ -8,12 +8,15 @@ import Icon from '../components/Icon'
 import Mascot from '../components/Mascot'
 import RomajiToggle from '../components/RomajiToggle'
 import ChipGroup from '../components/ChipGroup'
+import VocabIcon from '../components/VocabIcon'
+import { iconFor } from '../data/vocabIcons'
 
 const CAT_LABEL = { all: 'All words', noun: 'Nouns', verb: 'Verbs', other: 'Adjectives & expressions' }
 const MODES = [
   { id: 'jp-en', label: 'JP → EN' },
   { id: 'en-jp', label: 'EN → JP' },
   { id: 'kanji', label: 'Kanji' },
+  { id: 'pic', label: 'Pictures' },
 ]
 const SWIPE = 110
 
@@ -33,6 +36,7 @@ const clean = (kana) => kana.replace(/〜/g, '')
 export default function FlashcardScreen({ chapter, category, direction, onBack }) {
   const allWords = useMemo(() => getWordsForChapterAndCategory(chapter.number, category), [chapter.number, category])
   const kanjiWords = useMemo(() => allWords.filter((w) => w.kanji), [allWords])
+  const picWords = useMemo(() => allWords.filter((w) => iconFor(`ch${chapter.number}-${w.id}`)), [allWords, chapter.number])
   const [mode, setMode] = useState(direction === 'en-jp' ? 'en-jp' : 'jp-en')
   const [shuffled, setShuffled] = useState(true)
   const [deck, setDeck] = useState(() => shuffle(allWords))
@@ -50,7 +54,7 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
   const card = deck[index]
   const learnedSet = useMemo(() => new Set(learnedBank.map((e) => e.wordId)), [learnedBank])
   const totalLearned = allWords.filter((w) => learnedSet.has(`ch${chapter.number}-${w.id}`)).length
-  const wordsForMode = (m) => (m === 'kanji' && kanjiWords.length ? kanjiWords : allWords)
+  const wordsForMode = (m) => (m === 'kanji' && kanjiWords.length ? kanjiWords : m === 'pic' && picWords.length ? picWords : allWords)
 
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-200, 200], [-12, 12])
@@ -67,6 +71,7 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
   }
   const changeMode = (m) => {
     if (m === 'kanji' && !kanjiWords.length) return
+    if (m === 'pic' && !picWords.length) return
     setMode(m)
     startDeck(wordsForMode(m))
   }
@@ -76,14 +81,17 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
     startDeck(wordsForMode(mode), next)
   }
 
-  // What each face shows for the current mode
+  // What each face shows for the current mode. The picture (when the word has one) goes with the
+  // meaning: on the English side, never next to the Japanese it would give away.
   const faces = useMemo(() => {
     if (!card) return null
     const jp = card.kanji ? `${card.kana}（${card.kanji}）` : card.kana
-    if (mode === 'en-jp') return { front: { kind: 'en', text: card.english }, back: { kind: 'jp', text: jp, reading: card.kana } }
-    if (mode === 'kanji') return { front: { kind: 'jp', text: card.kanji || card.kana, reading: card.kana, hideRomaji: true }, back: { kind: 'reading', text: card.kana, sub: card.english, reading: card.kana } }
-    return { front: { kind: 'jp', text: jp, reading: card.kana }, back: { kind: 'en', text: card.english, reading: card.kana } }
-  }, [card, mode])
+    const icon = `ch${chapter.number}-${card.id}`
+    if (mode === 'pic') return { front: { kind: 'pic', icon, sub: card.english }, back: { kind: 'jp', text: jp, sub: card.english, reading: card.kana } }
+    if (mode === 'en-jp') return { front: { kind: 'en', text: card.english, icon }, back: { kind: 'jp', text: jp, reading: card.kana } }
+    if (mode === 'kanji') return { front: { kind: 'jp', text: card.kanji || card.kana, reading: card.kana, hideRomaji: true }, back: { kind: 'reading', text: card.kana, sub: card.english, reading: card.kana, icon } }
+    return { front: { kind: 'jp', text: jp, reading: card.kana }, back: { kind: 'en', text: card.english, reading: card.kana, icon } }
+  }, [card, mode, chapter.number])
 
   // Read the word aloud when its Japanese side is showing
   useEffect(() => {
@@ -97,7 +105,7 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
   const grade = useCallback((knew) => {
     if (!card) return
     recordVocabAnswer(`ch${chapter.number}-${card.id}`, chapter.number, knew)
-    const question = buildWordQuestion(card, chapter.number, mode === 'en-jp' ? 'en-jp' : 'jp-en')
+    const question = buildWordQuestion(card, chapter.number, mode === 'en-jp' || mode === 'pic' ? 'en-jp' : 'jp-en')
     applyAnswersToBank([{ quizId: question._sourceQuizId, quizTitle: question._sourceQuizTitle, question, correct: knew }])
     setResults((r) => ({ ...r, [card.id]: knew ? 'knew' : 'learning' }))
     animate(x, knew ? 420 : -420, { duration: 0.2 }).then(() => {
@@ -145,9 +153,10 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
     const showR = romaji && (side === 'back' ? f.kind !== 'en' || showRomaji : showRomaji && !f.hideRomaji && f.kind !== 'en')
     return (
       <div className={`flash-face ${side} ${f.kind}`}>
-        <span className="flash-face-label">{f.kind === 'en' ? 'English' : f.kind === 'reading' ? 'Reading' : 'Japanese'}</span>
-        {f.kind === 'en' ? <span className="flash-en">{f.text}</span> : <span className="flash-jp jp">{f.text}</span>}
-        {f.kind === 'reading' && <span className="flash-sub">{f.sub}</span>}
+        <span className="flash-face-label">{f.kind === 'pic' ? 'Say it in Japanese' : f.kind === 'en' ? 'English' : f.kind === 'reading' ? 'Reading' : 'Japanese'}</span>
+        {f.icon && <VocabIcon wordKey={f.icon} size={f.kind === 'pic' ? 132 : 84} />}
+        {f.kind === 'en' ? <span className="flash-en">{f.text}</span> : f.kind !== 'pic' && <span className="flash-jp jp">{f.text}</span>}
+        {f.sub && <span className="flash-sub">{f.sub}</span>}
         {f.kind === 'en' && side === 'back' && <span className="flash-romaji jp">{f.reading}</span>}
         {showR && <span className="flash-romaji">{romaji}</span>}
         {side === 'front' && <span className="flash-hint">Tap to flip · swipe to grade</span>}
@@ -167,7 +176,7 @@ export default function FlashcardScreen({ chapter, category, direction, onBack }
       </header>
 
       <div className="flash-controls">
-        <ChipGroup options={MODES.map((m) => (m.id === 'kanji' && !kanjiWords.length ? { ...m, label: 'Kanji (none here)' } : m))} value={mode} onChange={changeMode} />
+        <ChipGroup options={MODES.filter((m) => m.id !== 'pic' || picWords.length).map((m) => (m.id === 'kanji' && !kanjiWords.length ? { ...m, label: 'Kanji (none here)' } : m))} value={mode} onChange={changeMode} />
         <button type="button" className={`flash-shuffle ${shuffled ? 'on' : ''}`} onClick={toggleShuffle} aria-pressed={shuffled} title={shuffled ? 'Shuffled' : 'Textbook order'}>
           <Icon name="shuffle" size={18} />
         </button>
