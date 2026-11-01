@@ -94,7 +94,7 @@ export const ch16SumimasenQuiz = makeQuiz({
   ['"Sorry I didn\'t come to class."', '授業に___すみませんでした。', ['来なくて', '来ないで', '来なかった', '来ませんで'], 'Didn\'t do → 〜なくてすみませんでした.'],
   ['What does this mean?', 'この間は失礼なことを言ってすみませんでした。', ['I\'m sorry I said something rude the other day.', 'Excuse me, can I say something?', 'It\'s rude to apologize.', 'You said something rude to me.'], 'て-form apology for a past action.'],
   ['"Sorry I didn\'t hand in my homework."', '宿題を___すみませんでした。', ['出さなくて', '出さないで', '出しなくて', '出なくて'], '出す → 出さない → 出さなくて.'],
-  ['Cross-pattern (てくれる + apology context): "Thanks for coming to pick me up — sorry for making you wait."', '迎えに来てくれて、ありがとう。___ごめん。', ['待たせて', '待って', '待たせた', '待たれて'], '待たせる = make (someone) wait → て-form 待たせて.'],
+  ['Cross-pattern (clause + noun + apology): "Sorry I forgot the book I borrowed."', '借りた本を___すみませんでした。', ['忘れて', '忘れた', '忘れるて', '忘れって'], '忘れる (ru-verb) → て-form 忘れて. 借りた本 = "the book I borrowed".'],
 ])
 
 export const ch16ReviewQuiz = makeQuiz({

@@ -110,8 +110,8 @@ export const ch17MaeniKaraQuiz = makeQuiz({
   ['"I put on makeup before going out."', '出かける___、化粧します。', ['前に', 'てから', '後で', 'から'], 'Before = 前に.'],
   ['"After I got used to the job, it became fun."', '仕事に___から、楽しくなりました。', ['慣れて', '慣れた', '慣れる', '慣れ'], 'て-form + から.'],
   ['What does this mean?', 'お祈りしてから、食べます。', ['I eat after I pray.', 'I pray after I eat.', 'I pray before I eat... and eat later.', 'I pray instead of eating.'], 'XてからY = Y after X.'],
-  ['"Comb your hair before the interview."', '面接の___、髪をとかしてください。', ['前に', 'てから', 'から', 'まえ'], 'Noun + の + 前に.'],
-  ['"I\'ll decide after I compare them."', '比べ___、決めます。', ['てから', 'る前に', 'たから', 'るから'], 'て-form + から = after.'],
+  ['"Comb your hair before the date."', 'デートの___、髪をとかしてください。', ['前に', 'てから', 'から', 'まえ'], 'Noun + の + 前に.'],
+  ['"I\'ll choose after I look at them."', '見___、選びます。', ['てから', 'る前に', 'たから', 'るから'], 'て-form + から = after: 見てから.'],
   ['"Lock the door before you go out."', '出かける前に、___ください。', ['かぎをかけて', 'かぎをかかって', 'かぎをかけって', 'かぎがかけて'], 'かぎをかける → かけてください.'],
   ['Cross-pattern (てから + たい): "I want to get a job after I graduate."', '卒業___、就職したいです。', ['してから', 'する前に', 'したから', 'してまえに'], 'する → して + から.'],
 ])

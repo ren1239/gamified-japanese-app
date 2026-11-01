@@ -1,0 +1,116 @@
+// Teaching notes for Ch.1 (あのう、すみません) — used by voice lessons in Claude chat (CLAUDE.md §16).
+// Written in our own words; examples use Ch.1 vocab (plus Ch.0 numbers) and only Ch.1 grammar.
+export default [
+  {
+    key: 'ch1-desu',
+    summary: 'Say what someone or something is: X は Y です.',
+    formation: [
+      'X は Y です = "X is Y"; は (written は, said "wa") marks the topic',
+      'Y is a noun: 学生です, 会社員です, 日本人です, 十九歳です',
+      'Nationality = country + 人 (アメリカ人, 日本人); language = country + 語 (日本語)',
+      'Drop わたしは when it is obvious you are talking about yourself',
+      'Agree with はい、そうです ("yes, that\'s right")',
+    ],
+    examples: [
+      { jp: 'わたしは大学生です。', en: 'I am a college student.' },
+      { jp: 'たけしさんは日本人です。', en: 'Takeshi is Japanese.' },
+      { jp: '専攻は経済です。', en: 'My major is economics.' },
+      { jp: 'メアリーさんは二年生です。', en: 'Mary is a second-year student.' },
+      { jp: '妹は十六歳です。', en: 'My younger sister is sixteen.' },
+    ],
+    pitfalls: [
+      'Leaving out は: わたし学生です → わたしは学生です.',
+      'Swapping X and Y: "My major is Japanese" is 専攻は日本語です, not 日本語は専攻です.',
+      'Putting さん on your own name — it is only for other people.',
+      'Dropping です in polite speech (わたしは三年生 → わたしは三年生です).',
+    ],
+    drills: [
+      { cue: '"I am an international student."', answer: 'わたしは留学生です。' },
+      { cue: '"My major is history."', answer: '専攻は歴史です。' },
+      { cue: '"Ms. Yamada is a lawyer."', answer: '山田さんは弁護士です。' },
+      { cue: '"I am nineteen years old."', answer: '十九歳です。（じゅうきゅうさい）' },
+      { cue: '"My friend is Japanese."', answer: '友達は日本人です。' },
+      { cue: '"I am a graduate student."', answer: 'わたしは大学院生です。' },
+      { cue: '"Takeshi is a fourth-year student."', answer: 'たけしさんは四年生です。（よねんせい）' },
+    ],
+    conversation: [
+      'Self-introduction: tell the tutor your name, nationality, school year, major and age — one です sentence each.',
+      'Job fair: the tutor names imaginary people and hints at their jobs; say what each one is (医者です, 看護師です, 会社員です…).',
+    ],
+  },
+  {
+    key: 'ch1-ka',
+    summary: 'Turn a です sentence into a question by adding か; question words sit where the answer goes.',
+    formation: [
+      'Statement + か = question: 留学生です → 留学生ですか',
+      'Question words go in the answer\'s slot: 専攻は何ですか → 専攻は経済です',
+      '何 is read なん before です and counters: 何ですか, 何時 (なんじ), 何歳 (なんさい), 何年生 (なんねんせい), 何番 (なんばん)',
+      'Reply with はい、そうです (yes), or give the right fact; react to new information with そうですか',
+      'Use the person\'s name + さん instead of "you" when asking',
+    ],
+    examples: [
+      { jp: '留学生ですか。', en: 'Are you an international student?' },
+      { jp: '専攻は何ですか。', en: 'What is your major?' },
+      { jp: '今、何時ですか。—午後二時半です。', en: 'What time is it now? — It\'s half past two in the afternoon.' },
+      { jp: 'たけしさんは何年生ですか。', en: 'What year is Takeshi in?' },
+      { jp: '電話番号は何番ですか。', en: 'What is your phone number?' },
+    ],
+    pitfalls: [
+      'Forgetting か: polite questions end in ですか, not just a rising ですね or です.',
+      'Reading 何 as なに before です or a counter: なんですか, なんじ.',
+      'Mixing up 何歳 (how old) and 何年生 (what year at school).',
+      'Time readings: 4時 = よじ, 7時 = しちじ, 9時 = くじ (not きゅうじ).',
+    ],
+    drills: [
+      { cue: 'Ask: "What is your name?"', answer: 'お名前は何ですか。' },
+      { cue: 'Ask: "What time is it now?"', answer: '今、何時ですか。' },
+      { cue: 'Ask: "Are you Japanese?"', answer: '日本人ですか。' },
+      { cue: 'Ask: "What year are you?"', answer: '何年生ですか。' },
+      { cue: 'Ask: "How old are you?"', answer: '何歳ですか。' },
+      { cue: 'Ask: "Is your major economics?"', answer: '専攻は経済ですか。' },
+      { cue: 'Answer: "It\'s nine in the morning."', answer: '午前九時です。（くじ）' },
+      { cue: 'Answer: "It\'s four thirty in the afternoon."', answer: '午後四時半です。（よじはん）' },
+    ],
+    conversation: [
+      'New classmate: the tutor plays a new student; ask their name, nationality, major, year, age and phone number, reacting with そうですか to each answer.',
+      'Swap roles: the tutor interviews you with the same questions; answer in full です sentences, then ask one question back each time.',
+      'What time is it?: the tutor reads out clock times in English; ask 今、何時ですか and answer in Japanese with 午前/午後 and 半.',
+    ],
+  },
+  {
+    key: 'ch1-no',
+    summary: 'Link two nouns with の: A の B = "B of A", with the main noun last.',
+    formation: [
+      'A の B: A describes B, and B (the main thing) comes last',
+      'Possession: たけしさんの電話番号 (Takeshi\'s phone number)',
+      'Belonging: さくら大学の学生 (a student at Sakura University), 日本の大学 (a university in Japan)',
+      'Field or type: 日本語の学生, 歴史の先生, 高校の先生',
+      'Can chain: わたしの友達の名前 (my friend\'s name)',
+    ],
+    examples: [
+      { jp: 'わたしは日本の大学の学生です。', en: 'I am a student at a Japanese university.' },
+      { jp: 'メアリーさんのお父さんは医者です。', en: 'Mary\'s father is a doctor.' },
+      { jp: 'たけしさんの専攻は文学です。', en: 'Takeshi\'s major is literature.' },
+      { jp: '山田さんは高校の先生です。', en: 'Mr. Yamada is a high school teacher.' },
+      { jp: '友達のお兄さんは会社員です。', en: 'My friend\'s older brother is an office worker.' },
+    ],
+    pitfalls: [
+      'Reversing the order: 学生の日本語 means "the students\' Japanese"; say 日本語の学生.',
+      'Leaving out の: 日本語学生 → 日本語の学生 (fixed words like 日本人, 大学生, 電話番号 are the exception).',
+      'Reading の as "and" — A の B always means "B of A".',
+    ],
+    drills: [
+      { cue: '"my name"', answer: 'わたしの名前' },
+      { cue: '"Takeshi\'s older sister"', answer: 'たけしさんのお姉さん' },
+      { cue: '"a history teacher"', answer: '歴史の先生' },
+      { cue: '"a university in Japan"', answer: '日本の大学' },
+      { cue: '"My friend\'s major is biology."', answer: '友達の専攻は生物学です。' },
+      { cue: '"Mary\'s mother is a nurse."', answer: 'メアリーさんのお母さんは看護師です。' },
+      { cue: 'Ask: "What is Mary\'s phone number?"', answer: 'メアリーさんの電話番号は何番ですか。' },
+    ],
+    conversation: [
+      'Friend\'s family: describe a friend\'s family from an imaginary photo (友達のお父さんは…、お姉さんは…).',
+      'Campus directory: the tutor names students; ask about each one\'s university, major and phone number using の, and the tutor answers.',
+    ],
+  },
+]

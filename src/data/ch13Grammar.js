@@ -115,7 +115,7 @@ export const ch13FrequencyQuiz = makeQuiz({
   ['"I study for two hours a day."', null, ['一日に二時間勉強します。', '二時間に一日勉強します。', '一日を二時間勉強します。', '一日の二時間に勉強します。'], 'Duration works the same way: 一日に二時間.'],
   ['"once a year"', null, ['一年に一回', '一年を一回', '一回に一年', '一年が一回'], '一年 + に + 一回.'],
   ['"I go to the gym three days a week."', '一週間に___ジムに行きます。', ['三日', '三日目', '三日間に', 'みっかに'], 'Days are counted with the day counter: 三日 (みっか).'],
-  ['Cross-pattern (frequency + potential): "I can only go home once a year."', '一年に一回しか国に___。', ['帰れません', '帰れます', '帰られません', '帰るません'], 'しか needs a negative: 帰る (u-verb) → 帰れる → 帰れません.'],
+  ['Cross-pattern (frequency + potential): "I can go home twice a year."', '一年に二回国に___。', ['帰れます', '帰られます', '帰れるます', '帰りれます'], '帰る is a u-verb: 帰れる → 帰れます. 帰られます follows the ru-verb pattern.'],
 ])
 
 export const ch13ReviewQuiz = makeQuiz({

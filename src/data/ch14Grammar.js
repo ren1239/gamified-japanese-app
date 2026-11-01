@@ -10,7 +10,7 @@ export const ch14HoshiiQuiz = makeQuiz({
   description: '(私は) X がほしい = "I want X". ほしい is an い-adjective (ほしくない, ほしかった). Mainly for the speaker; for others use ほしいと言っています, ほしいでしょう, or ほしがっている (with を).',
 }, [
   ['"I want a new necktie."', '新しいネクタイ___ほしいです。', ['が', 'を', 'に', 'で'], 'The object of ほしい takes が.'],
-  ['"When I was a child, I wanted a stuffed animal."', '子供の時、ぬいぐるみがほし___。', ['かったです', 'いでした', 'いかったです', 'くでした'], 'ほしい is an い-adjective: past ほしかったです.'],
+  ['"For my birthday last year, I wanted a stuffed animal."', '去年の誕生日に、ぬいぐるみがほし___。', ['かったです', 'いでした', 'いかったです', 'くでした'], 'ほしい is an い-adjective: past ほしかったです.'],
   ['"I don\'t want chocolate." (negative)', 'チョコレートは___。', ['ほしくないです', 'ほしいじゃないです', 'ほしいないです', 'ほしなかったです'], 'い-adj negative: ほしくないです. は is common in negatives.'],
   ['How do you say "Do you want a ring?" casually?', null, ['指輪、ほしい？', '指輪、ほしがる？', '指輪、ほしいだ？', '指輪、ほしく？'], 'Casual question: just ほしい with rising intonation.'],
   ['Reporting someone else\'s wish: "My mother says she wants cosmetics."', '母は化粧品がほしい___。', ['と言っています', 'です', 'がります', 'ています'], 'For third persons, quote: ほしいと言っています.'],

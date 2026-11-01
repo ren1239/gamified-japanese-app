@@ -362,3 +362,15 @@ Optional. Signed out, everything stays on the device as before. Signed in, progr
 - **What syncs**: everything in `SYNCED_STATS` (XP, history, streak, reviews, flags, learned words, video progress, Continue card, name / daily goal / romaji) plus each quiz's plays and best score. **Device-only**: theme, sound, voice, reminders, the video server URL and key.
 - **Merge rules** (see the header of `progressMerge.js`): history entries carry `t`; review and flag entries `u`; removals leave tombstones in `bankGone` / `flagGone`; video progress and `lastVideo` carry `t`; preferences use `prefsAt`. Any new synced field needs a merge rule there and a stamp where it changes.
 - **Reset all progress** while signed in overwrites the cloud copy (`resetCloudProgress`) instead of merging it back.
+
+---
+
+## 16 — Voice Lessons (content in Supabase for Claude chat)
+
+App content is mirrored to the **`nihongo` schema** in the macro-monster project so a Claude chat (Supabase connector) can run spoken lessons: `select nihongo.lesson_pack(15, 1);`. User guide + the Project instructions to paste: `docs/voice-lessons.md`.
+
+- **Tables**: `chapters`, `vocab` (`word_key` = `ch15-n04`, the app's learned-word key), `grammar_points` (`point_key` = quiz id, or `chN-sK` for note-only points; `section` 1…n in textbook order, null for まとめ; `notes` jsonb), `grammar_questions` (answer + distractors; app review key = `<point_key>-<qid>`), `voice_sessions` (log written by Claude chat), `settings` (`learner_user_id`, `content_key_sha256`). View `syllabus`. Schema is not exposed to the Data API; no anon/authenticated grants.
+- **`lesson_pack(chapter, section?, vocab_from = 1)`** → one JSON: `how_to_use`, sections, points (+notes, questions), vocab (this chapter in full; earlier chapters as compact lines), learner (weak vocab, top-15 review items, last 3 sessions) read from `public.nihongo_progress` via `learner_state()`.
+- **Updating content**: edit the app data / teaching notes, then `npm run content:push` (or `-- 15 16` for some chapters). It calls `public.nihongo_load_content(doc, key)` with the anon key; the key is `NIHONGO_CONTENT_KEY` in `.env.local` (gitignored, never print it), and the DB stores only its SHA-256. `--sql` writes `supabase/content/chNN.sql` instead. Each chapter is replaced as a whole (`load_chapter`). Migrations: `supabase/migrations/20261030*`.
+- **Sections** = `chapterData.js` grammar order (minus まとめ). Chapters without quizzes (Ch.2–10) get sections only from teaching notes.
+- **Teaching notes**: `content/teaching/chNN.js` (format + field meanings in `ch15.js`): summary, formation, examples `{jp,en}`, pitfalls, drills `{cue,answer}`, conversation. Own words, chapter vocab first. Notes-only points need `key: 'chN-sK'`, `section`, `label`, `title`.

@@ -248,8 +248,8 @@ export const ch12NdesuQuiz = {
     },
     {
       id: 12,
-      question: 'Explain you did NOT pay the fee.',
-      jp: '代を___んです。',
+      question: 'Explain you did NOT pay the electricity bill.',
+      jp: '電気代を___んです。',
       choices: ['払わない', '払った', '払わなかった', '払う'],
       correct: 2,
       explanation: '払う → negative past short form → 払わなかった. Attach directly → 払わなかったんです.',
@@ -382,8 +382,8 @@ export const ch12HougaiiQuiz = {
     },
     {
       id: 9,
-      question: 'Advise someone to pay the fee. Which form goes before ほうがいいです?',
-      jp: '代を___ほうがいいですよ。',
+      question: 'Advise someone to pay the electricity bill. Which form goes before ほうがいいです?',
+      jp: '電気代を___ほうがいいですよ。',
       choices: ['払った', '払う', '払わない', '払って'],
       correct: 0,
       explanation: '払う → u-verb → short past: 払った + ほうがいいです. Positive advice always uses the past form.',
