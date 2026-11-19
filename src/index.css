@@ -1425,6 +1425,8 @@ input, textarea { font-family: inherit; outline: none; }
 .gp-clip.done { color: var(--success-deep); background: var(--success-dim); }
 .gp-clip.done svg { background: var(--success); color: #fff; }
 .gp-clip:hover { filter: brightness(0.97); }
+.gp-clip.slides { color: var(--primary-deep); background: var(--primary-tint); }
+.gp-clip.slides svg { color: var(--primary); }
 .quiz-pill { display: inline-flex; align-items: center; gap: 4px; }
 .lesson-review { margin: 0 16px; width: auto; }
 .lesson-review-chest { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center; background: var(--gold); color: #fff; box-shadow: 0 3px 0 var(--gold-deep); }

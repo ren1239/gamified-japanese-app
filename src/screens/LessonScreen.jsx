@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useStatsStore } from '../store/statsStore'
 import { useQuizStore } from '../store/quizStore'
 import { useVideoSource, hasVideo } from '../utils/videoSource'
@@ -8,6 +9,9 @@ import Mascot from '../components/Mascot'
 import Icon from '../components/Icon'
 import Jp from '../components/Jp'
 import RomajiToggle from '../components/RomajiToggle'
+import { hasSlides } from '../slides/available'
+
+const Slides = lazy(() => import('../slides/Slides.jsx'))
 
 // One Genki lesson. Two views of the same material:
 //   Videos (the course path, in Andy's order: vocab → grammar stream → textbook → bonus → shadowing)
@@ -68,6 +72,8 @@ export default function LessonScreen({ lesson, onBack, onPlay, onStartQuiz, onFl
   const review = quizMap[`ch${lesson}-review`]
   const hasVocab = info.chapter?.vocab?.available
   const vocabCards = () => onFlashcard({ chapter: info.chapter, category: 'all', direction: 'jp-en' })
+  const slides = hasSlides(lesson)
+  const [slidesAt, setSlidesAt] = useState(null) // quiz id of the point the deck opens at
 
   return (
     <div className="lesson-page">
@@ -120,8 +126,13 @@ export default function LessonScreen({ lesson, onBack, onPlay, onStartQuiz, onFl
                       </button>
                     )}
                   </div>
-                  {g.clips.length > 0 && (
+                  {(g.clips.length > 0 || slides) && (
                     <div className="gp-clips">
+                      {slides && g.quiz && (
+                        <button type="button" className="gp-clip slides" onClick={() => setSlidesAt(g.quiz.id)}>
+                          <Icon name="book" size={12} />Slides
+                        </button>
+                      )}
                       {g.clips.map((c) => (
                         <button key={c.type} type="button" className={`gp-clip ${c.state}`} onClick={() => onPlay({ lesson, type: c.type, point: c.start })}>
                           <Icon name={c.state === 'done' ? 'check' : 'play'} size={12} />
@@ -205,6 +216,11 @@ export default function LessonScreen({ lesson, onBack, onPlay, onStartQuiz, onFl
           </button>
         )}
       </div>
+
+      {slidesAt && createPortal(
+        <Suspense fallback={null}><Slides chapter={lesson} point={slidesAt} onClose={() => setSlidesAt(null)} /></Suspense>,
+        document.body,
+      )}
     </div>
   )
 }

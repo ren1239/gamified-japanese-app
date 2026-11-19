@@ -15,6 +15,21 @@ export function kanjiToKana(str) {
   return str ? applyKanjiMap(str) : str
 }
 
+/**
+ * Splits a string into [text, reading] segments for furigana: reading is the kana for a known
+ * kanji word, null for everything else. Same rules as kanjiToKana.
+ */
+export function furiganaSegments(str) {
+  const found = []
+  const mark = (kanji, kana) => `\uE000${found.push([kanji, kana]) - 1}\uE001`
+  let s = str
+  for (const [pattern, kana] of READING_RULES) {
+    s = typeof pattern === 'string' ? s.split(pattern).join(mark(pattern, kana)) : s.replace(pattern, (m) => mark(m, kana))
+  }
+  return s.split(/\uE000(\d+)\uE001/).flatMap((part, i) =>
+    i % 2 ? [found[part]] : part ? [[part, null]] : [])
+}
+
 const HAS_JAPANESE = /[\u3040-\u30FF\u4E00-\u9FFF]/
 
 /**
