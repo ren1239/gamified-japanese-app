@@ -108,7 +108,7 @@ function BuildSlide({ slide, furi }) {
                 <div className="row-pairs">
                   {pairs.map((p) => (Array.isArray(p)
                     ? <Conversion key={p[0]} from={p[0]} to={p[1]} furi={furi} />
-                    : <span key={p} className="conv"><Furi text={p} furi={furi} /></span>))}
+                    : <span key={p} className="conv"><span><Furi text={p} furi={furi} /></span></span>))}
                 </div>
               </div>
             ))}
@@ -231,7 +231,7 @@ function RecapSlide({ slide, furi }) {
   return (
     <div className="sl">
       <header className="sl-head"><span className="sl-pill gold">まとめ</span><span className="sl-kicker">{chapter.title} recap</span></header>
-      <div className="recap">
+      <div className={`recap${points.length > 4 ? ' many' : ''}`}>
         {points.map((p) => (
           <div className="recap-row card" key={p.key}>
             <span className="num">{p.index}</span>
@@ -240,7 +240,7 @@ function RecapSlide({ slide, furi }) {
           </div>
         ))}
       </div>
-      <Mascot who="nori" mood="cheer" size={170} className="corner-mascot mascot-idle" />
+      {points.length <= 4 && <Mascot who="nori" mood="cheer" size={170} className="corner-mascot mascot-idle" />}
     </div>
   )
 }

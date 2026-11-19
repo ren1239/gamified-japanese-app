@@ -89,8 +89,8 @@
 .sl-viewport .eq-cap { font-size: 20px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
 .sl-viewport .eq-plus { font-size: 56px; font-weight: 900; color: var(--text-muted); }
 .sl-viewport .eq-en { margin: 0; font-size: 28px; font-weight: 800; color: var(--text-2); }
-.sl-viewport .uses { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; }
-.sl-viewport .use { display: flex; align-items: baseline; gap: 18px; padding: 10px 4px; border-bottom: 2px dashed var(--border); }
+.sl-viewport .uses { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px; }
+.sl-viewport .use { display: flex; align-items: baseline; gap: 18px; padding: 8px 4px; border-bottom: 2px dashed var(--border); }
 .sl-viewport .use-jp { font-size: 36px; font-weight: 800; white-space: nowrap; }
 .sl-viewport .use-en { font-size: 22px; font-weight: 700; color: var(--text-2); }
 .sl-viewport .formation { margin: 0; padding-left: 28px; display: grid; gap: 16px; font-size: 28px; font-weight: 700; color: var(--text-2); line-height: 1.5; }
@@ -150,6 +150,9 @@
 .sl-viewport .recap-title { font-size: 22px; font-weight: 800; color: var(--text-2); }
 .sl-viewport .recap-ex { grid-column: 2; margin: 0; font-size: 24px; font-weight: 700; color: var(--text-2); }
 .sl-viewport .recap-ex .mk-hl { color: var(--accent); }
+.sl-viewport .recap.many { grid-template-columns: 1fr 1fr; padding-right: 0; }
+.sl-viewport .recap.many .recap-title { display: none; }
+.sl-viewport .recap.many .recap-row { padding: 14px 22px; }
 
 /* Footer */
 .sl-viewport .sl-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; padding: 0 56px; display: flex; align-items: center; gap: 20px; cursor: default; }
